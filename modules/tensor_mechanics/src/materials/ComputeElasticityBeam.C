@@ -26,6 +26,7 @@ validParams<ComputeElasticityBeam>()
   params.addRequiredCoupledVar(
       "youngs_modulus",
       "Young's modulus of the material. Can be supplied as either a number or a variable name.");
+      //params.declareControllable("youngs_modulus");
   params.addRequiredCoupledVar(
       "poissons_ratio",
       "Poisson's ratio of the material. Can be supplied as either a number or a variable name.");
