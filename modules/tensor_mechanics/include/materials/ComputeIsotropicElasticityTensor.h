@@ -43,5 +43,6 @@ protected:
 
   /// Individual elasticity tensor
   RankFourTensor _Cijkl;
-};
 
+  Real _effecstiff_local;
+};
