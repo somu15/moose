@@ -42,7 +42,7 @@ validParams<ComputeIncrementalBeamStrain>()
                        "as either a number or a variable name.");
   params.addCoupledVar("Az",
                        0.0,
-                       "First moment of area of the beam about z axis. Can be supplied "
+                       "First moment of area of the beam about z asix. Can be supplied "
                        "as either a number or a variable name.");
   params.addCoupledVar("Ix",
                        "Second moment of area of the beam about x axis. Can be "
@@ -56,6 +56,9 @@ validParams<ComputeIncrementalBeamStrain>()
   params.addParam<bool>("large_strain", false, "Set to true if large strain are to be calculated.");
   params.addParam<std::vector<MaterialPropertyName>>(
       "eigenstrain_names", "List of beam eigenstrains to be applied in this strain calculation.");
+  params.addParam<FunctionName>(
+      "elasticity_prefactor",
+      "Optional function to use as a scalar prefactor on the elasticity vector for the beam.");
   return params;
 }
 
@@ -97,7 +100,10 @@ ComputeIncrementalBeamStrain::ComputeIncrementalBeamStrain(const InputParameters
     _soln_disp_index_1(_ndisp),
     _soln_rot_index_0(_ndisp),
     _soln_rot_index_1(_ndisp),
-    _initial_rotation(declareProperty<RankTwoTensor>("initial_rotation"))
+    _initial_rotation(declareProperty<RankTwoTensor>("initial_rotation")),
+    _effective_stiffness(declareProperty<Real>("effective_stiffness")),
+    _prefactor_function(isParamValid("elasticity_prefactor") ? &getFunction("elasticity_prefactor")
+                                                             : nullptr)
 {
   // Checking for consistency between length of the provided displacements and rotations vector
   if (_ndisp != _nrot)
@@ -222,6 +228,8 @@ ComputeIncrementalBeamStrain::computeProperties()
 void
 ComputeIncrementalBeamStrain::computeQpStrain()
 {
+  const Real A_avg = (_area[0] + _area[1]) / 2.0;
+  const Real Iz_avg = (_Iz[0] + _Iz[1]) / 2.0;
   Real Ix = _Ix[_qp];
   if (!_has_Ix)
     Ix = _Iy[_qp] + _Iz[_qp];
@@ -319,6 +327,38 @@ ComputeIncrementalBeamStrain::computeQpStrain()
     _mech_rot_strain_increment[_qp] -=
         _total_rotation[0] * ((*_rot_eigenstrain[i])[_qp] - (*_rot_eigenstrain_old[i])[_qp]);
   }
+
+  Real C1_paper = std::sqrt(_material_stiffness[0](0));
+  Real C2_paper = std::sqrt(_material_stiffness[0](1));
+
+  Real r_Asq = std::min(Utility::pow<2>(_original_length[0]) / Utility::pow<2>(C1_paper),
+                        Utility::pow<2>(_original_length[0]) / Utility::pow<2>(C2_paper));
+  Real r_osq = Utility::pow<2>(_original_length[0]) / 2 *
+               (1 / Utility::pow<2>(C1_paper) + 1 / Utility::pow<2>(C2_paper) -
+                (A_avg / Iz_avg) * Utility::pow<2>(_original_length[0] / C1_paper));
+
+  if (r_osq > r_Asq)
+  {
+    _effective_stiffness[_qp] = std::max(1 / C1_paper, 1 / C2_paper);
+  }
+  else
+  {
+    Real temp1 = Utility::pow<2>(C2_paper / C1_paper) + 1 -
+                 Utility::pow<2>(C2_paper / C1_paper) * Utility::pow<2>(_original_length[0]) *
+                     A_avg / Iz_avg;
+    Real temp2 = 1 - 0.5 * (1 + Utility::pow<2>(C1_paper / C2_paper) -
+                            Utility::pow<2>(_original_length[0]) * A_avg / Iz_avg);
+    Real temp3 = 1 - 0.5 * (1 + Utility::pow<2>(C2_paper / C1_paper) -
+                            Utility::pow<2>(C2_paper / C1_paper) *
+                                Utility::pow<2>(_original_length[0]) * A_avg / Iz_avg);
+    _effective_stiffness[_qp] =
+        std::sqrt(Utility::pow<2>(_original_length[0]) / (2 * Utility::pow<2>(C2_paper)) * temp1 +
+                  Iz_avg / (A_avg * Utility::pow<2>(C2_paper)) * temp2 * temp3);
+
+    _effective_stiffness[_qp] = _original_length[0] / _effective_stiffness[_qp];
+  }
+  if (_prefactor_function)
+    _effective_stiffness[_qp] *= std::sqrt(_prefactor_function->value(_t, _q_point[_qp]));
 }
 
 void
