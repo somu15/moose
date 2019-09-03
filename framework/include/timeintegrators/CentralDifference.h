@@ -7,8 +7,7 @@
 //* Licensed under LGPL 2.1, please see LICENSE for details
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
-#ifndef CENTRALDIFFERENCE_H
-#define CENTRALDIFFERENCE_H
+#pragma once
 
 #include "ActuallyExplicitEuler.h"
 #include "MeshChangedInterface.h"
@@ -44,5 +43,3 @@ protected:
   /// vector storing residual corresponding to the first time derivative
   NumericVector<Number> & _u_dot_residual;
 };
-
-#endif // CentralDifference_H
