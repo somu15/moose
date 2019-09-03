@@ -20,8 +20,8 @@ validParams<CentralDifference>()
 {
   InputParameters params = validParams<ActuallyExplicitEuler>();
 
-  params.addClassDescription(
-      "Implementation of explicit, Central Difference integration without invoking any of the nonlinear solver");
+  params.addClassDescription("Implementation of explicit, Central Difference integration without "
+                             "invoking any of the nonlinear solver");
 
   return params;
 }
@@ -72,7 +72,8 @@ CentralDifference::computeTimeDerivatives()
   //       first_term = u
   //      second_term = u_older
   NumericVector<Number> & u_dot = *_sys.solutionUDot();
-  u_dot = *_sys.solutionState(1); // old solution, which is the same as the current solution at this point
+  u_dot = *_sys.solutionState(
+      1); // old solution, which is the same as the current solution at this point
   u_dot -= *_sys.solutionState(3); // 'older than older' solution
   u_dot *= 1.0 / (2.0 * _dt);
 
@@ -103,8 +104,9 @@ NumericVector<Number> &
 CentralDifference::uDotDotResidual() const
 {
   if (!_sys.solutionUDotDot())
-    mooseError("TimeIntegrator: Time derivative of solution (`u_dotdot`) is not stored. Please set "
-               "uDotDotRequested() to true in FEProblemBase before requesting `u_dotdot_residual`.");
+    mooseError(
+        "TimeIntegrator: Time derivative of solution (`u_dotdot`) is not stored. Please set "
+        "uDotDotRequested() to true in FEProblemBase before requesting `u_dotdot_residual`.");
   if (_dt != 0)
     return _u_dotdot_residual;
   else

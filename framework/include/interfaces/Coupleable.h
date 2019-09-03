@@ -690,7 +690,7 @@ protected:
   virtual const ArrayVariableValue & coupledArrayDot(const std::string & var_name,
                                                      unsigned int comp = 0);
   virtual const ArrayVariableValue & coupledArrayDotResidual(const std::string & var_name,
-                                                    unsigned int comp = 0);
+                                                             unsigned int comp = 0);
 
   /**
    * Second time derivative of a coupled array variable
@@ -702,7 +702,7 @@ protected:
   virtual const ArrayVariableValue & coupledArrayDotDot(const std::string & var_name,
                                                         unsigned int comp = 0);
   virtual const ArrayVariableValue & coupledArrayDotDotResidual(const std::string & var_name,
-                                                        unsigned int comp = 0);
+                                                                unsigned int comp = 0);
 
   /**
    * Old time derivative of a coupled array variable

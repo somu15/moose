@@ -428,7 +428,10 @@ public:
   const FieldVariableValue & uDotNeighbor() const { return _neighbor_data->uDot(); }
   const FieldVariableValue & uDotDotNeighbor() const { return _neighbor_data->uDotDot(); }
   const FieldVariableValue & uDotNeighborResidual() const { return _neighbor_data->uDotResidual(); }
-  const FieldVariableValue & uDotDotNeighborResidual() const { return _neighbor_data->uDotDotResidual(); }
+  const FieldVariableValue & uDotDotNeighborResidual() const
+  {
+    return _neighbor_data->uDotDotResidual();
+  }
   const FieldVariableValue & uDotOldNeighbor() const { return _neighbor_data->uDotOld(); }
   const FieldVariableValue & uDotDotOldNeighbor() const { return _neighbor_data->uDotDotOld(); }
   const VariableValue & duDotDuNeighbor() const { return _neighbor_data->duDotDu(); }

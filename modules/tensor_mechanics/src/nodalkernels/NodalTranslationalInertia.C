@@ -141,7 +141,8 @@ NodalTranslationalInertia::NodalTranslationalInertia(const InputParameters & par
 
   // Check if beta and explicit are being used simultaneously
   if (_has_beta && _time_integrator->isExplicit())
-    mooseError("NodalTranslationalInertia: Newmark-beta integration parameter, beta, cannot be provided along with an explicit time "
+    mooseError("NodalTranslationalInertia: Newmark-beta integration parameter, beta, cannot be "
+               "provided along with an explicit time "
                "integrator.");
 }
 

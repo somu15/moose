@@ -25,7 +25,7 @@ public:
   InertialForce(const InputParameters & parameters);
 
   virtual void computeResidual() override;
-  
+
 protected:
   virtual Real computeQpResidual() override;
 

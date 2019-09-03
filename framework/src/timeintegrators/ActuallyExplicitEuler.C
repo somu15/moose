@@ -43,7 +43,6 @@ validParams<ActuallyExplicitEuler>()
   return params;
 }
 
-
 /**
  * Helper class to apply preconditioner
  */
