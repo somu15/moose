@@ -215,8 +215,6 @@ NodalRotationalInertia::computeQpResidual()
   {
     if (_has_beta)
     {
-      mooseAssert(_beta > 0.0, "NodalRotationalInertia: Beta parameter should be positive.");
-
       const NumericVector<Number> & aux_sol_old = _aux_sys->solutionOld();
 
       for (unsigned int i = 0; i < _nrot; ++i)
@@ -257,8 +255,6 @@ NodalRotationalInertia::computeQpResidual()
 Real
 NodalRotationalInertia::computeQpJacobian()
 {
-  mooseAssert(_beta > 0.0, "NodalRotationalInertia: Beta parameter should be positive.");
-
   if (_dt == 0)
     return 0.0;
   else
@@ -266,7 +262,12 @@ NodalRotationalInertia::computeQpJacobian()
     if (_has_beta)
       return _inertia(_component, _component) / (_beta * _dt * _dt) +
              _eta * (1.0 + _alpha) * _inertia(_component, _component) * _gamma / _beta / _dt;
+    else if (_time_integrator->isExplicit())
+      // for explicit central difference integration, _eta does not appear in the
+      // Jacobian (mass matrix), and alpha is zero
+      return _inertia(_component, _component) * (*_du_dotdot_du)[_qp];
     else
+      // for NewmarkBeta time integrator
       return _inertia(_component, _component) * (*_du_dotdot_du)[_qp] +
              _eta * (1.0 + _alpha) * _inertia(_component, _component) * (*_du_dot_du)[_qp];
   }
@@ -277,8 +278,6 @@ NodalRotationalInertia::computeQpOffDiagJacobian(unsigned int jvar)
 {
   unsigned int coupled_component = 0;
   bool rot_coupled = false;
-
-  mooseAssert(_beta > 0.0, "NodalRotationalInertia: Beta parameter should be positive.");
 
   for (unsigned int i = 0; i < _nrot; ++i)
   {
@@ -297,7 +296,12 @@ NodalRotationalInertia::computeQpOffDiagJacobian(unsigned int jvar)
     if (_has_beta)
       return _inertia(_component, coupled_component) / (_beta * _dt * _dt) +
              _eta * (1.0 + _alpha) * _inertia(_component, coupled_component) * _gamma / _beta / _dt;
+    else if (_time_integrator->isExplicit())
+      // for explicit central difference integration, _eta does not appear in the
+      // Jacobian (mass matrix), and alpha is zero
+      return _inertia(_component, coupled_component) * (*_du_dotdot_du)[_qp];
     else
+      // for NewmarkBeta time integrator
       return _inertia(_component, coupled_component) * (*_du_dotdot_du)[_qp] +
              _eta * (1.0 + _alpha) * _inertia(_component, coupled_component) * (*_du_dot_du)[_qp];
   }

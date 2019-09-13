@@ -124,8 +124,12 @@ InertialForce::computeResidual()
   precalculateResidual();
   for (_i = 0; _i < _test.size(); _i++)
     for (_qp = 0; _qp < _qrule->n_points(); _qp++)
+    {
+      // Here, computeQpResidual only contains the qp mass when lumped mass
+      // formulation is used. Therefore, the line below adds the qp masses,
+      // which is mass lumping.
       _local_re(_i) += _JxW[_qp] * _coord[_qp] * computeQpResidual();
-  // in the above line, computeQpResidual only contains the Qp mass when lumped mass option is used
+    }
 
   // Residual calculation for lumped-mass matrices for explicit integration
   if (_time_integrator->isLumped() && _time_integrator->isExplicit())
@@ -146,8 +150,11 @@ InertialForce::computeResidual()
           u_dot_residual(node[j]->dof_number(nonlinear_sys.number(), _var_num, 0));
       u_dotdot_residual_node =
           u_dotdot_residual(node[j]->dof_number(nonlinear_sys.number(), _var_num, 0));
-      _local_re(j) *= u_dotdot_residual_node +
-                      _eta[_qp] * u_dot_residual_node; // Calculating the residuals at each node
+      // Currently, for lumped mass case, the residual at the node is the
+      // lumped mass. Here, we calculate the residual at the node as
+      // residual = residual * u_dotdot_residual +_eta * u_dot_residual;
+      // Note that only eta[0] (i.e., at _qp=0) is used
+      _local_re(j) *= u_dotdot_residual_node + _eta[0] * u_dot_residual_node;
     }
   }
 
@@ -166,14 +173,24 @@ InertialForce::computeQpJacobian()
 {
   if (_dt == 0)
     return 0;
-  else if (_has_beta)
-    return _test[_i][_qp] * _density[_qp] / (_beta * _dt * _dt) * _phi[_j][_qp] +
-           _eta[_qp] * (1 + _alpha) * _test[_i][_qp] * _density[_qp] * _gamma / _beta / _dt *
-               _phi[_j][_qp];
   else
   {
-    return _test[_i][_qp] * _density[_qp] * (*_du_dotdot_du)[_qp] * _phi[_j][_qp] +
-           _eta[_qp] * (1 + _alpha) * _test[_i][_qp] * _density[_qp] * (*_du_dot_du)[_qp] *
-               _phi[_j][_qp];
+    if (_has_beta)
+      return _test[_i][_qp] * _density[_qp] / (_beta * _dt * _dt) * _phi[_j][_qp] +
+             _eta[_qp] * (1 + _alpha) * _test[_i][_qp] * _density[_qp] * _gamma / _beta / _dt *
+                 _phi[_j][_qp];
+    else if (_time_integrator->isExplicit())
+    {
+      // for explicit central difference integration, _eta does not appear in the
+      // Jacobian (mass matrix), and alpha is zero
+      return _test[_i][_qp] * _density[_qp] * (*_du_dotdot_du)[_qp] * _phi[_j][_qp];
+    }
+    else
+    {
+      // for NewmarkBeta time integrator
+      return _test[_i][_qp] * _density[_qp] * (*_du_dotdot_du)[_qp] * _phi[_j][_qp] +
+             _eta[_qp] * (1 + _alpha) * _test[_i][_qp] * _density[_qp] * (*_du_dot_du)[_qp] *
+                 _phi[_j][_qp];
+    }
   }
 }
