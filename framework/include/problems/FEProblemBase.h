@@ -2059,6 +2059,9 @@ private:
   /// Whether old solution second time derivative needs to be stored
   bool _u_dotdot_old_requested;
 
+  /// Number of old solution states to be stored;
+  unsigned int _solution_state;
+
   friend class AuxiliarySystem;
   friend class NonlinearSystemBase;
   friend class MooseEigenSystem;
