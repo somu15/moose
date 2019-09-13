@@ -86,11 +86,11 @@ When the mesh changes the linear solver needs to be destroyed and recreated.  Th
 
 ### `lump_preconditioned`
 
-The `lump_preconditioned` option invokes a `LumpedPreconditioner` helper object:
+The `lump_preconditioned` option invokes a `LumpedPreconditioner` object:
 
-!listing framework/src/timeintegrators/ActuallyExplicitEuler.C line=class LumpedPreconditioner
+!listing framework/include/timeintegrators/LumpedPreconditioner.h
 
-This helper object simply applies the inverse of the diagonal, lumped mass-matrix as the preconditioner for the linear solve.  This is extremely efficient.  Note that when this option is applied you shouldn't specify any other preconditioners using command-line syntax or they will override this option.  In my testing this worked well.
+This object simply applies the inverse of the diagonal, lumped mass-matrix as the preconditioner for the linear solve.  This is extremely efficient.  Note that when this option is applied you shouldn't specify any other preconditioners using command-line syntax or they will override this option.  In my testing this worked well.
 
 !syntax parameters /Executioner/TimeIntegrator/ActuallyExplicitEuler
 
