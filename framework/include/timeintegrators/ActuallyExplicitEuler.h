@@ -11,12 +11,12 @@
 
 #include "TimeIntegrator.h"
 #include "MeshChangedInterface.h"
+#include "LumpedPreconditioner.h"
 
 #include "libmesh/linear_solver.h"
 
 // Forward declarations
 class ActuallyExplicitEuler;
-class LumpedPreconditioner;
 
 template <>
 InputParameters validParams<ActuallyExplicitEuler>();
