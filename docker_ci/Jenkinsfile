@@ -63,6 +63,10 @@ pipeline {
                 docker push $DOCKER_TAG
                 docker tag $DOCKER_TAG $DOCKER_COMMIT_TAG
                 docker push $DOCKER_COMMIT_TAG
+                
+                # Clean up artifacts from the build
+                docker system prune -f
+                docker rmi $DOCKER_COMMIT_TAG
                 '''
             }
         }

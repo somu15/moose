@@ -9,9 +9,6 @@
 
 #pragma once
 
-#include "metaphysicl/numberarray.h"
-#include "metaphysicl/dualnumber.h"
-
 #include "MooseTypes.h"
 #include "MooseVariableFEBase.h"
 #include "SubProblem.h"
@@ -165,7 +162,7 @@ public:
   bool isVector() const override;
   const Node * const & node() const { return _element_data->node(); }
   const dof_id_type & nodalDofIndex() const override { return _element_data->nodalDofIndex(); }
-  bool isNodalDefined() const;
+  virtual bool isNodalDefined() const override;
 
   const Node * const & nodeNeighbor() const { return _neighbor_data->node(); }
   const dof_id_type & nodalDofIndexNeighbor() const override

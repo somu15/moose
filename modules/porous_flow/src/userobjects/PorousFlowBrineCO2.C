@@ -104,13 +104,13 @@ PorousFlowBrineCO2::thermophysicalProperties(Real pressure,
 
   // AD versions of primary variables
   DualReal p = pressure;
-  p.derivatives()[_pidx] = 1.0;
+  Moose::derivInsert(p.derivatives(), _pidx, 1.0);
   DualReal T = temperature;
-  T.derivatives()[_Tidx] = 1.0;
+  Moose::derivInsert(T.derivatives(), _Tidx, 1.0);
   DualReal Zco2 = Z;
-  Zco2.derivatives()[_Zidx] = 1.0;
+  Moose::derivInsert(Zco2.derivatives(), _Zidx, 1.0);
   DualReal X = Xnacl;
-  X.derivatives()[_Xidx] = 1.0;
+  Moose::derivInsert(X.derivatives(), _Xidx, 1.0);
 
   // Clear all of the FluidStateProperties data
   clearFluidStateProperties(fsp);
@@ -201,13 +201,13 @@ PorousFlowBrineCO2::massFractions(const DualReal & pressure,
       Yco2 = 0.0;
       Xh2o = 1.0 - Z;
       Yh2o = 0.0;
-      Xco2.derivatives()[_pidx] = 0.0;
-      Xco2.derivatives()[_Tidx] = 0.0;
-      Xco2.derivatives()[_Xidx] = 0.0;
-      Xco2.derivatives()[_Zidx] = 1.0;
-      Yco2.derivatives()[_pidx] = 0.0;
-      Yco2.derivatives()[_Tidx] = 0.0;
-      Yco2.derivatives()[_Xidx] = 0.0;
+      Moose::derivInsert(Xco2.derivatives(), _pidx, 0.0);
+      Moose::derivInsert(Xco2.derivatives(), _Tidx, 0.0);
+      Moose::derivInsert(Xco2.derivatives(), _Xidx, 0.0);
+      Moose::derivInsert(Xco2.derivatives(), _Zidx, 1.0);
+      Moose::derivInsert(Yco2.derivatives(), _pidx, 0.0);
+      Moose::derivInsert(Yco2.derivatives(), _Tidx, 0.0);
+      Moose::derivInsert(Yco2.derivatives(), _Xidx, 0.0);
       break;
     }
 
@@ -216,13 +216,13 @@ PorousFlowBrineCO2::massFractions(const DualReal & pressure,
       Xco2 = 0.0;
       Yco2 = Z;
       Yh2o = 1.0 - Z;
-      Xco2.derivatives()[_pidx] = 0.0;
-      Xco2.derivatives()[_Tidx] = 0.0;
-      Xco2.derivatives()[_Xidx] = 0.0;
-      Yco2.derivatives()[_pidx] = 0.0;
-      Yco2.derivatives()[_Tidx] = 0.0;
-      Yco2.derivatives()[_Xidx] = 0.0;
-      Yco2.derivatives()[_Zidx] = 1.0;
+      Moose::derivInsert(Xco2.derivatives(), _pidx, 0.0);
+      Moose::derivInsert(Xco2.derivatives(), _Tidx, 0.0);
+      Moose::derivInsert(Xco2.derivatives(), _Xidx, 0.0);
+      Moose::derivInsert(Yco2.derivatives(), _pidx, 0.0);
+      Moose::derivInsert(Yco2.derivatives(), _Tidx, 0.0);
+      Moose::derivInsert(Yco2.derivatives(), _Xidx, 0.0);
+      Moose::derivInsert(Yco2.derivatives(), _Zidx, 1.0);
       break;
     }
 
@@ -373,8 +373,6 @@ PorousFlowBrineCO2::equilibriumMassFractions(const DualReal & pressure,
                                              DualReal & Xco2,
                                              DualReal & Yh2o) const
 {
-  const DualReal co2_density = _co2_fp.rho_from_p_T(pressure, temperature);
-
   // Mole fractions at equilibrium
   DualReal xco2, yh2o;
   equilibriumMoleFractions(pressure, temperature, Xnacl, xco2, yh2o);
@@ -673,9 +671,6 @@ PorousFlowBrineCO2::equilibriumMoleFractions(const DualReal & pressure,
                                              DualReal & xco2,
                                              DualReal & yh2o) const
 {
-  // CO2 density and derivatives wrt pressure and temperature
-  const DualReal co2_density = _co2_fp.rho_from_p_T(pressure, temperature);
-
   if (temperature.value() <= _Tlower)
   {
     equilibriumMoleFractionsLowTemp(pressure, temperature, Xnacl, xco2, yh2o);
@@ -687,7 +682,7 @@ PorousFlowBrineCO2::equilibriumMoleFractions(const DualReal & pressure,
 
     // Equilibrium mole fractions and derivatives at the lower temperature
     DualReal Tlower = _Tlower;
-    Tlower.derivatives()[_Tidx] = 1.0;
+    Moose::derivInsert(Tlower.derivatives(), _Tidx, 1.0);
 
     DualReal xco2_lower, yh2o_lower;
     equilibriumMoleFractionsLowTemp(pressure, Tlower, Xnacl, xco2_lower, yh2o_lower);
@@ -729,28 +724,31 @@ PorousFlowBrineCO2::equilibriumMoleFractions(const DualReal & pressure,
         Tint, yh2o_lower.value(), dyh2o_dT_lower, yh2o_upper, dyh2o_dT_upper, yh2or, dyh2o_dT);
 
     xco2 = xco2r;
-    xco2.derivatives()[_pidx] = xco2_lower.derivatives()[_pidx];
-    xco2.derivatives()[_Tidx] = dxco2_dT;
-    xco2.derivatives()[_Xidx] = xco2_lower.derivatives()[_Xidx];
+    Moose::derivInsert(xco2.derivatives(), _pidx, xco2_lower.derivatives()[_pidx]);
+    Moose::derivInsert(xco2.derivatives(), _Tidx, dxco2_dT);
+    Moose::derivInsert(xco2.derivatives(), _Xidx, xco2_lower.derivatives()[_Xidx]);
 
     yh2o = yh2or;
-    yh2o.derivatives()[_pidx] = yh2o_lower.derivatives()[_pidx];
-    yh2o.derivatives()[_Tidx] = dyh2o_dT;
-    yh2o.derivatives()[_Xidx] = yh2o_lower.derivatives()[_Xidx];
+    Moose::derivInsert(yh2o.derivatives(), _pidx, yh2o_lower.derivatives()[_pidx]);
+    Moose::derivInsert(yh2o.derivatives(), _Tidx, dyh2o_dT);
+    Moose::derivInsert(yh2o.derivatives(), _Xidx, yh2o_lower.derivatives()[_Xidx]);
   }
   else
   {
+    // CO2 density and derivatives wrt pressure and temperature
+    const Real co2_density = _co2_fp.rho_from_p_T(pressure.value(), temperature.value());
+
     // Equilibrium mole fractions solved using iteration in this regime
     Real xco2r, yh2or;
     solveEquilibriumMoleFractionHighTemp(
-        pressure.value(), temperature.value(), Xnacl.value(), co2_density.value(), xco2r, yh2or);
+        pressure.value(), temperature.value(), Xnacl.value(), co2_density, xco2r, yh2or);
 
     // Can use these in funcABHighTemp() to get derivatives analytically rather than by iteration
     Real A, dA_dp, dA_dT, B, dB_dp, dB_dT, dB_dX;
     funcABHighTemp(pressure.value(),
                    temperature.value(),
                    Xnacl.value(),
-                   co2_density.value(),
+                   co2_density,
                    xco2r,
                    yh2or,
                    A,
@@ -773,14 +771,14 @@ PorousFlowBrineCO2::equilibriumMoleFractions(const DualReal & pressure,
     const Real dxco2_dX = dB_dX * (1.0 - yh2or) - B * dyh2o_dX;
 
     xco2 = xco2r;
-    xco2.derivatives()[_pidx] = dxco2_dp;
-    xco2.derivatives()[_Tidx] = dxco2_dT;
-    xco2.derivatives()[_Xidx] = dxco2_dX;
+    Moose::derivInsert(xco2.derivatives(), _pidx, dxco2_dp);
+    Moose::derivInsert(xco2.derivatives(), _Tidx, dxco2_dT);
+    Moose::derivInsert(xco2.derivatives(), _Xidx, dxco2_dX);
 
     yh2o = yh2or;
-    yh2o.derivatives()[_pidx] = dyh2o_dp;
-    yh2o.derivatives()[_Tidx] = dyh2o_dT;
-    yh2o.derivatives()[_Xidx] = dyh2o_dX;
+    Moose::derivInsert(yh2o.derivatives(), _pidx, dyh2o_dp);
+    Moose::derivInsert(yh2o.derivatives(), _Tidx, dyh2o_dT);
+    Moose::derivInsert(yh2o.derivatives(), _Xidx, dyh2o_dX);
   }
 }
 
@@ -1121,9 +1119,7 @@ PorousFlowBrineCO2::enthalpyOfDissolutionGas(const DualReal & temperature,
       (-_R * temperature * temperature * Kh3.derivatives()[_Tidx] / Kh3 / _Mco2 - hdis).value() /
       dX;
 
-  for (std::size_t i = 0; i < temperature.derivatives().size(); ++i)
-    hdis.derivatives()[i] =
-        temperature.derivatives()[i] * dhdis_dT + Xnacl.derivatives()[i] * dhdis_dX;
+  hdis.derivatives() = temperature.derivatives() * dhdis_dT + Xnacl.derivatives() * dhdis_dX;
 
   return hdis;
 }

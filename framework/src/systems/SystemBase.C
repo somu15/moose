@@ -99,7 +99,8 @@ SystemBase::SystemBase(SubProblem & subproblem,
     _var_kind(var_kind),
     _max_var_n_dofs_per_elem(0),
     _max_var_n_dofs_per_node(0),
-    _time_integrator(nullptr)
+    _time_integrator(nullptr),
+    _computing_scaling_jacobian(false)
 {
 }
 
@@ -377,11 +378,9 @@ SystemBase::reinitNode(const Node * /*node*/, THREAD_ID tid)
   const std::vector<MooseVariableFEBase *> & vars = _vars[tid].fieldVariables();
   for (const auto & var : vars)
   {
-    if (var->isNodal())
-    {
-      var->reinitNode();
+    var->reinitNode();
+    if (var->isNodalDefined())
       var->computeNodalValues();
-    }
   }
 }
 
@@ -391,11 +390,9 @@ SystemBase::reinitNodeFace(const Node * /*node*/, BoundaryID /*bnd_id*/, THREAD_
   const std::vector<MooseVariableFEBase *> & vars = _vars[tid].fieldVariables();
   for (const auto & var : vars)
   {
-    if (var->isNodal())
-    {
-      var->reinitNode();
+    var->reinitNode();
+    if (var->isNodalDefined())
       var->computeNodalValues();
-    }
   }
 }
 

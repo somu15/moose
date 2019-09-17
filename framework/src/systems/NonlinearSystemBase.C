@@ -71,6 +71,8 @@
 #include "ADPresetNodalBC.h"
 #include "Moose.h"
 #include "TimedPrint.h"
+#include "ConsoleStream.h"
+#include "MooseError.h"
 
 // libMesh
 #include "libmesh/nonlinear_solver.h"
@@ -88,6 +90,8 @@
 #include "libmesh/sparse_matrix.h"
 #include "libmesh/petsc_matrix.h"
 #include "libmesh/default_coupling.h"
+
+#include <ios>
 
 // PETSc
 #ifdef LIBMESH_HAVE_PETSC
@@ -168,7 +172,9 @@ NonlinearSystemBase::NonlinearSystemBase(FEProblemBase & fe_problem,
     _compute_dampers_timer(registerTimedSection("computeDampers", 3)),
     _compute_dirac_timer(registerTimedSection("computeDirac", 3)),
     _compute_scaling_jacobian_timer(registerTimedSection("computeScalingJacobian", 2)),
-    _computing_initial_jacobian(false)
+    _computed_scaling(false),
+    _automatic_scaling(false),
+    _compute_scaling_once(true)
 {
   getResidualNonTimeVector();
   // Don't need to add the matrix - it already exists (for now)
@@ -208,7 +214,7 @@ NonlinearSystemBase::init()
   if (_need_residual_copy)
     _residual_copy.init(_sys.n_dofs(), false, SERIAL);
 
-  if (_fe_problem.automaticScaling())
+  if (_automatic_scaling)
     // We don't need libMesh to do projections since we will always be filling this vector from the
     // diagonal of the preconditioning matrix, hence false for our second argument. We also do not
     // need ghosting
@@ -363,6 +369,21 @@ NonlinearSystemBase::timestepSetup()
   _constraints.timestepSetup();
   _general_dampers.timestepSetup();
   _nodal_bcs.timestepSetup();
+
+  // Do an initial Jacobian evaluation in order to determine variable scaling factors
+  if (_automatic_scaling)
+  {
+    if (_compute_scaling_once)
+    {
+      if (!_computed_scaling)
+      {
+        computeScalingJacobian();
+        _computed_scaling = true;
+      }
+    }
+    else
+      computeScalingJacobian();
+  }
 }
 
 void
@@ -477,6 +498,13 @@ NonlinearSystemBase::addBoundaryCondition(const std::string & bc_name,
   // NodalBCBase
   if (nbc)
   {
+    if (!nbc->variable().isNodal())
+      mooseError("Trying to use nodal boundary condition '",
+                 nbc->name(),
+                 "' on a non-nodal variable '",
+                 nbc->variable().name(),
+                 "'.");
+
     _nodal_bcs.addObject(nbc);
     _vars[tid].addBoundaryVars(boundary_ids, nbc->getCoupledVars());
 
@@ -862,7 +890,7 @@ NonlinearSystemBase::computeTimeDerivatives(bool jacobian_calculation)
   // If we're doing any Jacobian calculation other than the initial Jacobian calculation for
   // automatic variable scaling, then we can just return because the residual function evaluation
   // has already done this work for us
-  if (jacobian_calculation && !_computing_initial_jacobian)
+  if (jacobian_calculation && !_computing_scaling_jacobian)
     return;
 
   if (_time_integrator)
@@ -2290,7 +2318,7 @@ NonlinearSystemBase::computeJacobianInternal(const std::set<TagID> & tags)
     // Get our element range for looping over
     ConstElemRange & elem_range = *_mesh.getActiveLocalElementRange();
 
-    if (_computing_initial_jacobian)
+    if (_computing_scaling_jacobian)
     {
       // Only compute Jacobians corresponding to the diagonals of volumetric compute objects because
       // this typically gives us a good representation of the physics. NodalBCs and Constraints can
@@ -3184,115 +3212,8 @@ NonlinearSystemBase::mortarJacobianConstraints(bool displaced)
 }
 
 void
-NonlinearSystemBase::computeScalingJacobian(NonlinearImplicitSystem & sys)
+NonlinearSystemBase::computeScalingJacobian()
 {
-#ifdef LIBMESH_HAVE_PETSC
-
-  if (dynamic_cast<PetscMatrix<Real> *>(sys.matrix))
-  {
-#if !PETSC_VERSION_LESS_THAN(3, 9, 0)
-    _console << "\nPerforming automatic scaling calculation\n\n";
-
-    TIME_SECTION(_compute_scaling_jacobian_timer);
-
-    auto & petsc_matrix = *static_cast<PetscMatrix<Real> *>(sys.matrix);
-
-    if (!petsc_matrix.local_m())
-      mooseError("MOOSE doesn't currently support automatic scaling when there are any processes "
-                 "owning zero dofs. Check back soon :-)");
-
-    _computing_initial_jacobian = true;
-    _fe_problem.computeJacobianSys(sys, *_current_solution, *sys.matrix);
-    _computing_initial_jacobian = false;
-
-    // container for repeated access of element global dof indices
-    std::vector<dof_id_type> dof_indices;
-
-    auto & field_variables = _vars[0].fieldVariables();
-    auto & scalar_variables = _vars[0].scalars();
-
-    std::vector<Real> inverse_scaling_factors(field_variables.size() + scalar_variables.size(), 0);
-    auto & dof_map = dofMap();
-
-    // limit dereferencing
-    auto & diagonal = *_pmat_diagonal;
-
-    // fill our diagonal vector
-    petsc_matrix.get_diagonal(diagonal);
-
-    // Compute our scaling factors for the spatial field variables
-    for (const auto & elem : *mesh().getActiveLocalElementRange())
-    {
-      for (MooseIndex(field_variables) i = 0; i < field_variables.size(); ++i)
-      {
-        auto & field_variable = *field_variables[i];
-        dof_map.dof_indices(elem, dof_indices, field_variable.number());
-        for (auto dof_index : dof_indices)
-          if (dof_map.local_index(dof_index))
-          {
-            // For now we will use the diagonal for determining scaling
-            auto mat_value = diagonal(dof_index);
-            inverse_scaling_factors[i] = std::max(inverse_scaling_factors[i], std::abs(mat_value));
-          }
-      }
-    }
-
-    auto offset = field_variables.size();
-
-    // Compute scalar factors for scalar variables
-    for (MooseIndex(scalar_variables) i = 0; i < scalar_variables.size(); ++i)
-    {
-      auto & scalar_variable = *scalar_variables[i];
-      dof_map.SCALAR_dof_indices(dof_indices, scalar_variable.number());
-      for (auto dof_index : dof_indices)
-        if (dof_map.local_index(dof_index))
-        {
-          // For now we will use the diagonal for determining scaling
-          auto mat_value = diagonal(dof_index);
-          inverse_scaling_factors[offset + i] =
-              std::max(inverse_scaling_factors[offset + i], std::abs(mat_value));
-        }
-    }
-
-    // Get the maximum value across processes
-    _communicator.max(inverse_scaling_factors);
-
-    // We have to make sure that our scaling values are not zero
-    for (auto & scaling_factor : inverse_scaling_factors)
-      if (scaling_factor < std::numeric_limits<Real>::epsilon())
-        scaling_factor = 1;
-
-    if (_verbose)
-    {
-      _console << "Automatic scaling factors:\n";
-      for (MooseIndex(field_variables) i = 0; i < field_variables.size(); ++i)
-      {
-        auto & field_variable = *field_variables[i];
-        _console << "  " << field_variable.name() << ": " << 1.0 / inverse_scaling_factors[i]
-                 << "\n";
-      }
-      for (MooseIndex(scalar_variables) i = 0; i < scalar_variables.size(); ++i)
-      {
-        auto & scalar_variable = *scalar_variables[i];
-        _console << "  " << scalar_variable.name() << ": "
-                 << 1.0 / inverse_scaling_factors[offset + i] << "\n";
-      }
-      _console << "\n\n";
-    }
-
-    // Now set the scaling factors for the variables
-    applyScalingFactors(inverse_scaling_factors);
-    if (auto displaced_problem = _fe_problem.getDisplacedProblem().get())
-      displaced_problem->systemBaseNonlinear().applyScalingFactors(inverse_scaling_factors);
-
-    // Now it's essential that we reset the sparsity pattern of the matrix
-    petsc_matrix.reset_preallocation();
-
-#else
-    mooseWarning("Automatic scaling requires a PETSc version of 3.9.0 or greater, so no automatic "
-                 "scaling is going to be performed");
-#endif
-  }
-
-#endif
+  mooseWarning("The NonlinearSystemBase derived class that is being used does not currently "
+               "support automatic scaling.");
 }
