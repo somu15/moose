@@ -172,12 +172,12 @@ NonlinearSystemBase::NonlinearSystemBase(FEProblemBase & fe_problem,
     _compute_scaling_jacobian_timer(registerTimedSection("computeScalingJacobian", 2)),
     _computed_scaling(false),
     _automatic_scaling(false),
-    _compute_scaling_once(true),
-    _solution_state(0)
+    _compute_scaling_once(true)
 #ifndef MOOSE_SPARSE_AD
     ,
-    _required_derivative_size(0)
+    _required_derivative_size(0),
 #endif
+    _solution_state(0)
 {
   getResidualNonTimeVector();
   // Don't need to add the matrix - it already exists (for now)

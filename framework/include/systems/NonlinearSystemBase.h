@@ -944,10 +944,10 @@ private:
   /// be computed during an extra Jacobian evaluation at the beginning of every time step.
   bool _compute_scaling_once;
 
-  #ifndef MOOSE_SPARSE_AD
-    /// The required size of the derivative storage array
-    std::size_t _required_derivative_size;
-  #endif
+#ifndef MOOSE_SPARSE_AD
+  /// The required size of the derivative storage array
+  std::size_t _required_derivative_size;
+#endif
 
   std::vector<NumericVector<Number> *> _solution_state;
 };
