@@ -14,7 +14,7 @@
 
 /**
  * WaveHeightAuxKernel takes pressure in the fluid domain as input and converts it
- * to a displacement in the vertical direction (i.e., wave height if location is on surface)
+ * to a displacement in the vertical direction (i.e., wave height if the location is on surface)
  */
 class WaveHeightAuxKernel : public AuxKernel
 {

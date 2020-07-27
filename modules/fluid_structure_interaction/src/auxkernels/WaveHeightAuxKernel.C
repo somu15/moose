@@ -33,6 +33,6 @@ WaveHeightAuxKernel::WaveHeightAuxKernel(const InputParameters & parameters)
 Real
 WaveHeightAuxKernel::computeValue()
 {
-  // Vertical displacement = pressure / (density * gravity)
+  // Vertical displacement = pressure/(density * gravity)
   return _press[_qp]/(_dens * _grav);
 }
