@@ -2,34 +2,34 @@
 []
 
 [Distributions]
-  [betapearson]
-    type = Gamma # BetaPearson
-    alpha = 5
-    beta = 5
-    # location = 5
-    # scale = 2
+  [kernel1d_test]
+    type = KernelDensity1D
+    bandwidthrule = 'silverman'
+    dataformat = 'filename'
+    kernelfunction = 'gaussian'
+    file_name = 'kernel_density_1D_input.csv'
   []
 []
 
 [Postprocessors]
   [cdf]
     type = TestDistributionPostprocessor
-    distribution = betapearson
-    value = 1.2
+    distribution = kernel1d_test
+    value = 2.65
     method = cdf
     execute_on = initial
   []
   [pdf]
     type = TestDistributionPostprocessor
-    distribution = betapearson
-    value = 1.2
+    distribution = kernel1d_test
+    value = 0.91
     method = pdf
     execute_on = initial
   []
   [quantile]
     type = TestDistributionPostprocessor
-    distribution = betapearson
-    value = 0.6#0.9999999999
+    distribution = kernel1d_test
+    value = 0.5
     method = quantile
     execute_on = initial
   []

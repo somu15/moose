@@ -22,15 +22,26 @@
       detail = 'Weibull (3 parameter),'
     []
 
-    [betapearson]
+    [kernel1d_gaussian]
       type = CSVDiff
-      input = betapearson.i
-      csvdiff = 'betapearson_out.csv'
+      input = kernel_density_1d_gaussian.i
+      csvdiff = 'kernel_density_1d_gaussian_out.csv'
       allow_test_objects = true
       abs_zero = 5e-7
       rel_err = 1e-3
 
-      detail = 'Beta (Pearson type 1)'
+      detail = 'Kernel Density 1D with a Gaussian kernel'
+    []
+
+    [kernel1d_uniform]
+      type = CSVDiff
+      input = kernel_density_1d_uniform.i
+      csvdiff = 'kernel_density_1d_uniform_out.csv'
+      allow_test_objects = true
+      abs_zero = 5e-7
+      rel_err = 1e-3
+
+      detail = 'Kernel Density 1D with a Uniform kernel'
     []
 
     [normal]
