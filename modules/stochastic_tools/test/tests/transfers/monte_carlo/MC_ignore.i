@@ -3,19 +3,9 @@
 []
 
 [Distributions]
-  # [uniform_left]
-  #   type = Uniform
-  #   lower_bound = 0
-  #   upper_bound = 0.5
-  # []
-  # [uniform_right]
-  #   type = Uniform
-  #   lower_bound = 1
-  #   upper_bound = 2
-  # []
   [mu1]
     type = Normal
-    mean = 0.3
+    mean = -100
     standard_deviation = 0.045
   []
   [mu2]
@@ -28,7 +18,7 @@
 [Samplers]
   [sample]
     type = MonteCarlo
-    num_rows = 20000
+    num_rows = 1
     distributions = 'mu1 mu2'
     execute_on = INITIAL
   []
@@ -37,8 +27,9 @@
 [MultiApps]
   [sub]
     type = SamplerFullSolveMultiApp
-    input_files = sub_new.i
+    input_files = sub_ignore.i
     sampler = sample
+    ignore_solve_not_converge = true
   []
 []
 
@@ -74,9 +65,8 @@
 []
 
 [Executioner]
-  type = Steady
-  # num_steps = 1
-  # dt = 0.01
+  type = Transient
+  num_steps = 2
 []
 
 [Outputs]

@@ -28,7 +28,7 @@
     from_postprocessor = avg
     # If this is false, the transfer will transfer NaN for sub apps that did not converge.
     # If this is true, the transfer will transfer whatever the last computed values are.
-    keep_solve_fail_value = true # Default: false
+    # keep_solve_fail_value = true # Default: false
   []
 []
 
