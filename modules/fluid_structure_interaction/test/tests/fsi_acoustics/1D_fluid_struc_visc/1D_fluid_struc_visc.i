@@ -84,6 +84,13 @@
     variable = p
     block = 1
   [../]
+  [./acousticviscosity]
+    type = AcousticViscosity
+    variable = p
+    viscosity = 1e-12
+    densityF = 1e-6
+    block = 1
+  [../]
   [./DynamicTensorMechanics]
     displacements = 'disp_x'
     block = 0
@@ -92,13 +99,6 @@
     type = InertialForce
     variable = disp_x
     block = 0
-  [../]
-  [./visc]
-    type = AcousticViscosity
-    variable = p
-    block = 1
-    viscosity = 1e-12
-    densityF = 1e-6
   [../]
 []
 
@@ -132,9 +132,9 @@
     variable = p
     neighbor_var = disp_x
     boundary = 'interface1'
+    # viscosity =
     D = 1e-6
     component = 0
-    # viscosity = 1e-12
   [../]
 []
 
