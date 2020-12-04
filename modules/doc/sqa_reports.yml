@@ -164,6 +164,12 @@ Applications:
         log_stub_files: WARNING
         show_warning: false
 
+    fsi:
+        exe_directory: modules/combined
+        app_types:
+            - FsiApp
+        content_directory: modules/fsi/doc/content
+
 Documents:
     software_quality_plan: sqa/inl_records.md#software_quality_plan
     enterprise_architecture_entry: sqa/inl_records.md#enterprise_architecture_entry
@@ -364,3 +370,9 @@ Requirements:
     xfem:
         directories:
             - modules/xfem
+
+    fsi:
+        directories:
+            - modules/fsi
+        log_missing: WARNING
+        show_warning: false
