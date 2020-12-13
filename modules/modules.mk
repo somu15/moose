@@ -29,6 +29,7 @@ ifeq ($(ALL_MODULES),yes)
         PERIDYNAMICS                := yes
         PHASE_FIELD                 := yes
         POROUS_FLOW                 := yes
+        RAY_TRACING                 := yes
         RDG                         := yes
         RICHARDS                    := yes
         STOCHASTIC_TOOLS            := yes
@@ -185,6 +186,13 @@ ifeq ($(POROUS_FLOW),yes)
 
   DEPEND_MODULES     := tensor_mechanics fluid_properties chemical_reactions
   SUFFIX             := pflow
+  include $(FRAMEWORK_DIR)/app.mk
+endif
+
+ifeq ($(RAY_TRACING),yes)
+  APPLICATION_DIR    := $(MOOSE_DIR)/modules/ray_tracing
+  APPLICATION_NAME   := ray_tracing
+  SUFFIX             := ray
   include $(FRAMEWORK_DIR)/app.mk
 endif
 

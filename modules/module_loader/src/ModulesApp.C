@@ -49,6 +49,9 @@
 #ifdef POROUS_FLOW_ENABLED
 #include "PorousFlowApp.h"
 #endif
+#ifdef RAY_TRACING_ENABLED
+#include "RayTracingApp.h"
+#endif
 #ifdef RDG_ENABLED
 #include "RdgApp.h"
 #endif
@@ -151,6 +154,10 @@ ModulesApp::registerObjects(Factory & factory)
   PorousFlowApp::registerObjects(factory);
 #endif
 
+#ifdef RAY_TRACING_ENABLED
+  RayTracingApp::registerObjects(factory);
+#endif
+
 #ifdef RDG_ENABLED
   RdgApp::registerObjects(factory);
 #endif
@@ -222,6 +229,10 @@ ModulesApp::associateSyntax(Syntax & syntax, ActionFactory & action_factory)
   PorousFlowApp::associateSyntax(syntax, action_factory);
 #endif
 
+#ifdef RAY_TRACING_ENABLED
+  RayTracingApp::associateSyntax(syntax, action_factory);
+#endif
+
 #ifdef RDG_ENABLED
   RdgApp::associateSyntax(syntax, action_factory);
 #endif
@@ -287,6 +298,10 @@ ModulesApp::registerExecFlags(Factory & factory)
 
 #ifdef POROUS_FLOW_ENABLED
   PorousFlowApp::registerExecFlags(factory);
+#endif
+
+#ifdef RAY_TRACING_ENABLED
+  RayTracingApp::registerExecFlags(factory);
 #endif
 
 #ifdef RDG_ENABLED
@@ -357,6 +372,10 @@ ModulesApp::registerAll(Factory & f, ActionFactory & af, Syntax & s)
 
 #ifdef POROUS_FLOW_ENABLED
   PorousFlowApp::registerAll(f, af, s);
+#endif
+
+#ifdef RAY_TRACING_ENABLED
+  RayTracingApp::registerAll(f, af, s);
 #endif
 
 #ifdef RDG_ENABLED
