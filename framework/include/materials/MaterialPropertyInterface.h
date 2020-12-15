@@ -15,6 +15,7 @@
 #include "MooseTypes.h"
 #include "MaterialData.h"
 #include "MathUtils.h"
+#include "MooseObjectName.h"
 
 // Forward declarations
 class InputParameters;
@@ -119,13 +120,22 @@ public:
    */
   template <typename T, bool is_ad>
   const GenericMaterialProperty<T, is_ad> &
-  getGenericZeroMaterialProperty(const std::string & prop_name);
+  getGenericZeroMaterialProperty(const std::string & name);
+  template <typename T, bool is_ad>
+  const GenericMaterialProperty<T, is_ad> &
+  getGenericZeroMaterialPropertyByName(const std::string & prop_name);
+
+  /**
+   * Return a constant zero anonymous material property
+   */
+  template <typename T, bool is_ad>
+  const GenericMaterialProperty<T, is_ad> & getGenericZeroMaterialProperty();
 
   /// for backwards compatibility
-  template <typename T>
-  const MaterialProperty<T> & getZeroMaterialProperty(const std::string & prop_name)
+  template <typename T, typename... Ts>
+  const MaterialProperty<T> & getZeroMaterialProperty(Ts... args)
   {
-    return getGenericZeroMaterialProperty<T, false>(prop_name);
+    return getGenericZeroMaterialProperty<T, false>(args...);
   }
 
   /**
@@ -202,6 +212,16 @@ public:
   {
     return hasMaterialProperty<T>(name);
   }
+  template <typename T, bool is_ad, typename std::enable_if<is_ad, int>::type = 0>
+  bool hasGenericMaterialPropertyByName(const std::string & name)
+  {
+    return hasADMaterialPropertyByName<T>(name);
+  }
+  template <typename T, bool is_ad, typename std::enable_if<!is_ad, int>::type = 0>
+  bool hasGenericMaterialPropertyByName(const std::string & name)
+  {
+    return hasMaterialPropertyByName<T>(name);
+  }
   ///@}
 
   /**
@@ -233,6 +253,9 @@ protected:
 
   /// The name of the object that this interface belongs to
   const std::string _mi_name;
+
+  /// The "complete" name of the object that this interface belongs for material property output
+  const MooseObjectName _mi_moose_object_name;
 
   /// The type of data
   Moose::MaterialDataType _material_data_type;
@@ -452,6 +475,9 @@ MaterialPropertyInterface::getMaterialPropertyByName(const MaterialPropertyName 
 
   _material_property_dependencies.insert(_material_data->getPropertyId(name));
 
+  // Update consumed properties in MaterialPropertyDebugOutput
+  _mi_feproblem.addConsumedPropertyName(_mi_moose_object_name, name);
+
   return _material_data->getProperty<T>(name);
 }
 
@@ -471,6 +497,9 @@ MaterialPropertyInterface::getADMaterialPropertyByName(const MaterialPropertyNam
   _get_material_property_called = true;
 
   _material_property_dependencies.insert(_material_data->getPropertyId(name));
+
+  // Update consumed properties in MaterialPropertyDebugOutput
+  _mi_feproblem.addConsumedPropertyName(_mi_moose_object_name, name);
 
   return _material_data->getADProperty<T>(name);
 }
@@ -524,6 +553,9 @@ MaterialPropertyInterface::getBlockMaterialProperty(const MaterialPropertyName &
 
   _material_property_dependencies.insert(_material_data->getPropertyId(name));
 
+  // Update consumed properties in MaterialPropertyDebugOutput
+  _mi_feproblem.addConsumedPropertyName(_mi_moose_object_name, name);
+
   return std::pair<const MaterialProperty<T> *, std::set<SubdomainID>>(
       &_material_data->getProperty<T>(name), _mi_feproblem.getMaterialPropertyBlocks(name));
 }
@@ -546,7 +578,39 @@ MaterialPropertyInterface::hasMaterialPropertyByName(const std::string & name)
 
 template <typename T, bool is_ad>
 const GenericMaterialProperty<T, is_ad> &
-MaterialPropertyInterface::getGenericZeroMaterialProperty(const std::string & /*prop_name*/)
+MaterialPropertyInterface::getGenericZeroMaterialProperty(const std::string & name)
+{
+  std::string prop_name = deducePropertyName(name);
+  return getGenericZeroMaterialPropertyByName<T, is_ad>(prop_name);
+}
+
+template <typename T, bool is_ad>
+const GenericMaterialProperty<T, is_ad> &
+MaterialPropertyInterface::getGenericZeroMaterialPropertyByName(const std::string & prop_name)
+{
+  // if found return the requested property
+  if (hasGenericMaterialPropertyByName<T, is_ad>(prop_name))
+    return getGenericMaterialPropertyByName<T, is_ad>(prop_name);
+
+  // static zero property storage
+  static GenericMaterialProperty<T, is_ad> zero;
+
+  // resize to accomodate maximum number of qpoints
+  // (in multiapp scenarios getMaxQps can return different values in each app; we need the max)
+  unsigned int nqp = _mi_feproblem.getMaxQps();
+  if (nqp > zero.size())
+    zero.resize(nqp);
+
+  // set values for all qpoints to zero
+  for (unsigned int qp = 0; qp < nqp; ++qp)
+    MathUtils::mooseSetToZero(zero[qp]);
+
+  return zero;
+}
+
+template <typename T, bool is_ad>
+const GenericMaterialProperty<T, is_ad> &
+MaterialPropertyInterface::getGenericZeroMaterialProperty()
 {
   // static zero property storage
   static GenericMaterialProperty<T, is_ad> zero;

@@ -17,6 +17,7 @@
 #include "MooseArray.h"
 #include "SystemBase.h"
 #include "Assembly.h"
+#include "MooseObjectName.h"
 
 #include "libmesh/equation_systems.h"
 #include "libmesh/system.h"
@@ -49,6 +50,7 @@ SubProblem::SubProblem(const InputParameters & parameters)
     _rz_coord_axis(1), // default to RZ rotation around y-axis
     _currently_computing_jacobian(false),
     _computing_nonlinear_residual(false),
+    _currently_computing_residual(false),
     _safe_access_tagged_matrices(false),
     _safe_access_tagged_vectors(false),
     _have_ad_objects(false),
@@ -681,6 +683,18 @@ SubProblem::isMatPropRequested(const std::string & prop_name) const
   return _material_property_requested.find(prop_name) != _material_property_requested.end();
 }
 
+void
+SubProblem::addConsumedPropertyName(const MooseObjectName & obj_name, const std::string & prop_name)
+{
+  _consumed_material_properties[obj_name].insert(prop_name);
+}
+
+const std::map<MooseObjectName, std::set<std::string>> &
+SubProblem::getConsumedPropertyMap() const
+{
+  return _consumed_material_properties;
+}
+
 DiracKernelInfo &
 SubProblem::diracKernelInfo()
 {
@@ -748,8 +762,8 @@ SubProblem::getVariableHelper(THREAD_ID tid,
                               const std::string & var_name,
                               Moose::VarKindType expected_var_type,
                               Moose::VarFieldType expected_var_field_type,
-                              SystemBase & nl,
-                              SystemBase & aux)
+                              const SystemBase & nl,
+                              const SystemBase & aux) const
 {
   // Eventual return value
   MooseVariableFEBase * var = nullptr;
@@ -887,6 +901,12 @@ SubProblem::reinitLowerDElem(const Elem * elem,
 }
 
 void
+SubProblem::reinitNeighborLowerDElem(const Elem * elem, THREAD_ID tid)
+{
+  assembly(tid).reinitNeighborLowerDElem(elem);
+}
+
+void
 SubProblem::reinitMortarElem(const Elem * elem, THREAD_ID tid)
 {
   assembly(tid).reinitMortarElem(elem);
@@ -894,6 +914,16 @@ SubProblem::reinitMortarElem(const Elem * elem, THREAD_ID tid)
 
 void
 SubProblem::addAlgebraicGhostingFunctor(GhostingFunctor & algebraic_gf, bool to_mesh)
+{
+  EquationSystems & eq = es();
+  auto n_sys = eq.n_systems();
+
+  for (MooseIndex(n_sys) i = 0; i < n_sys; ++i)
+    eq.get_system(i).get_dof_map().add_algebraic_ghosting_functor(algebraic_gf, to_mesh);
+}
+
+void
+SubProblem::addAlgebraicGhostingFunctor(std::shared_ptr<GhostingFunctor> algebraic_gf, bool to_mesh)
 {
   EquationSystems & eq = es();
   auto n_sys = eq.n_systems();
@@ -913,3 +943,12 @@ SubProblem::automaticScaling() const
 {
   return systemBaseNonlinear().automaticScaling();
 }
+
+#ifdef MOOSE_GLOBAL_AD_INDEXING
+void
+SubProblem::hasScalingVector()
+{
+  for (const THREAD_ID tid : make_range(libMesh::n_threads()))
+    assembly(tid).hasScalingVector();
+}
+#endif

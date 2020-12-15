@@ -1,5 +1,13 @@
 !gallery! large=6
 
+!card! gallery/twist_gallery.mp4 title=Wire Twist
+Mechanical modeling of two copper wires being twisted together to create a twisted pair
+using the [Tensor Mechanics](modules/tensor_mechanics/index.md) and [Contact](modules/contact/index.md) modules.
+
+!style fontsize=90% fontweight=100
+*Credit:*  [Materials Science and Scientific Computing Department at UKAEA](https://ccfe.ukaea.uk/research/)
+!card-end!
+
 !card! gallery/golem_app_reservoir_analysis.mp4 title=Faulted Geothermal Reservoirs
 Evolution of the 100C temperature during 30 years of injection/production for a complex doublet
 system into a fractured geothermal reservoir. Based on [GOLEM](https://github.com/ajacquey/golem),
@@ -22,7 +30,7 @@ Transient flow around corner using Euler equations with variable porosity,
 see [Pronghorn: Porous media thermal-hydraulics for reactor applications](https://escholarship.org/uc/item/61k9r05w).
 !card-end!
 
-!card! gallery/elder.mp4 title=Density Driven, Porous Flow with Adaptivity
+!card! gallery/elder.mp4 title=Density Driven Porous Flow
 Density driven, porous flow simulation of the Elder problem using [Falcon](https://github.com/idaholab/falcon).  Mesh adaptivity is used to accurately capture the moving fronts.
 
 !style fontsize=80% fontweight=100
@@ -71,9 +79,14 @@ velocity is known. MOOSE contains a level set module, for more information see [
 
 !card! gallery/soil.mp4 title=Soil Desiccation Simulation
 A 3D soil desiccation simulation using phase-field for cohesive fracture model, see
-[A phase-field formulation for dynamic cohesive fracture](https://arxiv.org/abs/1809.09691).
+[A phase-field model of fracture with frictionless contact and random fracture properties: Application to thin-film fracture and soil desiccation](https://doi.org/10.1016/j.cma.2020.113106).
 
 !style fontsize=80% fontweight=100
-*Credit:* Gary Hu, [Duke Computational Mechanics Lab](http://dcml.pratt.duke.edu/)
+*Credit:* Gary Hu, [Dolbow Research Group](http://dolbow.pratt.duke.edu/)
+!card-end!
+
+!card! contact/2d_indenter.mp4 title=Axisymmetric Spherical Indenter
+An elastic spherical indenter penetrates into a base material modeled with tensor-mechanics crystal plasticity.
+[contact/index.md].
 !card-end!
 !gallery-end!

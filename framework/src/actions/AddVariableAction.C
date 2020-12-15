@@ -35,6 +35,7 @@ InputParameters
 AddVariableAction::validParams()
 {
   auto params = MooseObjectAction::validParams();
+  params.addClassDescription("Add a non-linear variable to the simulation.");
 
   // The user may specify a type in the Variables block, but if they don't we'll just use all the
   // parameters available from MooseVariableBase
@@ -52,6 +53,8 @@ AddVariableAction::validParams()
                              "allowed)");
   params.addParam<std::vector<Real>>("scaling",
                                      "Specifies a scaling factor to apply to this variable");
+  params.addParam<std::vector<Real>>("initial_condition",
+                                     "Specifies the initial condition for this variable");
   return params;
 }
 
@@ -149,7 +152,7 @@ AddVariableAction::act()
   addVariable(var_name);
 
   // Set the initial condition
-  if (_moose_object_pars.isParamValid("initial_condition"))
+  if (_pars.isParamValid("initial_condition"))
     createInitialConditionAction();
 }
 
@@ -159,7 +162,7 @@ AddVariableAction::createInitialConditionAction()
   // Variable name
   std::string var_name = name();
 
-  auto value = _moose_object_pars.get<std::vector<Real>>("initial_condition");
+  auto value = _pars.get<std::vector<Real>>("initial_condition");
 
   // Create the object name
   std::string long_name("");
@@ -256,8 +259,12 @@ AddVariableAction::addVariable(const std::string & var_name)
 
   if (_moose_object_pars.get<bool>("eigen"))
   {
-    MooseEigenSystem & esys(static_cast<MooseEigenSystem &>(_problem->getNonlinearSystemBase()));
-    esys.markEigenVariable(var_name);
+    // MooseEigenSystem will be eventually removed. NonlinearEigenSystem will be used intead.
+    // It is legal for NonlinearEigenSystem to specify a variable as eigen in input file,
+    // but we do not need to do anything here.
+    MooseEigenSystem * esys = dynamic_cast<MooseEigenSystem *>(&_problem->getNonlinearSystemBase());
+    if (esys)
+      esys->markEigenVariable(var_name);
   }
 }
 

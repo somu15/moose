@@ -1,4 +1,4 @@
-# Step 5: Creating a Kernel Object
+# Step 5: Develop a Kernel Object
 
 In this step, the basic components of [#kernels] will be presented. To demonstrate their use, a new `Kernel` will be created to solve Darcy's Pressure equation, whose weak form was derived in the [previous step](tutorial01_app_development/step04_weak_form.md#demo). The concept of class *inheritance* shall also be demonstrated, as the object to solve Darcy's equation will inherit from the `ADKernel` class.
 
@@ -33,7 +33,7 @@ Now, one might inspect the files that provide the base class, i.e., [`ADKernel.h
 - `_qp`\\
   Current quadrature point index.
 
-There are are several methods that `ADKernel` (and `Kernel`) objects may override. The most important ones are those which work to evaluate the kernel term in the weak form and they are explained in [kernel-methods].
+There are several methods that `ADKernel` (and `Kernel`) objects may override. The most important ones are those which work to evaluate the kernel term in the weak form and they are explained in [kernel-methods].
 
 !table id=kernel-methods caption=Methods used by different types of Kernel objects that compute the residual term.
 | Base | Override | Use |

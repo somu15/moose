@@ -13,13 +13,15 @@ import unittest
 import mock
 import logging
 import moosesqa
+import mooseutils
 
 logging.basicConfig()
 
+@unittest.skipIf(mooseutils.git_version() < (2,11,4), "Git version must at least 2.11.4")
 class TestCheckRequirements(unittest.TestCase):
 
     def setUp(self):
-        self._patcher = mock.patch('mooseutils.colorText', side_effect=lambda t, c: t)
+        self._patcher = mock.patch('mooseutils.colorText', side_effect=lambda t, c, **kwargs: t)
         self._patcher.start()
 
     def testDeprecated(self):
@@ -28,9 +30,11 @@ class TestCheckRequirements(unittest.TestCase):
                                     design=['Diffusion.md'], design_line=1,
                                     issues=['issues'], issues_line=2,
                                     verification=['Diffusion.md'], verification_line=3,
-                                    validation=['Diffusion.md'], validation_line=4,
-                                    detail='text', detail_line=5)
-        detail0 = moosesqa.Requirement(name='req0-0')
+                                    validation=['Diffusion.md'], validation_line=4)
+        req0.detail = 'text'
+        req0.detail_line = 5
+
+        detail0 = moosesqa.Detail(name='req0-0')
         req0.details = [detail0]
 
         with self.assertLogs(level='ERROR') as cm:
@@ -57,7 +61,9 @@ class TestCheckRequirements(unittest.TestCase):
 
     def testDuplicates(self):
         req0 = moosesqa.Requirement(name='req0', requirement='requirement', design=['Diffusion.md'], issues=['#1234'])
+        req0.specification = moosesqa.TestSpecification()
         req1 = moosesqa.Requirement(name='req1', requirement='requirement', design=['Diffusion.md'], issues=['#1234'])
+        req1.specification = moosesqa.TestSpecification()
 
         with self.assertLogs(level='ERROR') as cm:
             moosesqa.check_requirements([req0, req1])
@@ -67,13 +73,19 @@ class TestCheckRequirements(unittest.TestCase):
             moosesqa.check_requirements([req0, req1], duplicate_requirement=logging.WARNING)
         self.assertIn('Duplicate requirements found', cm.output[0])
 
-        with self.assertRaises(AssertionError):
-            with self.assertLogs() as cm:
-                moosesqa.check_requirements([req0, req1], duplicate_requirement=None)
+    def testDuplicateDetails(self):
+        det0 = moosesqa.Detail(name='det0', detail='detail')
+        det1 = moosesqa.Detail(name='det1', detail='detail')
+        req0 = moosesqa.Requirement(name='req0', requirement='requirement', design=['Diffusion.md'], issues=['#1234'], details=[det0, det1])
+        with self.assertLogs(level='WARNING') as cm:
+            moosesqa.check_requirements([req0], duplicate_detail=logging.WARNING)
+        self.assertIn('Duplicate details found', cm.output[0])
 
     def testMissing(self):
         req0 = moosesqa.Requirement(name='req0', requirement='requirement', design=['Diffusion.md'], issues=['#1234'])
+        req0.specification = moosesqa.TestSpecification()
         req1 = moosesqa.Requirement(name='req1')
+        req1.specification = moosesqa.TestSpecification()
 
         with self.assertLogs(level='ERROR') as cm:
             moosesqa.check_requirements([req0, req1])
@@ -125,8 +137,9 @@ class TestCheckRequirements(unittest.TestCase):
 
     def testDetail(self):
         # Top-level detail
-        req0 = moosesqa.Requirement(name='req0', detail='wrong', detail_line=1,
-                                    requirement='requirement', design=['Diffusion.md'], issues=['#1234'])
+        req0 = moosesqa.Requirement(name='req0', requirement='requirement', design=['Diffusion.md'], issues=['#1234'])
+        req0.detail = 'wrong'
+        req0.detail_line = 1
         with self.assertLogs(level='ERROR') as cm:
             moosesqa.check_requirements([req0])
         self.assertIn("Top level 'detail' supplied", cm.output[0])
@@ -134,7 +147,7 @@ class TestCheckRequirements(unittest.TestCase):
 
         # Missing/empty detail
         req0 = moosesqa.Requirement(name='req0', requirement='requirement', design=['Diffusion.md'], issues=['#1234'])
-        detail0 = moosesqa.Requirement(name='req0-0')
+        detail0 = moosesqa.Detail(name='req0-0')
         req0.details = [detail0]
 
         with self.assertLogs(level='ERROR') as cm:
@@ -222,6 +235,17 @@ class TestCheckRequirements(unittest.TestCase):
         with self.assertLogs(level='ERROR') as cm:
             moosesqa.check_requirements([req0])
         self.assertIn("Test will not execute because it is marked as skipped or deleted", cm.output[0])
+
+    def testCollections(self):
+        req0 = moosesqa.Requirement(name='req0',
+                                    requirement='requirement', design=['Diffusion.md'], issues=['#1234'],
+                                    specification=moosesqa.TestSpecification(), collections={'test'})
+        req1 = moosesqa.Requirement(name='req1',
+                                    requirement='requirement2', design=['Diffusion.md'], issues=['#1234'],
+                                    specification=moosesqa.TestSpecification(), collections={'test2'})
+        with self.assertLogs(level='ERROR') as cm:
+            moosesqa.check_requirements([req0, req1], allowed_collections={'test'})
+        self.assertIn("Invalid collection names found: test2", cm.output[0])
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

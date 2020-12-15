@@ -8,6 +8,7 @@
 #* https://www.gnu.org/licenses/lgpl-2.1.html
 import os
 import logging
+import mooseutils
 from ..common import exceptions
 from ..base import components, Extension, LatexRenderer
 from ..tree import tokens, html, latex
@@ -111,7 +112,6 @@ class VideoCommand(command.CommandComponent):
         return settings
 
     def createToken(self, parent, info, page):
-
         flt = floats.create_float(parent, self.extension, self.reader, page, self.settings,
                                   bottom=True, img=True, **self.attributes)
 
@@ -176,16 +176,10 @@ class RenderImage(components.RenderComponent):
 class RenderVideo(components.RenderComponent):
     def createHTML(self, parent, token, page):
 
-        node = None
-        src = token['src']
-        if not src.startswith('http'):
-            node = self.translator.findPage(src)
-            src = str(node.relativeSource(page))
-
-        tstart = token['tstart']
-        tstop = token['tstop']
-
         if token['youtube']:
+            src = token['src']
+            tstart = token['tstart']
+            tstop = token['tstop']
             if tstart and tstop:
                 src += '?start={:.0f}&end={:.0f};'.format(tstart, tstop)
             elif tstart:
@@ -200,24 +194,49 @@ class RenderVideo(components.RenderComponent):
                              allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture",
                              allowfullscreen="allowfullscreen")
         else:
-            if tstart and tstop:
-                src += '#t={},{}'.format(tstart, tstop)
-            elif tstart:
-                src += '#t={}'.format(tstart)
-            elif tstop:
-                src += '#t=0,{}'.format(tstop)
+            video = self.addVideoHelper(parent, token, page)
 
-            video = html.Tag(parent, 'video', token)
-            _, ext = os.path.splitext(src)
-            html.Tag(video, 'source', src=src, type_="video/{}".format(ext[1:]))
+    def addVideoHelper(self, parent, token, page):
+        src = token['src']
+        if not src.startswith('http'):
+            node = self.translator.findPage(src)
+            src = str(node.relativeSource(page))
 
-            video['width'] = '100%'
-            if token['controls']:
-                video['controls'] = 'controls'
-            if token['autoplay']:
-                video['autoplay'] = 'autoplay'
-            if token['loop']:
-                video['loop'] = 'loop'
+        tstart = token['tstart']
+        tstop = token['tstop']
+
+        if tstart and tstop:
+            src += '#t={},{}'.format(tstart, tstop)
+        elif tstart:
+            src += '#t={}'.format(tstart)
+        elif tstop:
+            src += '#t=0,{}'.format(tstop)
+
+        video = html.Tag(parent, 'video', token, class_='moose-video')
+        _, ext = os.path.splitext(src)
+        source = html.Tag(video, 'source', src=src)
+
+        source["type"] = "video/{}".format(ext[1:])
+
+        video['width'] = '100%'
+
+        # Ensure that bool flags are boolean
+        for key in ['controls', 'loop', 'autoplay']:
+            value = token[key]
+            if isinstance(value, str):
+                token[key] = mooseutils.str2bool(value)
+
+        video['loop'] = token['loop']
+        video['autoplay'] = token['autoplay']
+        video['controls'] = token['controls']
+
+        #https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video
+        #In some browsers (e.g. Chrome 70.0) autoplay doesn't work if no muted attribute is present."
+        if video['autoplay']:
+            video['muted'] = True
+
+        return video
+
 
     def createLatex(self, parent, token, page):
 

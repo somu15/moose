@@ -6,7 +6,7 @@ Content:
     - modules/contact/doc/content
     - modules/geochemistry/doc/content
     - modules/fluid_properties/doc/content
-    - modules/fluid_structure_interaction/doc/content
+    - modules/fsi/doc/content
     - modules/functional_expansion_tools/doc/content
     - modules/heat_conduction/doc/content
     - modules/level_set/doc/content
@@ -15,6 +15,7 @@ Content:
     - modules/peridynamics/doc/content
     - modules/phase_field/doc/content
     - modules/porous_flow/doc/content
+    - modules/ray_tracing/doc/content
     - modules/rdg/doc/content
     - modules/richards/doc/content
     - modules/stochastic_tools/doc/content
@@ -49,26 +50,6 @@ Extensions:
         executable: ${MOOSE_DIR}/modules/combined
         unregister:
             framework: !include framework/doc/unregister.yml
-        hide:
-            framework: !include framework/doc/hidden.yml
-            chemical_reactions: !include modules/chemical_reactions/doc/hidden.yml
-            #combined: !include modules/combined/doc/hidden.yml
-            contact: !include modules/contact/doc/hidden.yml
-            #geochemistry: !include modules/geochemistry/doc/hidden.yml
-            fluid_properties: !include modules/fluid_properties/doc/hidden.yml
-            #functional_expansion_tools: !include modules/functional_expansion_tools/doc/hidden.yml
-            heat_conduction: !include modules/heat_conduction/doc/hidden.yml
-            #level_set: !include modules/level_set/doc/hidden.yml
-            misc: !include modules/misc/doc/hidden.yml
-            navier_stokes: !include modules/navier_stokes/doc/hidden.yml
-            peridynamics: !include modules/peridynamics/doc/hidden.yml
-            phase_field: !include modules/phase_field/doc/hidden.yml
-            porous_flow: !include modules/porous_flow/doc/hidden.yml
-            #rdg: !include modules/rdg/doc/hidden.yml
-            #richards: !include modules/richards/doc/hidden.yml
-            stochastic_tools: !include modules/stochastic_tools/doc/hidden.yml
-            tensor_mechanics: !include modules/tensor_mechanics/doc/hidden.yml
-            #xfem: !include modules/xfem/doc/hidden.yml
         remove:
             framework: !include framework/doc/remove.yml
             #chemical_reactions: !include modules/chemical_reactions/doc/remove.yml
@@ -106,6 +87,8 @@ Extensions:
             distributions: syntax/Distributions/index.md
             executioners: syntax/Executioner/index.md
             functions: syntax/Functions/index.md
+            fvbcs: syntax/FVBCs/index.md
+            fvkernels: syntax/FVKernels/index.md
             ics: syntax/ICs/index.md
             indicators: syntax/Adaptivity/Indicators/index.md
             interfacekernels: syntax/InterfaceKernels/index.md
@@ -114,7 +97,6 @@ Extensions:
             markers: syntax/Adaptivity/Markers/index.md
             materials: syntax/Materials/index.md
             mesh: syntax/Mesh/index.md
-            meshgenerators: syntax/MeshGenerators/index.md
             meshmodifiers: syntax/MeshModifiers/index.md
             multiapps: syntax/MultiApps/index.md
             nodalkernels: syntax/NodalKernels/index.md
@@ -157,7 +139,7 @@ Extensions:
             misc: !include modules/misc/doc/sqa_misc.yml
             phase_field: !include modules/phase_field/doc/sqa_phase_field.yml
             xfem: !include modules/xfem/doc/sqa_xfem.yml
-            fluid_structure_interaction: !include modules/fluid_structure_interaction/doc/sqa_fluid_structure_interaction.yml
+            fsi: !include modules/fsi/doc/sqa_fsi.yml
 
         requirement-groups:
             dgkernels: DGKernel Objects

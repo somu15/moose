@@ -19,7 +19,7 @@ ifeq ($(ALL_MODULES),yes)
         CONTACT                     := yes
         EXTERNAL_PETSC_SOLVER       := yes
         FLUID_PROPERTIES            := yes
-        FLUID_STRUCTURE_INTERACTION := yes
+        FSI := yes
         FUNCTIONAL_EXPANSION_TOOLS  := yes
         GEOCHEMISTRY                := yes
         HEAT_CONDUCTION             := yes
@@ -29,6 +29,7 @@ ifeq ($(ALL_MODULES),yes)
         PERIDYNAMICS                := yes
         PHASE_FIELD                 := yes
         POROUS_FLOW                 := yes
+        RAY_TRACING                 := yes
         RDG                         := yes
         RICHARDS                    := yes
         STOCHASTIC_TOOLS            := yes
@@ -64,16 +65,16 @@ ifeq ($(XFEM),yes)
         TENSOR_MECHANICS            := yes
 endif
 
-ifeq ($(FLUID_STRUCTURE_INTERACTION),yes)
+ifeq ($(FSI),yes)
         TENSOR_MECHANICS            := yes
         NAVIER_STOKES               := yes
-FLUID_PROPERTIES            := yes
-RDG                         := yes
-HEAT_CONDUCTION             := yes
+        FLUID_PROPERTIES            := yes
+        RDG                         := yes
+        HEAT_CONDUCTION             := yes
 endif
 
 # The master list of all moose modules
-MODULE_NAMES := "chemical_reactions contact external_petsc_solver fluid_properties fluid_structure_interaction functional_expansion_tools geochemistry heat_conduction level_set misc navier_stokes peridynamics phase_field porous_flow rdg richards stochastic_tools tensor_mechanics xfem"
+MODULE_NAMES := "chemical_reactions contact external_petsc_solver fluid_properties fsi functional_expansion_tools geochemistry heat_conduction level_set misc navier_stokes peridynamics phase_field porous_flow rdg richards stochastic_tools tensor_mechanics xfem"
 
 ################################################################################
 ########################## MODULE REGISTRATION #################################
@@ -188,6 +189,13 @@ ifeq ($(POROUS_FLOW),yes)
   include $(FRAMEWORK_DIR)/app.mk
 endif
 
+ifeq ($(RAY_TRACING),yes)
+  APPLICATION_DIR    := $(MOOSE_DIR)/modules/ray_tracing
+  APPLICATION_NAME   := ray_tracing
+  SUFFIX             := ray
+  include $(FRAMEWORK_DIR)/app.mk
+endif
+
 ifeq ($(RICHARDS),yes)
   APPLICATION_DIR    := $(MOOSE_DIR)/modules/richards
   APPLICATION_NAME   := richards
@@ -229,9 +237,9 @@ ifeq ($(CONTACT),yes)
   include $(FRAMEWORK_DIR)/app.mk
 endif
 
-ifeq ($(FLUID_STRUCTURE_INTERACTION),yes)
-  APPLICATION_DIR    := $(MOOSE_DIR)/modules/fluid_structure_interaction
-  APPLICATION_NAME   := fluid_structure_interaction
+ifeq ($(FSI),yes)
+  APPLICATION_DIR    := $(MOOSE_DIR)/modules/fsi
+  APPLICATION_NAME   := fsi
 
   DEPEND_MODULES     := tensor_mechanics navier_stokes
   SUFFIX             := fsi

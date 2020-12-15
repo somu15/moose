@@ -50,7 +50,7 @@ PowerLawCreepStressUpdate::PowerLawCreepStressUpdate(const InputParameters & par
 }
 
 void
-PowerLawCreepStressUpdate::computeStressInitialize(const Real /*effective_trial_stress*/,
+PowerLawCreepStressUpdate::computeStressInitialize(const Real & /*effective_trial_stress*/,
                                                    const RankFourTensor & /*elasticity_tensor*/)
 {
   if (_has_temp)
@@ -91,4 +91,10 @@ PowerLawCreepStressUpdate::computeStrainEnergyRateDensity(
   Real creep_factor = _n_exponent / (_n_exponent + 1);
 
   return creep_factor * stress[_qp].doubleContraction((strain_rate)[_qp]);
+}
+
+bool
+PowerLawCreepStressUpdate::substeppingCapabilityEnabled()
+{
+  return getParam<bool>("use_substep");
 }

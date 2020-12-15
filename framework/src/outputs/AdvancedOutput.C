@@ -43,6 +43,13 @@ addAdvancedOutputParams(InputParameters & params)
       "A list of the variables and postprocessors that should be output to the Exodus file "
       "(may include Variables, ScalarVariables, and Postprocessor names).");
 
+  // Enable output of PP/VPP to JSON
+  params.addParam<bool>(
+      "postprocessors_as_reporters", false, "Output Postprocessors values as Reporter values.");
+  params.addParam<bool>("vectorpostprocessors_as_reporters",
+                        false,
+                        "Output VectorsPostprocessors vectors as Reporter values.");
+
   // 'Variables' Group
   params.addParamNamesToGroup("hide show", "Variables");
 
@@ -94,7 +101,7 @@ MultiMooseEnum
 AdvancedOutput::getOutputTypes()
 {
   return MultiMooseEnum("nodal=0 elemental=1 scalar=2 postprocessor=3 vector_postprocessor=4 "
-                        "input=5 system_information=6");
+                        "input=5 system_information=6 reporter=7");
 }
 
 // Enables the output types (see getOutputTypes) for an AdvancedOutput object
@@ -123,7 +130,10 @@ AdvancedOutput::AdvancedOutput(const InputParameters & parameters)
   : FileOutput(parameters),
     _elemental_as_nodal(isParamValid("elemental_as_nodal") ? getParam<bool>("elemental_as_nodal")
                                                            : false),
-    _scalar_as_nodal(isParamValid("scalar_as_nodal") ? getParam<bool>("scalar_as_nodal") : false)
+    _scalar_as_nodal(isParamValid("scalar_as_nodal") ? getParam<bool>("scalar_as_nodal") : false),
+    _reporter_data(_problem_ptr->getReporterData()),
+    _postprocessors_as_reporters(getParam<bool>("postprocessors_as_reporters")),
+    _vectorpostprocessors_as_reporters(getParam<bool>("vectorpostprocessors_as_reporters"))
 {
   _is_advanced = true;
   _advanced_execute_on = OutputOnWarehouse(_execute_on, parameters);
@@ -144,7 +154,7 @@ AdvancedOutput::initialSetup()
   initShowHideLists(getParam<std::vector<VariableName>>("show"),
                     getParam<std::vector<VariableName>>("hide"));
 
-  // If 'elemental_as_nodal = true' the elemental variable names must be appended to the
+  // If 'elemental_as_nodal = true' the elemental variable names must be appended to thec
   // nodal variable names. Thus, when libMesh::EquationSystem::build_solution_vector is called
   // it will create the correct nodal variable from the elemental
   if (_elemental_as_nodal)
@@ -236,6 +246,13 @@ AdvancedOutput::outputInput()
              "'");
 }
 
+void
+AdvancedOutput::outputReporters()
+{
+  mooseError(
+      "Output of the Reporter value(s) is not support for this output object named '", name(), "'");
+}
+
 bool
 AdvancedOutput::shouldOutput(const ExecFlagType & type)
 {
@@ -292,6 +309,12 @@ AdvancedOutput::output(const ExecFlagType & type)
   {
     outputInput();
     _last_execute_time["input"] = _time;
+  }
+
+  if (wantOutput("reporters", type))
+  {
+    outputReporters();
+    _last_execute_time["reporters"] = _time;
   }
 }
 
@@ -426,6 +449,13 @@ AdvancedOutput::initAvailableLists()
     else if (_problem_ptr->hasScalarVariable(var_name))
       _execute_data["scalars"].available.insert(var_name);
   }
+
+  // Initialize Reporter name list
+  for (auto && r_name : _reporter_data.getReporterNames())
+    if ((_postprocessors_as_reporters || !hasPostprocessorObjectByName(r_name.getObjectName())) &&
+        (_vectorpostprocessors_as_reporters ||
+         !hasVectorPostprocessorObjectByName(r_name.getObjectName())))
+      _execute_data["reporters"].available.insert(r_name);
 }
 
 void
@@ -503,10 +533,13 @@ AdvancedOutput::initShowHideLists(const std::vector<VariableName> & show,
     }
     else if (_problem_ptr->hasScalarVariable(var_name))
       _execute_data["scalars"].show.insert(var_name);
-    else if (_problem_ptr->hasPostprocessor(var_name))
+    else if (hasPostprocessorObjectByName(var_name))
       _execute_data["postprocessors"].show.insert(var_name);
-    else if (_problem_ptr->hasVectorPostprocessor(var_name))
+    else if (hasVectorPostprocessorObjectByName(var_name))
       _execute_data["vector_postprocessors"].show.insert(var_name);
+    else if ((var_name.find("/") != std::string::npos) &&
+             (hasReporterValueByName(ReporterName(var_name))))
+      _execute_data["reporters"].show.insert(var_name);
     else
       unknown.insert(var_name);
   }
@@ -553,9 +586,9 @@ AdvancedOutput::initShowHideLists(const std::vector<VariableName> & show,
     }
     else if (_problem_ptr->hasScalarVariable(var_name))
       _execute_data["scalars"].hide.insert(var_name);
-    else if (_problem_ptr->hasPostprocessor(var_name))
+    else if (hasPostprocessorByName(var_name))
       _execute_data["postprocessors"].hide.insert(var_name);
-    else if (_problem_ptr->hasVectorPostprocessor(var_name))
+    else if (hasVectorPostprocessorObjectByName(var_name))
       _execute_data["vector_postprocessors"].hide.insert(var_name);
     else
       unknown.insert(var_name);
@@ -693,6 +726,14 @@ AdvancedOutput::addValidParams(InputParameters & params, const MultiMooseEnum & 
     params.addParamNamesToGroup("execute_vector_postprocessors_on", "Variables");
   }
 
+  // Reporters
+  if (types.contains("reporter"))
+  {
+    params.addParam<ExecFlagEnum>(
+        "execute_reporters_on", empty_execute_on, "Control of when Reporter values are output");
+    params.addParamNamesToGroup("execute_reporters_on", "Variables");
+  }
+
   // Input file
   if (types.contains("input"))
   {
@@ -781,6 +822,18 @@ const std::set<std::string> &
 AdvancedOutput::getVectorPostprocessorOutput()
 {
   return _execute_data["vector_postprocessors"].output;
+}
+
+bool
+AdvancedOutput::hasReporterOutput()
+{
+  return hasOutputHelper("reporters");
+}
+
+const std::set<std::string> &
+AdvancedOutput::getReporterOutput()
+{
+  return _execute_data["reporters"].output;
 }
 
 const OutputOnWarehouse &

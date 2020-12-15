@@ -40,6 +40,7 @@ def colorText(string, color, **kwargs):
     # ANSI color codes for colored terminal output
     color_codes = dict(RESET='\033[0m',
                        BOLD='\033[1m',
+                       DIM='\033[2m',
                        RED='\033[31m',
                        GREEN='\033[32m',
                        YELLOW='\033[33m',
@@ -158,7 +159,7 @@ def find_moose_executable_recursive(loc=os.getcwd(), **kwargs):
             break
     return executable
 
-def run_executable(app_path, args, mpi=None, suppress_output=False):
+def run_executable(app_path, *args, mpi=None, suppress_output=False):
     """
     A function for running an application.
     """
@@ -169,10 +170,11 @@ def run_executable(app_path, args, mpi=None, suppress_output=False):
         cmd = [app_path]
     cmd += args
 
-    if not suppress_output:
-        return subprocess.check_output(cmd, encoding='utf-8')
-    else:
-        return subprocess.call(cmd)
+    kwargs = dict(encoding='utf-8')
+    if suppress_output:
+        kwargs['stdout'] = subprocess.DEVNULL
+        kwargs['stderr'] = subprocess.DEVNULL
+    return subprocess.call(cmd, **kwargs)
 
 def runExe(app_path, args):
     """
@@ -407,3 +409,9 @@ def recursive_update(d, u):
     for k, v in u.items():
         d[k] = recursive_update(d.get(k, dict()), v) if isinstance(v, dict) else v
     return d
+
+def fuzzyEqual(test_value, true_value, tolerance):
+    return abs(test_value - true_value) / abs(true_value) < tolerance
+
+def fuzzyAbsoluteEqual(test_value, true_value, tolerance):
+    return abs(test_value - true_value) < tolerance

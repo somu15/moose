@@ -1,4 +1,4 @@
-# Step 4: Generating a Weak Form
+# Step 4: Generate a Weak Form
 
 The first question to ask when presented with a [!ac](PDE) that governs a problem's physics is: "How do I solve this equation?" The MOOSE answer to this question is to use [Galerkin's Method](#galerkin), which involves expressing the *strong form* of a governing [!ac](PDE) in its *weak form*.
 
@@ -26,7 +26,7 @@ There is a general procedure for expressing a residual as one that is readily so
 Next, recall that the product rule of differentiation implies that
 
 !equation id=laplace-product
-\psi (\nabla \cdot k \nabla u) = \nabla \cdot (\psi \nabla u) - \nabla \psi \cdot \nabla u
+\psi (\nabla \cdot \nabla u) = \nabla \cdot (\psi \nabla u) - \nabla \psi \cdot \nabla u
 
 Substituting the right-hand side of [laplace-product] results in integration by parts of [laplace-sum]:
 
@@ -55,7 +55,7 @@ The general procedure for expressing the weak form of a [!ac](PDE) is as follows
 6. Apply the divergence theorem to generate boundary integrals, if necessary and/or possible.
 7. Express the final weak form using inner product notation, if desired.
 
-## The Galerkin Finite Element Method
+## The Galerkin Finite Element Method id=galerkin
 
 In general, the [!ac](FEM) assumes that solutions to [!ac](PDEs) take on simple forms, such as a polynomial. This assumption enables difficult analytical derivative expressions to be directly integrated in a piecewise-continuous fashion. +The Galerkin [!ac](FEM) is one that uses the same functions to approximate the solution of a [!ac](PDE) as those used for all test functions, $\boldsymbol{\psi}$.+ There are many approaches to achieve solutions using the [!ac](FEM), but the Galerkin approach is particularly useful for multiphysics applications, because it is a purely numerical one whose effectiveness is independent of the underlying physics.
 
