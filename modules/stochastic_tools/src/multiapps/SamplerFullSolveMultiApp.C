@@ -99,8 +99,11 @@ SamplerFullSolveMultiApp::solveStep(Real dt, Real target_time, bool auto_advance
 
   if (_mode == StochasticTools::MultiAppMode::BATCH_RESET ||
       _mode == StochasticTools::MultiAppMode::BATCH_RESTORE)
-    last_solve_converged = solveStepBatch(dt, target_time, auto_advance);
+      {
+        last_solve_converged = solveStepBatch(dt, target_time, auto_advance);
+      }
   else
+  {
     last_solve_converged = FullSolveMultiApp::solveStep(dt, target_time, auto_advance);
 
   _solved_once = true;
@@ -140,6 +143,11 @@ SamplerFullSolveMultiApp::solveStepBatch(Real dt, Real target_time, bool auto_ad
   _local_batch_app_index = 0;
   for (dof_id_type i = _sampler.getLocalRowBegin(); i < _sampler.getLocalRowEnd(); ++i)
   {
+    _local_batch_app_index = i + 1;
+    resetApp(_local_batch_app_index, target_time);
+    initialSetup();
+    // Changed
+
     for (auto & transfer : to_transfers)
     {
       transfer->setGlobalMultiAppIndex(i);
@@ -153,7 +161,6 @@ SamplerFullSolveMultiApp::solveStepBatch(Real dt, Real target_time, bool auto_ad
       transfer->setGlobalMultiAppIndex(i);
       transfer->executeFromMultiapp();
     }
-
     if (i < _sampler.getLocalRowEnd() - 1)
     {
       if (_mode == StochasticTools::MultiAppMode::BATCH_RESTORE)

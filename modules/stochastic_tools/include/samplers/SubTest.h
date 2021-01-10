@@ -10,26 +10,29 @@
 #pragma once
 
 #include "Sampler.h"
-// #include "VectorPostprocessorData.h"
-#include "VectorPostprocessorInterface.h"
 #include "ReporterInterface.h"
-// #include "GeneralVectorPostprocessor.h"
 
 /**
- * A class used to perform Monte Carlo Sampling
+ * A class used to perform Subset Simulation Sampling
  */
-class SubTest : public Sampler, public VectorPostprocessorInterface, public ReporterInterface // public Sampler, public VectorPostprocessorInterface
+class SubTest : public Sampler, public ReporterInterface
 {
 public:
   static InputParameters validParams();
 
   SubTest(const InputParameters & parameters);
-  // virtual void initialSetup() override;
-  // virtual void sampleSetUp() override;
+
+  std::vector<Real> _outputs_sto;
+
+  std::vector<std::vector<Real>> _inputs_sto;
 
 protected:
   /// Return the sample for the given row and column
   virtual Real computeSample(dof_id_type row_index, dof_id_type col_index) override;
+
+  // Real computeSTD(const std::vector<Real> & data);
+  //
+  // Real computeMEAN(const std::vector<Real> & data);
 
   Real computeMIN(const std::vector<Real> & data);
   std::vector<Real> sortOUTPUT(const std::vector<Real> & outputs, const int & samplessub, const unsigned int & subset, const Real & subset_prob);
@@ -41,20 +44,15 @@ protected:
   /// Distribution names
   const std::vector<DistributionName> & _distribution_names;
 
-  /// Input names
-  // const std::vector<std::string> & _inputs_names;
-
   const int & _num_samplessub;
 
   const Real & _subset_probability;
 
   const std::vector<Real> & _proposal_std;
 
-  std::vector<std::vector<Real>> _inputs_sto;
-
-  std::vector<Real> _outputs_sto;
+  // std::vector<std::vector<Real>> _inputs_sto;
   //
-  // std::vector<Real> _output_limits;
+  // std::vector<Real> _outputs_sto;
 
 private:
 
@@ -66,13 +64,11 @@ private:
 
   Real _acceptance_ratio;
 
-  bool _values_distributed;
+  // bool _values_distributed;
 
   // bool _values_distributed1;
 
-  // std::vector<const VectorPostprocessorValue *> _values_ptr;
-  //
-  // std::vector<const VectorPostprocessorValue *> _inputs_ptr;
+  std::vector<const VectorPostprocessorValue *> _values_ptr;
 
   const int & _step;
 

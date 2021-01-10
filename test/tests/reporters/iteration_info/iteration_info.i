@@ -49,7 +49,7 @@
 
 [Outputs]
   [out]
-    type = JSON
+    type = CSV
     execute_system_information_on = NONE
   []
 []
