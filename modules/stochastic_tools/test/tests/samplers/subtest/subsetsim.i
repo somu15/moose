@@ -26,8 +26,8 @@
     # inputs_reporter = 'inputs_reporter/inputs_reporter1'
     results_reporter = 'results_reporter/results_reporter1'
     subset_probability = 0.1
-    proposal_std = '0.01 0.25'
-    num_samplessub = 2000
+    proposal_std = '1.0 1.0'
+    num_samplessub = 200
     seed = 101
   []
 []
@@ -102,7 +102,7 @@
 
 [Executioner]
   type = Transient
-  num_steps = 20000 # 2000
+  num_steps = 1000 # 2000
 []
 
 [Outputs]
