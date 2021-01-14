@@ -60,7 +60,7 @@ FluidStructureInterface::computeQpJacobian(Moose::DGJacobianType type)
       break;
     case Moose::ElementNeighbor:
       return _test[_i][_qp] * _D[_qp] * _phi_neighbor[_j][_qp] * _neighbor_dotdot_du[_qp] *
-            _normals[_qp](_component);
+             _normals[_qp](_component);
     case Moose::NeighborElement:
       return _test_neighbor[_i][_qp] * -_phi[_j][_qp] * _normals[_qp](_component);
   }
