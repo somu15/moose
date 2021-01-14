@@ -186,6 +186,7 @@ addActionTypes(Syntax & syntax)
   registerTask("setup_mesh_complete", true); // calls prepare
   registerTask("add_geometric_rm", false);
   registerTask("attach_geometric_rm", true);
+  registerTask("attach_geometric_rm_final", true);
 
   registerTask("init_displaced_problem", false);
 
@@ -304,10 +305,10 @@ addActionTypes(Syntax & syntax)
                            "(add_output_aux_variables)"
                            "(add_algebraic_rm)"
                            "(add_coupling_rm)"
+                           "(attach_geometric_rm_final)"
                            "(attach_algebraic_rm)"
                            "(attach_coupling_rm)"
                            "(delete_remote_elements_after_late_geometric_ghosting)"
-                           "(init_problem)"
                            "(add_output)"
                            "(add_postprocessor)"
                            "(add_vector_postprocessor)" // MaterialVectorPostprocessor requires this
@@ -317,6 +318,7 @@ addActionTypes(Syntax & syntax)
                            " add_nodal_kernel, add_dg_kernel, add_fv_kernel, add_fv_bc, add_interface_kernel,"
                            " add_scalar_kernel, add_aux_scalar_kernel, add_indicator, add_marker)"
                            "(coupling_functor_check)"
+                           "(init_problem)"
                            "(add_control)"
                            "(check_output)"
                            "(check_integrity)");

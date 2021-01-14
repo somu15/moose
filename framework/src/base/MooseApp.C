@@ -40,6 +40,7 @@
 #include "JsonInputFileFormatter.h"
 #include "SONDefinitionFormatter.h"
 #include "RelationshipManager.h"
+#include "ProxyRelationshipManager.h"
 #include "Registry.h"
 #include "SerializerGuard.h"
 #include "PerfGraphInterface.h" // For TIME_SECTIOn
@@ -1946,44 +1947,107 @@ MooseApp::hasRelationshipManager(const std::string & name) const
                       }) != _relationship_managers.end();
 }
 
-bool
-MooseApp::addRelationshipManager(std::shared_ptr<RelationshipManager> relationship_manager)
+namespace
 {
-  // We don't need Geometric-only RelationshipManagers when we run with
-  // ReplicatedMesh unless we are splitting the mesh.
-  if (!_action_warehouse.mesh()->isDistributedMesh() && !_split_mesh &&
-      (relationship_manager->isType(Moose::RelationshipManagerType::GEOMETRIC) &&
-       !(relationship_manager->isType(Moose::RelationshipManagerType::ALGEBRAIC) ||
-         relationship_manager->isType(Moose::RelationshipManagerType::COUPLING))))
-    return false;
+void
+donateForWhom(const RelationshipManager & donor, RelationshipManager & acceptor)
+{
+  auto & existing_for_whom = acceptor.forWhom();
+
+  // Take all the for_whoms from the donor, and give them to the acceptor
+  for (auto & fw : donor.forWhom())
+  {
+    if (std::find(existing_for_whom.begin(), existing_for_whom.end(), fw) ==
+        existing_for_whom.end())
+      acceptor.addForWhom(fw);
+  }
+}
+}
+
+bool
+MooseApp::addRelationshipManager(std::shared_ptr<RelationshipManager> new_rm)
+{
+  // We prefer to always add geometric RMs. There is no hurt to add RMs for replicated mesh
+  // since MeshBase::delete_remote_elements{} is a no-op (empty) for replicated mesh.
+  // The motivation here is that MooseMesh::_use_distributed_mesh may not be properly set
+  // at the time we are adding geometric relationship managers. We deleted the following
+  // old logic to add all geometric RMs regardless of there is a distributed mesh or not.
+  // Otherwise, all geometric RMs will be improperly ignored for a distributed mesh generator.
+
+  // if (!_action_warehouse.mesh()->isDistributedMesh() && !_split_mesh &&
+  //    (relationship_manager->isType(Moose::RelationshipManagerType::GEOMETRIC) &&
+  //     !(relationship_manager->isType(Moose::RelationshipManagerType::ALGEBRAIC) ||
+  //       relationship_manager->isType(Moose::RelationshipManagerType::COUPLING))))
+  //  return false;
 
   bool add = true;
-  for (const auto & rm : _relationship_managers)
+
+  std::set<std::shared_ptr<RelationshipManager>> rms_to_erase;
+
+  for (const auto & existing_rm : _relationship_managers)
   {
-    if (*rm == *relationship_manager)
+    if (*existing_rm >= *new_rm)
     {
       add = false;
-
-      auto & existing_for_whom = rm->forWhom();
-
-      // Since the existing object is going to cover this one
-      // Pass along who is needing it
-      for (auto & fw : relationship_manager->forWhom())
-      {
-        if (std::find(existing_for_whom.begin(), existing_for_whom.end(), fw) ==
-            existing_for_whom.end())
-          rm->addForWhom(fw);
-      }
-
+      donateForWhom(*new_rm, *existing_rm);
       break;
     }
+    // The new rm did not provide less or the same amount/type of ghosting as the existing rm, but
+    // what about the other way around?
+    else if (*new_rm >= *existing_rm)
+      rms_to_erase.emplace(existing_rm);
   }
 
   if (add)
-    _relationship_managers.emplace_back(relationship_manager);
+  {
+    _relationship_managers.emplace(new_rm);
+    for (const auto & rm_to_erase : rms_to_erase)
+    {
+      donateForWhom(*rm_to_erase, *new_rm);
+      removeRelationshipManager(rm_to_erase);
+    }
+  }
 
   // Inform the caller whether the object was added or not
   return add;
+}
+
+void
+MooseApp::removeRelationshipManager(std::shared_ptr<RelationshipManager> rm)
+{
+  auto * mesh = _action_warehouse.mesh().get();
+  if (mesh->getMeshPtr())
+    mesh->getMesh().remove_ghosting_functor(*rm);
+
+  auto & displaced_mesh = _action_warehouse.displacedMesh();
+  if (displaced_mesh)
+  {
+    mooseAssert(displaced_mesh->getMeshPtr(),
+                "The displaced mesh gets added late in the game. It should definitely have a mesh "
+                "base attached to it");
+    auto it = _undisp_to_disp_rms.find(rm.get());
+    if (it != _undisp_to_disp_rms.end())
+      displaced_mesh->getMesh().remove_ghosting_functor(*it->second);
+  }
+
+  if (_executioner)
+  {
+    auto & problem = _executioner->feProblem();
+    problem.removeAlgebraicGhostingFunctor(*rm);
+
+    if (auto * dp = problem.getDisplacedProblem().get())
+    {
+      auto it = _undisp_to_disp_rms.find(rm.get());
+      if (it != _undisp_to_disp_rms.end())
+        dp->removeAlgebraicGhostingFunctor(*it->second);
+    }
+
+    auto & dof_map = problem.getNonlinearSystemBase().dofMap();
+    dof_map.remove_coupling_functor(*rm);
+  }
+
+  _factory.releaseSharedObjects(*rm);
+  _relationship_managers.erase(rm);
 }
 
 void
@@ -2020,102 +2084,110 @@ MooseApp::attachRelationshipManagers(MeshBase & mesh, MooseMesh & moose_mesh)
 }
 
 void
-MooseApp::attachRelationshipManagers(Moose::RelationshipManagerType rm_type)
+MooseApp::attachRelationshipManagers(Moose::RelationshipManagerType rm_type,
+                                     bool attach_geometric_rm_final)
 {
   for (auto & rm : _relationship_managers)
   {
-    if (rm->isType(rm_type))
+    if (!rm->isType(rm_type))
+      continue;
+
+    // RM is already attached, and we do not need to handle this on the final stage
+    if (rm->attachGeometricEarly() && attach_geometric_rm_final)
+      continue;
+
+    if (rm_type == Moose::RelationshipManagerType::GEOMETRIC)
     {
-      if (rm_type == Moose::RelationshipManagerType::GEOMETRIC)
+      // The problem is not built yet - so the ActionWarehouse currently owns the mesh
+      MooseMesh * const mesh = _action_warehouse.mesh().get();
+
+      // "attach_geometric_rm_final = true" inidicate that it is the last chance to attach
+      // geometric RMs. Therefore, we need to attach them.
+      if (!rm->attachGeometricEarly() && !attach_geometric_rm_final)
       {
-        // The problem is not built yet - so the ActionWarehouse currently owns the mesh
-        MooseMesh * const mesh = _action_warehouse.mesh().get();
+        // Will attach them later (during algebraic). But also, we need to tell the mesh that we
+        // shouldn't be deleting remote elements yet
+        if (!mesh->getMeshPtr())
+          mooseError("We should have attached a MeshBase object to the mesh by now");
 
-        if (!rm->attachGeometricEarly())
+        mesh->allowRemoteElementRemoval(false);
+      }
+      else
+      {
+        MeshBase & undisp_mesh_base = mesh->getMesh();
+        const DofMap * const undisp_nl_dof_map =
+            _executioner ? &_executioner->feProblem().systemBaseNonlinear().dofMap() : nullptr;
+        rm->init(undisp_mesh_base, undisp_nl_dof_map);
+        undisp_mesh_base.add_ghosting_functor(*rm);
+
+        // In the final stage, if there is a displaced mesh, we need to
+        // clone ghosting functors for displacedMesh
+        if (attach_geometric_rm_final && _action_warehouse.displacedMesh())
         {
-          // Will attach them later (during algebraic). But also, we need to tell the mesh that we
-          // shouldn't be deleting remote elements yet
-          if (!mesh->getMeshPtr())
-            mooseError("We should have attached a MeshBase object to the mesh by now");
-
-          mesh->allowRemoteElementRemoval(false);
+          std::shared_ptr<GhostingFunctor> clone_gf = rm->clone();
+          auto clone_rm = std::static_pointer_cast<RelationshipManager>(clone_gf);
+          MeshBase & disp_mesh_base = _action_warehouse.displacedMesh()->getMesh();
+          const DofMap * disp_nl_dof_map = nullptr;
+          if (_executioner && _executioner->feProblem().getDisplacedProblem())
+            disp_nl_dof_map =
+                &_executioner->feProblem().getDisplacedProblem()->systemBaseNonlinear().dofMap();
+          clone_rm->init(disp_mesh_base, disp_nl_dof_map);
+          disp_mesh_base.add_ghosting_functor(clone_gf);
+          _undisp_to_disp_rms.emplace(rm.get(), clone_gf);
         }
-        else
-        {
-          MeshBase & mesh_base = mesh->getMesh();
-          rm->init(mesh_base);
-          mesh_base.add_ghosting_functor(*rm);
+        else if (_action_warehouse.displacedMesh())
+          mooseError("The displaced mesh should not yet exist at the time that we are attaching "
+                     "early geometric relationship managers.");
+      }
+    }
+    else // rm_type is algebraic or coupling
+    {
+      if (!_executioner)
+        mooseError("We must have an executioner by now or else we do not have to data to add "
+                   "algebraic or coupling functors to in MooseApp::attachRelationshipManagers");
 
-          if (_action_warehouse.displacedMesh())
-            mooseError("Theh displaced mesh should not yet exist at the time that we are attaching "
-                       "geometric relationship managers.");
-        }
+      // Now we've built the problem, so we can use it
+      auto & problem = _executioner->feProblem();
+      auto & undisp_nl = problem.systemBaseNonlinear();
+      auto & undisp_nl_dof_map = undisp_nl.dofMap();
+
+      // Ensure that the relationship manager is initialized
+      rm->init(problem.mesh().getMesh(), &undisp_nl_dof_map);
+
+      std::shared_ptr<GhostingFunctor> clone_gf = nullptr;
+      if (_action_warehouse.displacedMesh())
+      {
+        clone_gf = rm->clone();
+        const DofMap * const disp_nl_dof_map =
+            problem.getDisplacedProblem()
+                ? &problem.getDisplacedProblem()->systemBaseNonlinear().dofMap()
+                : nullptr;
+        static_cast<RelationshipManager *>(clone_gf.get())
+            ->init(_action_warehouse.displacedMesh()->getMesh(), disp_nl_dof_map);
       }
 
-      if (rm_type != Moose::RelationshipManagerType::GEOMETRIC)
+      if (rm->useDisplacedMesh() && problem.getDisplacedProblem())
       {
-        // Now we've built the problem, so we can use it
-        auto & problem = _executioner->feProblem();
+        if (rm_type == Moose::RelationshipManagerType::COUPLING)
+          // We actually need to add this to the FEProblemBase NonlinearSystemBase's DofMap
+          // because the DisplacedProblem "nonlinear" DisplacedSystem doesn't have any matrices
+          // for which to do coupling
+          undisp_nl_dof_map.add_coupling_functor(*rm, /*to_mesh = */ false);
 
-        // Ensure that the relationship manager is initialized
-        rm->init(problem.mesh().getMesh());
-
-        std::shared_ptr<GhostingFunctor> clone_rm = nullptr;
-        if (_action_warehouse.displacedMesh())
+        else if (rm_type == Moose::RelationshipManagerType::ALGEBRAIC)
         {
-          clone_rm = rm->clone();
-          clone_rm->set_mesh(&_action_warehouse.displacedMesh()->getMesh());
+          problem.getDisplacedProblem()->addAlgebraicGhostingFunctor(clone_gf,
+                                                                     /*to_mesh = */ false);
+          _undisp_to_disp_rms.emplace(rm.get(), clone_gf);
         }
+      }
+      else // undisplaced
+      {
+        if (rm_type == Moose::RelationshipManagerType::COUPLING)
+          undisp_nl_dof_map.add_coupling_functor(*rm, /*to_mesh = */ false);
 
-        // If it's also Geometric but didn't get attached early - then let's attach it now
-        if (rm->isType(Moose::RelationshipManagerType::GEOMETRIC) && !rm->attachGeometricEarly())
-        {
-          // The reference and displaced meshes should have the same geometric RMs.
-          // It is necessary for keeping both meshes consistent.
-          if (_action_warehouse.displacedMesh())
-            _action_warehouse.displacedMesh()->getMesh().add_ghosting_functor(clone_rm);
-
-          problem.mesh().getMesh().add_ghosting_functor(*rm);
-        }
-
-        if (rm->useDisplacedMesh() && problem.getDisplacedProblem())
-        {
-          if (rm_type == Moose::RelationshipManagerType::COUPLING)
-          {
-            // We actually need to add this to the FEProblemBase NonlinearSystemBase's DofMap
-            // because the DisplacedProblem "nonlinear" DisplacedSystem doesn't have any matrices
-            // for which to do coupling
-            auto & dof_map = problem.getNonlinearSystemBase().dofMap();
-            dof_map.add_coupling_functor(*rm, /*to_mesh = */ false);
-            rm->setDofMap(dof_map);
-          }
-          // If this rm is algebraic AND coupling, then in the case of the non-linear system there
-          // is no reason to add it to the DofMap twice. In the case of any other system, it
-          // actually would be disastrous to add this rm because it's going to set a coupling matrix
-          // based on the non-linear system. So we don't add this rm at all here if its also
-          // a coupling functor
-          else if (rm_type == Moose::RelationshipManagerType::ALGEBRAIC &&
-                   !rm->isType(Moose::RelationshipManagerType::COUPLING))
-            problem.getDisplacedProblem()->addAlgebraicGhostingFunctor(clone_rm,
-                                                                       /*to_mesh = */ false);
-        }
-        else // undisplaced
-        {
-          if (rm_type == Moose::RelationshipManagerType::COUPLING)
-          {
-            auto & dof_map = problem.getNonlinearSystemBase().dofMap();
-            dof_map.add_coupling_functor(*rm, /*to_mesh = */ false);
-            rm->setDofMap(dof_map);
-          }
-          // If this rm is algebraic AND coupling, then in the case of the non-linear system there
-          // is no reason to add it to the DofMap twice. In the case of any other system, it
-          // actually would be disastrous to add this rm because it's going to set a coupling matrix
-          // based on the non-linear system. So we don't add this rm at all here if its also
-          // a coupling functor
-          else if (rm_type == Moose::RelationshipManagerType::ALGEBRAIC &&
-                   !rm->isType(Moose::RelationshipManagerType::COUPLING))
-            problem.addAlgebraicGhostingFunctor(*rm, /*to_mesh = */ false);
-        }
+        else if (rm_type == Moose::RelationshipManagerType::ALGEBRAIC)
+          problem.addAlgebraicGhostingFunctor(*rm, /*to_mesh = */ false);
       }
     }
   }
@@ -2163,7 +2235,7 @@ MooseApp::getRelationshipManagerInfo() const
         counts[demangle(typeid(*gf).name())]++;
     }
 
-    for (const auto pair : counts)
+    for (const auto & pair : counts)
       info_strings.emplace_back(std::make_pair(
           "Default", pair.first + (pair.second > 1 ? " x " + std::to_string(pair.second) : "")));
   }
@@ -2187,7 +2259,7 @@ MooseApp::getRelationshipManagerInfo() const
         counts[demangle(typeid(*gf).name())]++;
     }
 
-    for (const auto pair : counts)
+    for (const auto & pair : counts)
       info_strings.emplace_back(
           std::make_pair("Default",
                          pair.first + (pair.second > 1 ? " x " + std::to_string(pair.second) : "") +
@@ -2195,20 +2267,6 @@ MooseApp::getRelationshipManagerInfo() const
   }
 
   return info_strings;
-}
-
-void
-MooseApp::dofMapReinitForRMs()
-{
-  for (auto & rm : _relationship_managers)
-    rm->dofmap_reinit();
-}
-
-void
-MooseApp::meshReinitForRMs()
-{
-  for (auto & rm : _relationship_managers)
-    rm->mesh_reinit();
 }
 
 void

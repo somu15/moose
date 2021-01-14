@@ -70,6 +70,7 @@ class Tester(MooseObject):
         params.addParam('threading',     ['ALL'], "A list of threading models ths tests runs with ('ALL', 'TBB', 'OPENMP', 'PTHREADS', 'NONE')")
         params.addParam('superlu',       ['ALL'], "A test that runs only if SuperLU is available via PETSc ('ALL', 'TRUE', 'FALSE')")
         params.addParam('mumps',         ['ALL'], "A test that runs only if MUMPS is available via PETSc ('ALL', 'TRUE', 'FALSE')")
+        params.addParam('strumpack',     ['ALL'], "A test that runs only if STRUMPACK is available via PETSc ('ALL', 'TRUE', 'FALSE')")
         params.addParam('chaco',         ['ALL'], "A test that runs only if Chaco (partitioner) is available via PETSc ('ALL', 'TRUE', 'FALSE')")
         params.addParam('parmetis',      ['ALL'], "A test that runs only if Parmetis (partitioner) is available via PETSc ('ALL', 'TRUE', 'FALSE')")
         params.addParam('party',         ['ALL'], "A test that runs only if Party (partitioner) is available via PETSc ('ALL', 'TRUE', 'FALSE')")
@@ -105,6 +106,7 @@ class Tester(MooseObject):
         params.addParam("verification", False, "Set to True to mark test as a verification problem.")
         params.addParam("deprecated", False, "When True the test is no longer considered part SQA process and as such does not include the need for a requirement definition.")
         params.addParam("collections", [], "A means for defining a collection of tests for SQA process.")
+        params.addParam("classification", 'functional', "A means for defining a requirement classification for SQA process.")
         return params
 
     # This is what will be checked for when we look for valid testers
@@ -519,7 +521,7 @@ class Tester(MooseObject):
 
         # PETSc and SLEPc is being explicitly checked above
         local_checks = ['platform', 'compiler', 'mesh_mode', 'ad_mode', 'ad_indexing_type', 'method', 'library_mode', 'dtk', 'unique_ids', 'vtk', 'tecplot',
-                        'petsc_debug', 'curl', 'superlu', 'mumps', 'cxx11', 'asio', 'unique_id', 'slepc', 'petsc_version_release', 'boost', 'fparser_jit',
+                        'petsc_debug', 'curl', 'superlu', 'mumps', 'strumpack', 'cxx11', 'asio', 'unique_id', 'slepc', 'petsc_version_release', 'boost', 'fparser_jit',
                         'parmetis', 'chaco', 'party', 'ptscotch', 'threading', 'libpng']
         for check in local_checks:
             test_platforms = set()

@@ -17,7 +17,7 @@
 #include "MooseTypes.h"
 #include "MooseMesh.h"
 #include "Attributes.h"
-#include "FVDirichletBC.h"
+#include "FVDirichletBCBase.h"
 #include "SubProblem.h"
 #include "FVKernel.h"
 #include "ADUtils.h"
@@ -107,6 +107,17 @@ MooseVariableDataFV<OutputType>::MooseVariableDataFV(const MooseVariableFV<Outpu
 
   _need_matrix_tag_u.resize(num_matrix_tags);
   _matrix_tag_u.resize(num_matrix_tags);
+}
+
+template <typename OutputType>
+unsigned int
+MooseVariableDataFV<OutputType>::oldestSolutionStateRequested() const
+{
+  if (_need_u_older || _need_grad_older || _need_second_older || _need_dof_values_older)
+    return 2;
+  if (_need_u_old || _need_grad_old || _need_second_old || _need_dof_values_old)
+    return 1;
+  return 0;
 }
 
 template <typename OutputType>
@@ -525,7 +536,7 @@ MooseVariableDataFV<OutputType>::computeGhostValuesFace(
   _has_dirichlet_bc = false;
   initializeSolnVars();
 
-  std::vector<FVDirichletBC *> bcs;
+  std::vector<FVDirichletBCBase *> bcs;
 
   // TODO: this query probably (maybe?)needs to also filter based on the
   // active tags - these currently live in the flux thread loop object and I'm

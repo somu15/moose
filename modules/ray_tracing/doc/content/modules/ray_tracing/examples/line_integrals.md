@@ -9,30 +9,35 @@ The discussion that follows will describe how to integrate a variable across a l
 
 We begin with the standard "simple diffusion" problem:
 
-!listing modules/ray_tracing/test/tests/ray_kernels/variable_integral_ray_kernel/simple_diffusion_line_integral.i start=Mesh end=Outputs
+!listing modules/ray_tracing/test/tests/raykernels/variable_integral_ray_kernel/simple_diffusion_line_integral.i start=Mesh end=Outputs
 
-For this problem, we seek the value of the integral
-
-!equation
-\int_L u_h~dr, \quad L = \{\vec{r}_1 + t\vec{r}_2 \mid t \in [0, 1]\}
-
-for the lines defined by
+For this problem, we seek the value of the integrals (where $u_h$ is the finite-element solution)
 
 !equation
-\vec{r}_1 = (0, 0)\,, \quad \vec{r}_1 = (5, 5)
+\int_{L_1} u_h(\vec{r})~dr, \quad L_1 = \{(0, 0) + t(5, 5) \mid t \in [0, 1]\}\,,
 
 and
 
 !equation
-\vec{r}_1 = (5, 0)\,, \quad \vec{r}_1 = (5, 5)
+\int_{L_2} u_h(\vec{r})~dr, \quad L_2 = \{(5, 0) + t(5, 5) \mid t \in [0, 1]\}\,,
 
-For simplicity, we will denote the lines as `diag` and `right_up`, respectively.
+in which we will denote the first line, $L_1$, as `diag` and the second, $L_2$, as `right_up` for simplicity.
+
+Note that the integral along the second line, $L_2$, is trivial due to the Dirichlet boundary condition,
+
+!equation
+u_h(5, y) = 1\,, \quad y \in [0, 5]\,,
+
+which implies
+
+!equation
+\int_{L_2} u_h(\vec{r})~dr = \int_0^5 u_h(5, y)\,dy = \int_0^5 dy = 5\,, \quad L_2 = \{(5, 0) + t(5, 5) \mid t \in [0, 1]\}\,.
 
 ## Defining the Study
 
 A [RepeatableRayStudy.md] is defined that generates and executes the rays that compute the variable line integral:
 
-!listing modules/ray_tracing/test/tests/ray_kernels/variable_integral_ray_kernel/simple_diffusion_line_integral.i start=UserObjects end=RayKernels
+!listing modules/ray_tracing/test/tests/raykernels/variable_integral_ray_kernel/simple_diffusion_line_integral.i start=UserObjects end=RayKernels
 
 The `study` object defines two rays to be exectued on `TIMESTEP_END`:
 
@@ -43,7 +48,7 @@ The `study` object defines two rays to be exectued on `TIMESTEP_END`:
 
 [RayKernels/index.md] are objects that are executed on the segments of the rays. In this case, we wish to compute the integral of a variable so we will define a [VariableIntegralRayKernel.md]:
 
-!listing modules/ray_tracing/test/tests/ray_kernels/variable_integral_ray_kernel/simple_diffusion_line_integral.i start=RayKernels end=Postprocessors
+!listing modules/ray_tracing/test/tests/raykernels/variable_integral_ray_kernel/simple_diffusion_line_integral.i start=RayKernels end=Postprocessors
 
 The `u_integral` [VariableIntegralRayKernel.md] will accumulate the variable line integral of the `u` Variable for our defined rays, `diag` and `right_up`.
 
@@ -54,7 +59,7 @@ Other commonly used [IntegralRayKernels](IntegralRayKernel.md) are the [Function
 
 Lastly, we need to obtain the accumulated integrals from the `study`. We will utilize a [RayIntegralValue.md] [Postprocessor](Postprocessors/index.md) to achieve this:
 
-!listing modules/ray_tracing/test/tests/ray_kernels/variable_integral_ray_kernel/simple_diffusion_line_integral.i start=Postprocessors
+!listing modules/ray_tracing/test/tests/raykernels/variable_integral_ray_kernel/simple_diffusion_line_integral.i start=Postprocessors
 
 The accumulated integrals are seen in output:
 

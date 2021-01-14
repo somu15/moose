@@ -67,6 +67,7 @@ Extensions:
                     - python/MooseDocs/test
                 specs:
                     - demo
+
     MooseDocs.extensions.navigation:
         name: MOOSEDocs
         repo: https://github.com/idaholab/moose
@@ -91,6 +92,7 @@ Extensions:
         includes:
             - framework/include
             - test/include
+    MooseDocs.extensions.ifelse: default
 
 Translator:
     type: MooseDocs.base.Translator

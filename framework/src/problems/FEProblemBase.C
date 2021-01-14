@@ -95,6 +95,7 @@
 #include "MooseVariableFV.h"
 #include "FVBoundaryCondition.h"
 #include "Reporter.h"
+#include "ADUtils.h"
 
 #include "libmesh/exodusII_io.h"
 #include "libmesh/quadrature.h"
@@ -639,6 +640,16 @@ FEProblemBase::initialSetup()
   setCurrentExecuteOnFlag(EXEC_INITIAL);
 
   addExtraVectors();
+
+  // Setup the solution states (current, old, etc) in each system based on
+  // its default and the states requested of each of its variables
+  _nl->initSolutionState();
+  _aux->initSolutionState();
+  if (getDisplacedProblem())
+  {
+    getDisplacedProblem()->nlSys().initSolutionState();
+    getDisplacedProblem()->auxSys().initSolutionState();
+  }
 
   // always execute to get the max number of DoF per element and node needed to initialize phi_zero
   // variables
@@ -2885,6 +2896,54 @@ FEProblemBase::projectSolution()
   _aux->solution().localize(*_aux->sys().current_local_solution, _aux->dofMap().get_send_list());
 }
 
+void
+FEProblemBase::projectInitialConditionOnCustomRange(ConstElemRange & elem_range,
+                                                    ConstBndNodeRange & bnd_nodes)
+{
+  ComputeInitialConditionThread cic(*this);
+  Threads::parallel_reduce(elem_range, cic);
+
+  // Need to close the solution vector here so that boundary ICs take precendence
+  _nl->solution().close();
+  _aux->solution().close();
+
+  ComputeBoundaryInitialConditionThread cbic(*this);
+  Threads::parallel_reduce(bnd_nodes, cbic);
+
+  _nl->solution().close();
+  _aux->solution().close();
+
+  // Also, load values into the SCALAR dofs
+  // Note: We assume that all SCALAR dofs are on the
+  // processor with highest ID
+  if (processor_id() == (n_processors() - 1) && _scalar_ics.hasActiveObjects())
+  {
+    const auto & ics = _scalar_ics.getActiveObjects();
+    for (const auto & ic : ics)
+    {
+      MooseVariableScalar & var = ic->variable();
+      var.reinit();
+
+      DenseVector<Number> vals(var.order());
+      ic->compute(vals);
+
+      const unsigned int n_SCALAR_dofs = var.dofIndices().size();
+      for (unsigned int i = 0; i < n_SCALAR_dofs; i++)
+      {
+        const dof_id_type global_index = var.dofIndices()[i];
+        var.sys().solution().set(global_index, vals(i));
+        var.setValue(i, vals(i));
+      }
+    }
+  }
+
+  _nl->solution().close();
+  _nl->solution().localize(*_nl->system().current_local_solution, _nl->dofMap().get_send_list());
+
+  _aux->solution().close();
+  _aux->solution().localize(*_aux->sys().current_local_solution, _aux->dofMap().get_send_list());
+}
+
 std::shared_ptr<MaterialBase>
 FEProblemBase::getMaterial(std::string name,
                            Moose::MaterialDataType type,
@@ -4673,6 +4732,10 @@ FEProblemBase::updateMaxQps()
   }
 
   unsigned int max_qpts = getMaxQps();
+  if (max_qpts > Moose::constMaxQpsPerElem)
+    mooseError("Max quadrature points per element assumptions made in some code (e.g.  Coupleable "
+               "and MaterialPropertyInterface classes) have been violated.\n Complain to Moose "
+               "developers to allow constMaxQpsPerElem to be increased.");
   for (unsigned int tid = 0; tid < libMesh::n_threads(); ++tid)
   {
     // the highest available order in libMesh is 43
@@ -4696,6 +4759,18 @@ FEProblemBase::bumpVolumeQRuleOrder(Order order, SubdomainID block)
 
   if (_displaced_problem)
     _displaced_problem->bumpVolumeQRuleOrder(order, block);
+
+  updateMaxQps();
+}
+
+void
+FEProblemBase::bumpAllQRuleOrder(Order order, SubdomainID block)
+{
+  for (unsigned int tid = 0; tid < libMesh::n_threads(); ++tid)
+    _assembly[tid]->bumpAllQRuleOrder(order, block);
+
+  if (_displaced_problem)
+    _displaced_problem->bumpAllQRuleOrder(order, block);
 
   updateMaxQps();
 }
@@ -4730,6 +4805,16 @@ FEProblemBase::createQRules(
 void
 FEProblemBase::setCoupling(Moose::CouplingType type)
 {
+  if (_trust_user_coupling_matrix)
+  {
+    if (_coupling != Moose::COUPLING_CUSTOM)
+      mooseError("Someone told us (the FEProblemBase) to trust the user coupling matrix, but we "
+                 "haven't been provided a coupling matrix!");
+
+    // We've been told to trust the user coupling matrix, so we're going to leave things alone
+    return;
+  }
+
   _coupling = type;
 }
 
@@ -4737,16 +4822,25 @@ void
 FEProblemBase::setCouplingMatrix(CouplingMatrix * cm)
 {
   // TODO: Deprecate method
-
-  _coupling = Moose::COUPLING_CUSTOM;
+  setCoupling(Moose::COUPLING_CUSTOM);
   _cm.reset(cm);
 }
 
 void
 FEProblemBase::setCouplingMatrix(std::unique_ptr<CouplingMatrix> cm)
 {
-  _coupling = Moose::COUPLING_CUSTOM;
+  setCoupling(Moose::COUPLING_CUSTOM);
   _cm = std::move(cm);
+}
+
+void
+FEProblemBase::trustUserCouplingMatrix()
+{
+  if (_coupling != Moose::COUPLING_CUSTOM)
+    mooseError("Someone told us (the FEProblemBase) to trust the user coupling matrix, but we "
+               "haven't been provided a coupling matrix!");
+
+  _trust_user_coupling_matrix = true;
 }
 
 void
@@ -4791,7 +4885,7 @@ FEProblemBase::setNonlocalCouplingMatrix()
 }
 
 bool
-FEProblemBase::areCoupled(unsigned int ivar, unsigned int jvar)
+FEProblemBase::areCoupled(unsigned int ivar, unsigned int jvar) const
 {
   return (*_cm)(ivar, jvar);
 }
@@ -4815,6 +4909,12 @@ FEProblemBase::init()
     return;
 
   TIME_SECTION(_init_timer);
+
+  // If we have AD and we are doing global AD indexing, then we should by default set the matrix
+  // coupling to full. If the user has told us to trust their coupling matrix, then this call will
+  // not do anything
+  if (haveADObjects() && Moose::globalADIndexing())
+    setCoupling(Moose::COUPLING_FULL);
 
   unsigned int n_vars = _nl->nVariables();
   {
@@ -6183,6 +6283,20 @@ FEProblemBase::notifyWhenMeshChanges(MeshChangedInterface * mci)
 }
 
 void
+FEProblemBase::initElementStatefulProps(const ConstElemRange & elem_range)
+{
+  ComputeMaterialsObjectThread cmt(*this,
+                                   _material_data,
+                                   _bnd_material_data,
+                                   _neighbor_material_data,
+                                   _material_props,
+                                   _bnd_material_props,
+                                   _neighbor_material_props,
+                                   _assembly);
+  cmt(elem_range, true);
+}
+
+void
 FEProblemBase::checkProblemIntegrity()
 {
   TIME_SECTION(_check_problem_integrity_timer);
@@ -6565,7 +6679,6 @@ FEProblemBase::checkNonlinearConvergence(std::string & msg,
                                          const Real abstol,
                                          const PetscInt nfuncs,
                                          const PetscInt max_funcs,
-                                         const PetscBool force_iteration,
                                          const Real initial_residual_before_preset_bcs,
                                          const Real div_threshold)
 {
@@ -6602,7 +6715,7 @@ FEProblemBase::checkNonlinearConvergence(std::string & msg,
     oss << "Failed to converge, function norm is NaN\n";
     reason = MooseNonlinearConvergenceReason::DIVERGED_FNORM_NAN;
   }
-  else if (fnorm < abstol && (it || !force_iteration))
+  else if ((it >= _nl_forced_its) && fnorm < abstol)
   {
     oss << "Converged due to function norm " << fnorm << " < " << abstol << '\n';
     reason = MooseNonlinearConvergenceReason::CONVERGED_FNORM_ABS;
@@ -6613,13 +6726,13 @@ FEProblemBase::checkNonlinearConvergence(std::string & msg,
         << '\n';
     reason = MooseNonlinearConvergenceReason::DIVERGED_FUNCTION_COUNT;
   }
-  else if (it && fnorm > system._last_nl_rnorm && fnorm >= div_threshold)
+  else if ((it >= _nl_forced_its) && it && fnorm > system._last_nl_rnorm && fnorm >= div_threshold)
   {
     oss << "Nonlinear solve was blowing up!\n";
     reason = MooseNonlinearConvergenceReason::DIVERGED_LINE_SEARCH;
   }
 
-  if (it && reason == MooseNonlinearConvergenceReason::ITERATING)
+  if ((it >= _nl_forced_its) && it && reason == MooseNonlinearConvergenceReason::ITERATING)
   {
     // If compute_initial_residual_before_preset_bcs==false, then use the
     // first residual computed by Petsc to determine convergence.
@@ -6642,6 +6755,12 @@ FEProblemBase::checkNonlinearConvergence(std::string & msg,
     {
       oss << "Diverged due to initial residual " << the_residual << " > divergence tolerance "
           << divtol << " * initial residual " << the_residual << '\n';
+      reason = MooseNonlinearConvergenceReason::DIVERGED_DTOL;
+    }
+    else if (_nl_abs_div_tol > 0 && fnorm > _nl_abs_div_tol)
+    {
+      oss << "Diverged due to residual " << fnorm << " > absolute divergence tolerance "
+          << _nl_abs_div_tol << '\n';
       reason = MooseNonlinearConvergenceReason::DIVERGED_DTOL;
     }
     else if (_n_nl_pingpong > _n_max_nl_pingpong)

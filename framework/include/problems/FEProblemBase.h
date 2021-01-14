@@ -178,7 +178,14 @@ public:
   /// Set custom coupling matrix for variables requiring nonlocal contribution
   void setNonlocalCouplingMatrix();
 
-  bool areCoupled(unsigned int ivar, unsigned int jvar);
+  bool areCoupled(unsigned int ivar, unsigned int jvar) const;
+
+  /**
+   * Whether to trust the user coupling matrix even if we want to do things like be paranoid and
+   * create a full coupling matrix. See https://github.com/idaholab/moose/issues/16395 for detailed
+   * background
+   */
+  void trustUserCouplingMatrix();
 
   std::vector<std::pair<MooseVariableFEBase *, MooseVariableFEBase *>> &
   couplingEntries(THREAD_ID tid);
@@ -214,7 +221,6 @@ public:
                             const Real abstol,
                             const PetscInt nfuncs,
                             const PetscInt max_funcs,
-                            const PetscBool force_iteration,
                             const Real initial_residual_before_preset_bcs,
                             const Real div_threshold);
 
@@ -307,6 +313,8 @@ public:
    * then nothing is done (i.e. this function is idempotent).
    */
   void bumpVolumeQRuleOrder(Order order, SubdomainID block);
+
+  void bumpAllQRuleOrder(Order order, SubdomainID block);
 
   /**
    * @return The maximum number of quadrature points in use on any element in this problem.
@@ -418,6 +426,15 @@ public:
   virtual void init() override;
   virtual void solve() override;
 
+  /**
+   * In general, {evaluable elements} >= {local elements} U {algebraic ghosting elements}. That is,
+   * the number of evaluable elements does NOT necessarily equal to the number of local and
+   * algebraic ghosting elements. For example, if using a Lagrange basis for all variables,
+   * if a non-local, non-algebraically-ghosted element is surrounded by neighbors which are
+   * local or algebraically ghosted, then all the nodal (Lagrange) degrees of freedom associated
+   * with the non-local, non-algebraically-ghosted element will be evaluable, and hence that
+   * element will be considered evaluable.
+   */
   const ConstElemRange & getEvaluableElementRange();
 
   /**
@@ -694,6 +711,14 @@ public:
                                    InputParameters & parameters);
 
   void projectSolution();
+
+  /**
+   * Project initial conditions for custom \p elem_range and \p bnd_node_range
+   * This is needed when elements/boundary nodes are added to a specific subdomain
+   * at an intermediate step
+   */
+  void projectInitialConditionOnCustomRange(ConstElemRange & elem_range,
+                                            ConstBndNodeRange & bnd_node_range);
 
   // Materials /////
   virtual void addMaterial(const std::string & kernel_name,
@@ -1452,6 +1477,13 @@ public:
   void notifyWhenMeshChanges(MeshChangedInterface * mci);
 
   /**
+   * Initialize stateful properties for elements in a specific \p elem_range
+   * This is needed when elements/boundary nodes are added to a specific subdomain
+   * at an intermediate step
+   */
+  void initElementStatefulProps(const ConstElemRange & elem_range);
+
+  /**
    * Method called to perform a series of sanity checks before a simulation is run. This method
    * doesn't return when errors are found, instead it generally calls mooseError() directly.
    */
@@ -1900,6 +1932,21 @@ public:
     _n_max_nl_pingpong = n_max_nl_pingpong;
   }
 
+  /// method setting the minimum number of nonlinear iterations before performing divergence checks
+  void setNonlinearForcedIterations(const unsigned int nl_forced_its)
+  {
+    _nl_forced_its = nl_forced_its;
+  }
+
+  /// method returning the number of forced nonlinear iterations
+  unsigned int getNonlinearForcedIterations() const { return _nl_forced_its; };
+
+  /// method setting the absolute divergence tolerance
+  void setNonlinearAbsoluteDivergenceTolerance(const Real nl_abs_div_tol)
+  {
+    _nl_abs_div_tol = nl_abs_div_tol;
+  }
+
 protected:
   /// Create extra tagged vectors and matrices
   void createTagVectors();
@@ -1925,6 +1972,12 @@ protected:
   /// maximum numbver
   unsigned int _n_nl_pingpong = 0;
   unsigned int _n_max_nl_pingpong = std::numeric_limits<unsigned int>::max();
+
+  /// the number of forced nonlinear iterations
+  int _nl_forced_its = 0;
+
+  /// the absolute non linear divergence tolerance
+  Real _nl_abs_div_tol = -1;
 
   std::shared_ptr<NonlinearSystemBase> _nl;
   std::shared_ptr<AuxiliarySystem> _aux;
@@ -2268,6 +2321,10 @@ private:
   /// MooseEnum describing how to obtain reference points for displaced mesh dgkernels and/or
   /// interface kernels. Options are invert_elem_phys, use_undisplaced_ref, and the default unset.
   MooseEnum _displaced_neighbor_ref_pts;
+
+  /// Whether to trust the user coupling matrix no matter what. See
+  /// https://github.com/idaholab/moose/issues/16395 for detailed background
+  bool _trust_user_coupling_matrix = false;
 };
 
 template <typename T>
