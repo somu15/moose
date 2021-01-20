@@ -1,6 +1,6 @@
 [Mesh]
   type = FileMesh
-  file = mesh_LF.e
+  file = NewLF.e
 []
 
 [GlobalParams]
@@ -95,27 +95,27 @@
     type = DirichletBC
     variable = disp_x
     boundary = Top
-    value = 0.001
+    value = '0.0025200932048479808'
   [../]
   [./freey1]
     type = DirichletBC
     variable = disp_y
     boundary = Top
-    value = 0.001
+    value = '0.002459921154470178'
   [../]
   [./freez1]
     type = DirichletBC
     variable = disp_z
     boundary = Top
-    value = 0.001
+    value = '0.00249507049915619'
   [../]
 []
 
 [Materials]
   [./elasticity]
     type = ComputeIsotropicElasticityTensor
-    youngs_modulus = 2.1e2
-    poissons_ratio = 0.3
+    youngs_modulus = 211.98542699250302
+    poissons_ratio = 0.24095467020258052
   [../]
   [./strain]
     type = ComputeFiniteStrain
@@ -140,8 +140,8 @@
   solve_type = NEWTON
   # line_search = 'none'
   nl_max_its = 15
-  nl_rel_tol = 1e-8
-  nl_abs_tol = 1e-8
+  nl_rel_tol = 1e-5
+  nl_abs_tol = 1e-5
 []
 
 [Postprocessors]
@@ -152,7 +152,7 @@
 []
 
 [Outputs]
-  file_base = 'Cylinder_LF'
-  exodus = true
+  file_base = 'Cylinder_LF1'
+  exodus = false
   csv = true
 []

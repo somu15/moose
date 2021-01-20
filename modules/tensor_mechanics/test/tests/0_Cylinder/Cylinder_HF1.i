@@ -1,6 +1,6 @@
 [Mesh]
   type = FileMesh
-  file = mesh_LF.e
+  file = NewHF1.e
 []
 
 [GlobalParams]
@@ -113,9 +113,9 @@
 
 [Materials]
   [./elasticity]
-    type = ComputeIsotropicElasticityTensor
-    youngs_modulus = 2.1e2
-    poissons_ratio = 0.3
+    type = ComputeElasticityTensor
+    C_ijkl = '-183.341 -312.176 -312.176 100.0 80.769'
+    fill_method = axisymmetric_rz
   [../]
   [./strain]
     type = ComputeFiniteStrain
@@ -140,8 +140,8 @@
   solve_type = NEWTON
   # line_search = 'none'
   nl_max_its = 15
-  nl_rel_tol = 1e-8
-  nl_abs_tol = 1e-8
+  nl_rel_tol = 1e-5
+  nl_abs_tol = 1e-5
 []
 
 [Postprocessors]
@@ -152,7 +152,7 @@
 []
 
 [Outputs]
-  file_base = 'Cylinder_LF'
-  exodus = true
+  file_base = 'Cylinder_HF1'
+  exodus = false
   csv = true
 []
