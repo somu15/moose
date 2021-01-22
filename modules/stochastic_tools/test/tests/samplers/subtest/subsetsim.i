@@ -27,7 +27,7 @@
     results_reporter = 'results_reporter/results_reporter1'
     subset_probability = 0.1
     proposal_std = '1.0 1.0'
-    num_samplessub = 200
+    num_samplessub = 10
     seed = 101
   []
 []
@@ -37,8 +37,7 @@
     type = SamplerFullSolveMultiApp
     input_files = sub.i
     sampler = sample
-    # mode = normal
-    ignore_solve_not_converge = true
+    mode = batch-reset
   []
 []
 
@@ -85,7 +84,7 @@
   #   vector_values = 'mu1 mu2'
   # []
   [results_reporter]
-    type = ConstantReporter
+    type = SubsetSimReporter
     real_names = results_reporter1
     real_values = '0.0'
   []
@@ -102,7 +101,7 @@
 
 [Executioner]
   type = Transient
-  num_steps = 1000 # 2000
+  num_steps = 20 # 2000
 []
 
 [Outputs]

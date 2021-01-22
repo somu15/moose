@@ -76,11 +76,11 @@
   #   type = ElementExtremeValue
   #   variable = U
   # []
-  # [min]
-  #   type = ElementExtremeValue
-  #   variable = U
-  #   value_type = min
-  # []
+  [min]
+    type = ElementExtremeValue
+    variable = U
+    value_type = min
+  []
   [average]
     type = ElementAverageValue
     variable = U
