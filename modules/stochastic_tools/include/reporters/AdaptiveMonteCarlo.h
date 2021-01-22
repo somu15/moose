@@ -11,17 +11,23 @@
 
 #include "GeneralReporter.h"
 
-class SubsetSimReporter : public GeneralReporter
+class AdaptiveMonteCarlo : public GeneralReporter
 {
 public:
   static InputParameters validParams();
-  SubsetSimReporter(const InputParameters & parameters);
-  virtual void initialize() override {}
+  AdaptiveMonteCarlo(const InputParameters & parameters);
+  // virtual void initialize() override {}
+  virtual void initialize() override;
   virtual void finalize() override {}
   // virtual void execute() override {}
   virtual void execute() override;
 
 protected:
+
+  Real computeMIN(const std::vector<Real> & data);
+  std::vector<Real> sortOUTPUT(const std::vector<Real> & outputs, const int & samplessub, const unsigned int & subset, const Real & subset_prob);
+  std::vector<Real> sortINPUT(const std::vector<Real> & inputs, const std::vector<Real> & outputs, const int & samplessub, const unsigned int & subset, const Real & subset_prob);
+
   /// This will add another type of reporter to the params
   template <typename T>
   static InputParameters addReporterTypeParams(const std::string & prefix, bool add_vector = true);
@@ -29,7 +35,7 @@ protected:
   ///@{
   /// Helper for declaring constant reporter values
   template <typename T>
-  std::vector<T *> declareSubsetSimReporterValues(const std::string & prefix);
+  std::vector<T *> declareAdaptiveMonteCarloValues(const std::string & prefix);
   template <typename T>
   std::vector<std::vector<T> *> declareConstantVectorReporterValues(const std::string & prefix);
   ///@}
@@ -38,6 +44,7 @@ protected:
   std::vector<int *> _int;
   /// Real reporter data
   std::vector<Real *> _real;
+  // std::vector<Real *> _inputs;
   /// String reporter data
   std::vector<std::string *> _string;
   /// Vector of integers reporter data
@@ -49,11 +56,22 @@ protected:
 
 private:
   const int & _step;
+  Sampler * _sampler;
+  int _ind_sto;
+  std::vector<Real> _markov_seed;
+  unsigned int _count;
+  unsigned int _count_max;
+  std::vector<Real> _output_sorted;
+  std::vector<Real> _outputs_sto;
+  std::vector<std::vector<Real>> _inputs_sto;
+  std::vector<std::vector<Real>> _inputs_sorted;
+  unsigned int _subset;
+  std::vector<Real> _output_limits;
 };
 
 template <typename T>
 InputParameters
-SubsetSimReporter::addReporterTypeParams(const std::string & prefix, bool add_vector)
+AdaptiveMonteCarlo::addReporterTypeParams(const std::string & prefix, bool add_vector)
 {
   InputParameters params = emptyInputParameters();
 
@@ -73,7 +91,7 @@ SubsetSimReporter::addReporterTypeParams(const std::string & prefix, bool add_ve
 
 template <typename T>
 std::vector<T *>
-SubsetSimReporter::declareSubsetSimReporterValues(const std::string & prefix)
+AdaptiveMonteCarlo::declareAdaptiveMonteCarloValues(const std::string & prefix)
 {
   std::string names_param(prefix + "_names");
   std::string values_param(prefix + "_values");
@@ -103,7 +121,7 @@ SubsetSimReporter::declareSubsetSimReporterValues(const std::string & prefix)
 
 template <typename T>
 std::vector<std::vector<T> *>
-SubsetSimReporter::declareConstantVectorReporterValues(const std::string & prefix)
+AdaptiveMonteCarlo::declareConstantVectorReporterValues(const std::string & prefix)
 {
-  return this->declareSubsetSimReporterValues<std::vector<T>>(prefix + "_vector");
+  return this->declareAdaptiveMonteCarloValues<std::vector<T>>(prefix + "_vector");
 }

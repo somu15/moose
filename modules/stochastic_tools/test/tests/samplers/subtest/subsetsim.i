@@ -23,8 +23,8 @@
     execute_on = PRE_MULTIAPP_SETUP
     # inputs_vpp = data1
     # inputs_names = 'sample_0 sample_1'
-    # inputs_reporter = 'inputs_reporter/inputs_reporter1'
-    results_reporter = 'results_reporter/results_reporter1'
+    inputs_reporter = 'adaptive_MC/inputs_reporter1'
+    results_reporter = 'adaptive_MC/results_reporter'
     subset_probability = 0.1
     proposal_std = '1.0 1.0'
     num_samplessub = 10
@@ -60,7 +60,7 @@
   # []
   [data]
     type = MultiAppReporterTransfer
-    to_reporters = 'results_reporter/results_reporter1'
+    to_reporters = 'adaptive_MC/results_reporter'
     from_reporters = 'average/value'
     direction = from_multiapp
     multi_app = sub
@@ -78,15 +78,20 @@
 []
 
 [Reporters]
-  # [inputs_reporter]
+  # [results_reporter]
   #   type = ConstantReporter
-  #   vector_names = inputs_reporter1
-  #   vector_values = 'mu1 mu2'
+  #   real_names = results_reporter1
+  #   real_values = '0.0'
+  #   vector_real_names = inputs_reporter1
+  #   vector_real_values = '0.0 0.0'
   # []
-  [results_reporter]
-    type = SubsetSimReporter
-    real_names = results_reporter1
+  [adaptive_MC]
+    type = AdaptiveMonteCarlo
+    real_names = results_reporter
     real_values = '0.0'
+    real_vec_names = inputs_reporter
+    real_vec_values = '0.0 0.0'
+    sampler = sample
   []
 []
 
