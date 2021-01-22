@@ -22,9 +22,9 @@ public:
 
   SubsetReporter(const InputParameters & parameters);
 
-  std::vector<Real> _outputs_sto;
-
-  std::vector<std::vector<Real>> _inputs_sto;
+  // std::vector<Real> _outputs_sto;
+  //
+  // std::vector<std::vector<Real>> _inputs_sto;
 
 protected:
   /// Return the sample for the given row and column
@@ -34,8 +34,8 @@ protected:
   //
   // Real computeMEAN(const std::vector<Real> & data);
 
-  Real computeMIN(const std::vector<Real> & data);
-  std::vector<Real> sortOUTPUT(const std::vector<Real> & outputs, const int & samplessub, const unsigned int & subset, const Real & subset_prob);
+  // Real computeMIN(const std::vector<Real> & data);
+  // std::vector<Real> sortOUTPUT(const std::vector<Real> & outputs, const int & samplessub, const unsigned int & subset, const Real & subset_prob);
   std::vector<Real> sortINPUT(const std::vector<Real> & inputs, const std::vector<Real> & outputs, const int & samplessub, const unsigned int & subset, const Real & subset_prob);
 
   /// Storage for distribution objects to be utilized
@@ -50,17 +50,17 @@ protected:
 
   const std::vector<Real> & _proposal_std;
 
-  // std::vector<std::vector<Real>> _inputs_sto;
+  std::vector<std::vector<Real>> _inputs_sto;
   //
-  // std::vector<Real> _outputs_sto;
+  std::vector<Real> _outputs_sto;
 
 private:
 
-  Real _new_sample_sca;
+  // Real _new_sample_sca;
 
   std::vector<Real> _new_sample_vec;
 
-  bool _consecutive_indicator;
+  // bool _consecutive_indicator;
 
   Real _acceptance_ratio;
 
@@ -72,7 +72,7 @@ private:
 
   const int & _step;
 
-  unsigned int _index1;
+  // unsigned int _index1;
 
   unsigned int _subset;
 
@@ -89,7 +89,7 @@ private:
 
   std::vector<Real> _output_limits;
 
-  Real _rnd1;
+  // Real _rnd1;
 
   /// PerfGraph timer
   const PerfID _perf_compute_sample;
