@@ -7,18 +7,18 @@
 //* Licensed under LGPL 2.1, please see LICENSE for details
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
-#include "SubTest.h"
+#include "SubsetReporter.h"
 #include "Distribution.h"
 #include "Normal.h"
 
-registerMooseObjectAliased("StochasticToolsApp", SubTest, "SubTest");
+registerMooseObjectAliased("StochasticToolsApp", SubsetReporter, "SubsetReporter");
 registerMooseObjectReplaced("StochasticToolsApp",
-                            SubTest,
+                            SubsetReporter,
                             "07/01/2020 00:00",
-                            SubTest);
+                            SubsetReporter);
 
 InputParameters
-SubTest::validParams()
+SubsetReporter::validParams()
 {
   InputParameters params = Sampler::validParams();
   params.addClassDescription("Subset Simulation Sampler.");
@@ -41,7 +41,7 @@ SubTest::validParams()
   return params;
 }
 
-SubTest::SubTest(const InputParameters & parameters)
+SubsetReporter::SubsetReporter(const InputParameters & parameters)
   : Sampler(parameters), ReporterInterface(this),
     _distribution_names(getParam<std::vector<DistributionName>>("distributions")),
     // _inputs_names(getParam<std::vector<std::string>>("inputs_names")),
@@ -75,7 +75,7 @@ SubTest::SubTest(const InputParameters & parameters)
 }
 
 // Real
-// SubTest::computeSTD(const std::vector<Real> & data)
+// SubsetReporter::computeSTD(const std::vector<Real> & data)
 // {
 //   Real sum1 = 0.0, sq_diff1 = 0.0;
 //   for (unsigned int i = 0; i < data.size(); ++i)
@@ -90,7 +90,7 @@ SubTest::SubTest(const InputParameters & parameters)
 // }
 //
 // Real
-// SubTest::computeMEAN(const std::vector<Real> & data)
+// SubsetReporter::computeMEAN(const std::vector<Real> & data)
 // {
 //   Real sum1 = 0.0;
 //   for (unsigned int i = 0; i < data.size(); ++i)
@@ -101,7 +101,7 @@ SubTest::SubTest(const InputParameters & parameters)
 // }
 
 std::vector<Real>
-SubTest::sortOUTPUT(const std::vector<Real> & outputs, const int & samplessub, const unsigned int & subset, const Real & subset_prob)
+SubsetReporter::sortOUTPUT(const std::vector<Real> & outputs, const int & samplessub, const unsigned int & subset, const Real & subset_prob)
 {
   std::vector<Real> tmp;
   tmp.resize(samplessub);
@@ -120,7 +120,7 @@ SubTest::sortOUTPUT(const std::vector<Real> & outputs, const int & samplessub, c
 }
 
 std::vector<Real>
-SubTest::sortINPUT(const std::vector<Real> & inputs, const std::vector<Real> & outputs, const int & samplessub, const unsigned int & subset, const Real & subset_prob)
+SubsetReporter::sortINPUT(const std::vector<Real> & inputs, const std::vector<Real> & outputs, const int & samplessub, const unsigned int & subset, const Real & subset_prob)
 {
   std::vector<Real> tmp;
   std::vector<Real> tmp1;
@@ -145,7 +145,7 @@ SubTest::sortINPUT(const std::vector<Real> & inputs, const std::vector<Real> & o
 }
 
 Real
-SubTest::computeMIN(const std::vector<Real> & data)
+SubsetReporter::computeMIN(const std::vector<Real> & data)
 {
   Real tmp = data[0];
   for (unsigned int i = 0; i < data.size(); ++i)
@@ -159,7 +159,7 @@ SubTest::computeMIN(const std::vector<Real> & data)
 }
 
 Real
-SubTest::computeSample(dof_id_type row_index, dof_id_type col_index)
+SubsetReporter::computeSample(dof_id_type row_index, dof_id_type col_index)
 {
   TIME_SECTION(_perf_compute_sample);
   // dof_id_type offset = _values_distributed ? getLocalRowBegin() : 0;
@@ -191,13 +191,13 @@ SubTest::computeSample(dof_id_type row_index, dof_id_type col_index)
       {
         _ind_sto = -1;
         _count = 1000000;
-        _output_sorted = SubTest::sortOUTPUT(_outputs_sto, _num_samplessub, _subset, _subset_probability);
+        _output_sorted = SubsetReporter::sortOUTPUT(_outputs_sto, _num_samplessub, _subset, _subset_probability);
         for (dof_id_type j = 0; j < _distributions.size(); ++j)
         {
           _inputs_sorted[j].resize(std::floor(_num_samplessub * _subset_probability));
-          _inputs_sorted[j] = SubTest::sortINPUT(_inputs_sto[j], _outputs_sto, _num_samplessub, _subset, _subset_probability);
+          _inputs_sorted[j] = SubsetReporter::sortINPUT(_inputs_sto[j], _outputs_sto, _num_samplessub, _subset, _subset_probability);
         }
-        _output_limits.push_back(SubTest::computeMIN(_output_sorted));
+        _output_limits.push_back(SubsetReporter::computeMIN(_output_sorted));
       }
       if (_count > _count_max)
       {

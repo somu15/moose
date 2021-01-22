@@ -76,6 +76,10 @@ SamplerFullSolveMultiApp::solveStep(Real dt, Real target_time, bool auto_advance
   mooseAssert(_my_num_apps, _sampler.getNumberOfLocalRows());
 
   bool last_solve_converged = true;
+
+  initialSetup();
+  // Changed
+
   if (_mode == StochasticTools::MultiAppMode::BATCH_RESET ||
       _mode == StochasticTools::MultiAppMode::BATCH_RESTORE)
       {
