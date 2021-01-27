@@ -7,59 +7,51 @@
 //* Licensed under LGPL 2.1, please see LICENSE for details
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
-#include "AdaptiveMonteCarlo.h"
+#include "AdaptiveMonteCarloDecision.h"
 #include "Sampler.h"
 
-registerMooseObject("MooseApp", AdaptiveMonteCarlo);
+registerMooseObject("MooseApp", AdaptiveMonteCarloDecision);
 
 InputParameters
-AdaptiveMonteCarlo::validParams()
+AdaptiveMonteCarloDecision::validParams()
 {
   InputParameters params = GeneralReporter::validParams();
   params.addClassDescription("Reporter with constant values to be accessed by other objects, can "
                              "be modified using transfers.");
 
-  params += addReporterTypeParams<int>("integer");
-  params += addReporterTypeParams<Real>("real");
-  params += addReporterTypeParams<Real>("real_vec");
-  // params += addReporterTypeParams<Real>("inputs");
-  params += addReporterTypeParams<std::string>("string");
+  params += addReporterTypeParams<Real>("output");
+  params += addReporterTypeParams<Real>("inputs");
   params.addRequiredParam<SamplerName>("sampler", "Training set defined by a sampler object.");
 
   return params;
 }
 
-AdaptiveMonteCarlo::AdaptiveMonteCarlo(const InputParameters & parameters)
+AdaptiveMonteCarloDecision::AdaptiveMonteCarloDecision(const InputParameters & parameters)
   : GeneralReporter(parameters),
-    _int(declareAdaptiveMonteCarloValues<int>("integer")),
-    _real(declareAdaptiveMonteCarloValues<Real>("real")),
-    // _inputs(declareAdaptiveMonteCarloValues<Real>("inputs")),
-    _string(declareAdaptiveMonteCarloValues<std::string>("string")),
-    _int_vec(declareConstantVectorReporterValues<int>("integer")),
-    _real_vec(declareConstantVectorReporterValues<Real>("real")),
-    _string_vec(declareConstantVectorReporterValues<std::string>("string")),
+    _output(declareAdaptiveMonteCarloDecisionValues<Real>("output")),
+    _inputs(declareAdaptiveMonteCarloDecisionValues<Real>("inputs")),
     _step(getCheckedPointerParam<FEProblemBase *>("_fe_problem_base")->timeStep())
 {
-  _subset = 0;
-  _count = 0;
 }
 
 void
-AdaptiveMonteCarlo::initialize()
+AdaptiveMonteCarloDecision::initialize()
 {
   _sampler = &getSamplerByName(getParam<SamplerName>("sampler"));
   _inputs_sto.resize(_sampler->parameters().get<std::vector<DistributionName>>("distributions").size());
   _inputs_sorted.resize(_sampler->parameters().get<std::vector<DistributionName>>("distributions").size());
+  _subset = 0;
+  _count = 0;
 }
 
 std::vector<Real>
-AdaptiveMonteCarlo::sortOUTPUT(const std::vector<Real> & outputs, const int & samplessub, const unsigned int & subset, const Real & subset_prob)
+AdaptiveMonteCarloDecision::sortOUTPUT(const std::vector<Real> & outputs, const int & samplessub, const unsigned int & subset, const Real & subset_prob)
 {
   std::vector<Real> tmp;
   tmp.resize(samplessub);
   for (unsigned int i = ((subset-1) * samplessub); i < (subset * samplessub); ++i)
   {
-    tmp[i - ((subset-1) * samplessub)] = outputs[i];
+    tmp[i - ((subset-1) * samplessub)] = (outputs[i]);
   }
   std::sort(tmp.begin(), tmp.end());
   std::vector<Real> out;
@@ -72,7 +64,7 @@ AdaptiveMonteCarlo::sortOUTPUT(const std::vector<Real> & outputs, const int & sa
 }
 
 std::vector<Real>
-AdaptiveMonteCarlo::sortINPUT(const std::vector<Real> & inputs, const std::vector<Real> & outputs, const int & samplessub, const unsigned int & subset, const Real & subset_prob)
+AdaptiveMonteCarloDecision::sortINPUT(const std::vector<Real> & inputs, const std::vector<Real> & outputs, const int & samplessub, const unsigned int & subset, const Real & subset_prob)
 {
   std::vector<Real> tmp;
   std::vector<Real> tmp1;
@@ -80,7 +72,7 @@ AdaptiveMonteCarlo::sortINPUT(const std::vector<Real> & inputs, const std::vecto
   tmp1.resize(samplessub);
   for (unsigned int i = ((subset-1) * samplessub); i < (subset * samplessub); ++i)
   {
-    tmp[i - ((subset-1) * samplessub)] = outputs[i];
+    tmp[i - ((subset-1) * samplessub)] = (outputs[i]);
     tmp1[i - ((subset-1) * samplessub)] = inputs[i];
   }
   std::vector<int> tmp2(tmp.size());
@@ -97,44 +89,42 @@ AdaptiveMonteCarlo::sortINPUT(const std::vector<Real> & inputs, const std::vecto
 }
 
 Real
-AdaptiveMonteCarlo::computeMIN(const std::vector<Real> & data)
+AdaptiveMonteCarloDecision::computeMIN(const std::vector<Real> & data)
 {
   Real tmp = data[0];
   for (unsigned int i = 0; i < data.size(); ++i)
   {
-    if(tmp>data[i])
+    if(tmp>(data[i]))
     {
-       tmp=data[i];
+       tmp=(data[i]);
     }
   }
   return tmp;
 }
 
 void
-AdaptiveMonteCarlo::execute()
+AdaptiveMonteCarloDecision::execute()
 {
-  if (_sampler->parameters().get<std::string>("_type") == "SubTest")
+  if (_sampler->parameters().get<std::string>("_type") == "SubsetSimulation")
   {
-    _subset = std::floor(_step / _sampler->parameters().get<int>("num_samplessub"));
-    if (_step <= _sampler->parameters().get<int>("num_samplessub"))
+    if (_step <= (_sampler->parameters().get<int>("num_samplessub")))
     {
-      std::cout << "Here 0" << std::endl;
-      std::cout << _sampler->getNextLocalRow()[0] << "," << _sampler->getNextLocalRow()[1] << std::endl;
-      (*_real_vec[0])[0] = _sampler->getNextLocalRow()[0];
-      std::cout << "Here 1" << std::endl;
-      std::cout << (*_real_vec[0])[0] << std::endl;
-      (*_real_vec[0]) = _sampler->getNextLocalRow();
-      std::cout << "Here 2" << std::endl;
+      _subset = std::floor(_step / _sampler->parameters().get<int>("num_samplessub"));
       for (dof_id_type i = 0; i < _sampler->parameters().get<std::vector<DistributionName>>("distributions").size(); ++i)
-        _inputs_sto[i].push_back((*_real_vec[0])[i]);
-      _outputs_sto.push_back((*_real[0]));
+      {
+        (*_inputs[i]) = _sampler->getNextLocalRow()[i];
+        _inputs_sto[i].push_back((*_inputs[i]));
+      }
+      (*_output[0]) = (_sampler->parameters().get<bool>("use_absolute_value")) ? std::abs(*_output[0]) : (*_output[0]);
+      _outputs_sto.push_back((*_output[0]));
     } else
     {
+      _subset = std::floor((_step-1) / _sampler->parameters().get<int>("num_samplessub"));
       _count_max = std::floor(1 / _sampler->parameters().get<Real>("subset_probability"));
-      if (_subset > (std::floor((_step-1) /  _sampler->parameters().get<int>("num_samplessub"))))
+      if (_subset > (std::floor((_step-2) /  _sampler->parameters().get<int>("num_samplessub"))))
       {
         _ind_sto = -1;
-        _count =  std::numeric_limits<Real>::infinity();
+        _count = INT_MAX;
         _output_sorted = sortOUTPUT(_outputs_sto, _sampler->parameters().get<int>("num_samplessub"), _subset, _sampler->parameters().get<Real>("subset_probability"));
         for (dof_id_type j = 0; j < _sampler->parameters().get<std::vector<DistributionName>>("distributions").size(); ++j)
         {
@@ -149,34 +139,26 @@ AdaptiveMonteCarlo::execute()
         _count = 0;
       }
       ++_count;
-      if ( (*_real[0]) >= _output_limits[_subset-1])
+      if ( ((_sampler->parameters().get<bool>("use_absolute_value")) ? std::abs(*_output[0]) : (*_output[0])) >= _output_limits[_subset-1])
       {
         for (dof_id_type i = 0; i < _sampler->parameters().get<std::vector<DistributionName>>("distributions").size(); ++i)
         {
-          (*_real_vec[0]) = _sampler->getNextLocalRow();
-          _inputs_sto[i].push_back((*_real_vec[0])[i]);
+          (*_inputs[i]) = _sampler->getNextLocalRow()[i];
+          _inputs_sto[i].push_back((*_inputs[i]));
         }
-        _outputs_sto.push_back((*_real[0]));
+        (*_output[0]) = (_sampler->parameters().get<bool>("use_absolute_value")) ? std::abs(*_output[0]) : (*_output[0]);
+        _outputs_sto.push_back((*_output[0]));
       } else
       {
         for (dof_id_type i = 0; i < _sampler->parameters().get<std::vector<DistributionName>>("distributions").size(); ++i)
         {
-          (*_real_vec[0])[i] = _inputs_sorted[i][_ind_sto];
-          _inputs_sto[i].push_back(_inputs_sorted[i][_ind_sto]);
+          (*_inputs[i]) = _inputs_sorted[i][_ind_sto];
+          _inputs_sto[i].push_back((*_inputs[i]));
         }
-        _outputs_sto.push_back(_output_sorted[_ind_sto]);
+        (*_output[0]) = _output_sorted[_ind_sto];
+        _outputs_sto.push_back((*_output[0]));
       }
     }
   }
 
-
-  // std::cout << "Here" << std::endl;
-  // std::cout << _sampler->parameters().get<Real>("subset_probability") << std::endl;
-  // std::cout << _sampler->parameters().get<std::string>("_type") << std::endl;
-  // std::cout << _num_samplessub << std::endl;
-  // std::cout << (*_real[0]) << std::endl;
-  //
-  // (*_real[0]) = 1.0;
-  // Real x = 1.0;
-  // _real[0] = &x;
 }

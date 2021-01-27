@@ -11,15 +11,13 @@
 
 #include "GeneralReporter.h"
 
-class AdaptiveMonteCarlo : public GeneralReporter
+class AdaptiveMonteCarloDecision : public GeneralReporter
 {
 public:
   static InputParameters validParams();
-  AdaptiveMonteCarlo(const InputParameters & parameters);
-  // virtual void initialize() override {}
+  AdaptiveMonteCarloDecision(const InputParameters & parameters);
   virtual void initialize() override;
   virtual void finalize() override {}
-  // virtual void execute() override {}
   virtual void execute() override;
 
 protected:
@@ -35,24 +33,14 @@ protected:
   ///@{
   /// Helper for declaring constant reporter values
   template <typename T>
-  std::vector<T *> declareAdaptiveMonteCarloValues(const std::string & prefix);
+  std::vector<T *> declareAdaptiveMonteCarloDecisionValues(const std::string & prefix);
   template <typename T>
-  std::vector<std::vector<T> *> declareConstantVectorReporterValues(const std::string & prefix);
+  std::vector<std::vector<T> *> declareAdaptiveMonteCarloDecisionVectorValues(const std::string & prefix);
   ///@}
 
-  /// Integer reporter data
-  std::vector<int *> _int;
   /// Real reporter data
-  std::vector<Real *> _real;
-  // std::vector<Real *> _inputs;
-  /// String reporter data
-  std::vector<std::string *> _string;
-  /// Vector of integers reporter data
-  std::vector<std::vector<int> *> _int_vec;
-  /// Vector of reals reporter data
-  std::vector<std::vector<Real> *> _real_vec;
-  /// Vector of strings reporter data
-  std::vector<std::vector<std::string> *> _string_vec;
+  std::vector<Real *> _output;
+  std::vector<Real *> _inputs;
 
 private:
   const int & _step;
@@ -71,7 +59,7 @@ private:
 
 template <typename T>
 InputParameters
-AdaptiveMonteCarlo::addReporterTypeParams(const std::string & prefix, bool add_vector)
+AdaptiveMonteCarloDecision::addReporterTypeParams(const std::string & prefix, bool add_vector)
 {
   InputParameters params = emptyInputParameters();
 
@@ -91,7 +79,7 @@ AdaptiveMonteCarlo::addReporterTypeParams(const std::string & prefix, bool add_v
 
 template <typename T>
 std::vector<T *>
-AdaptiveMonteCarlo::declareAdaptiveMonteCarloValues(const std::string & prefix)
+AdaptiveMonteCarloDecision::declareAdaptiveMonteCarloDecisionValues(const std::string & prefix)
 {
   std::string names_param(prefix + "_names");
   std::string values_param(prefix + "_values");
@@ -117,11 +105,4 @@ AdaptiveMonteCarlo::declareAdaptiveMonteCarloValues(const std::string & prefix)
     data.push_back(&this->declareValueByName<T>(names[i], values[i]));
 
   return data;
-}
-
-template <typename T>
-std::vector<std::vector<T> *>
-AdaptiveMonteCarlo::declareConstantVectorReporterValues(const std::string & prefix)
-{
-  return this->declareAdaptiveMonteCarloValues<std::vector<T>>(prefix + "_vector");
 }

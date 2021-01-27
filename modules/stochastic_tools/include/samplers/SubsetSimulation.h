@@ -10,29 +10,22 @@
 #pragma once
 
 #include "Sampler.h"
-// #include "VectorPostprocessorData.h"
-#include "VectorPostprocessorInterface.h"
 #include "ReporterInterface.h"
-// #include "GeneralVectorPostprocessor.h"
 
 /**
- * A class used to perform Monte Carlo Sampling
+ * A class used to perform Subset Simulation Sampling
  */
-class SubsetSimulation : public Sampler, public VectorPostprocessorInterface, public ReporterInterface // public Sampler, public VectorPostprocessorInterface
+class SubsetSimulation : public Sampler, public ReporterInterface
 {
 public:
   static InputParameters validParams();
 
   SubsetSimulation(const InputParameters & parameters);
-  // virtual void initialSetup() override;
-  virtual void sampleSetUp() override;
 
 protected:
   /// Return the sample for the given row and column
   virtual Real computeSample(dof_id_type row_index, dof_id_type col_index) override;
 
-  Real computeMIN(const std::vector<Real> & data);
-  std::vector<Real> sortOUTPUT(const std::vector<Real> & outputs, const int & samplessub, const unsigned int & subset, const Real & subset_prob);
   std::vector<Real> sortINPUT(const std::vector<Real> & inputs, const std::vector<Real> & outputs, const int & samplessub, const unsigned int & subset, const Real & subset_prob);
 
   /// Storage for distribution objects to be utilized
@@ -41,14 +34,11 @@ protected:
   /// Distribution names
   const std::vector<DistributionName> & _distribution_names;
 
-  /// VPP names
-  const std::vector<std::string> & _vpp_names;
-
-  /// Input names
-  const std::vector<std::string> & _inputs_names;
+  const std::vector<ReporterName> & _inputs_names;
 
   const int & _num_samplessub;
 
+  const bool & _use_absolute_value;
   const Real & _subset_probability;
 
   const std::vector<Real> & _proposal_std;
@@ -56,39 +46,19 @@ protected:
   std::vector<std::vector<Real>> _inputs_sto;
 
   std::vector<Real> _outputs_sto;
-  //
-  // std::vector<Real> _output_limits;
 
 private:
 
-  Real _new_sample_sca;
-
   std::vector<Real> _new_sample_vec;
-
-  bool _consecutive_indicator;
 
   Real _acceptance_ratio;
 
-  bool _values_distributed;
-
-  bool _values_distributed1;
-
   std::vector<const VectorPostprocessorValue *> _values_ptr;
-
-  std::vector<const VectorPostprocessorValue *> _inputs_ptr;
-  // std::vector<VectorPostprocessorValue>
 
   const int & _step;
 
-  // std::vector<std::vector<Real>> _inputs_sto;
-  //
-  // std::vector<Real> _outputs_sto;
-
-  unsigned int _index1;
-
   unsigned int _subset;
 
-  // unsigned int _ind_max;
   int _ind_sto;
   std::vector<Real> _markov_seed;
   unsigned int _count;
@@ -97,9 +67,10 @@ private:
   std::vector<Real> _output_sorted;
   std::vector<std::vector<Real>> _inputs_sorted;
 
-  std::vector<Real> _output_limits;
+  /// Storage of the previous sample to propose the next sample
+  std::vector<std::vector<Real>> _prev_val;
 
-  Real _rnd1;
+  std::vector<Real> _output_limits;
 
   /// PerfGraph timer
   const PerfID _perf_compute_sample;

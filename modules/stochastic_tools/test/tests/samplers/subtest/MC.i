@@ -17,24 +17,17 @@
 
 [Samplers]
   [sample]
-    type = SubsetSimulation
-    num_rows = 1
+    type = MonteCarlo
+    num_rows = 20000
     distributions = 'mu1 mu2'
-    execute_on = PRE_MULTIAPP_SETUP
-    subset_probability = 0.1
-    proposal_std = '0.03375 1.0125' # '0.15 0.15'
-    num_samplessub = 6000
-    use_absolute_value = true
-    seed = 1012
-    inputs_reporter = 'adaptive_MC/mu1 adaptive_MC/mu2'
-    output_reporter = 'adaptive_MC/output_reporter1'
+    execute_on = PRE_MULTIAPP_SETUP # 'initial timestep_end'
   []
 []
 
 [MultiApps]
   [sub]
     type = SamplerFullSolveMultiApp
-    input_files = sub1.i
+    input_files = sub.i
     sampler = sample
     mode = batch-reset
   []
@@ -50,12 +43,11 @@
     check_multiapp_execute_on = false
   []
   [data]
-    type = MultiAppReporterTransfer
-    to_reporters = 'adaptive_MC/output_reporter1'
-    from_reporters = 'average/value'
-    direction = from_multiapp
+    type = SamplerPostprocessorTransfer
     multi_app = sub
-    subapp_index = 0
+    sampler = sample
+    to_vector_postprocessor = results
+    from_postprocessor = 'average'
   []
 []
 
@@ -68,23 +60,20 @@
   []
 []
 
-[Reporters]
-  [adaptive_MC]
-    type = AdaptiveMonteCarloDecision
-    output_names = output_reporter1
-    output_values = '0.0'
-    inputs_names = 'mu1 mu2'
-    inputs_values = '0.0 0.0'
+[VectorPostprocessors]
+  [results]
+    type = StochasticResults
+    parallel_type = REPLICATED
+    # execute_on = 'TIMESTEP_END'
+  []
+  [data]
+    type = SamplerData
     sampler = sample
+    execute_on = 'timestep_end'
   []
 []
 
-[Executioner]
-  type = Transient
-  num_steps = 18000
-[]
-
 [Outputs]
+  # execute_on = 'TIMESTEP_END'
   csv = true
-  exodus = false
 []
