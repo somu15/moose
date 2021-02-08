@@ -1,6 +1,6 @@
 [Mesh]
   type = FileMesh
-  file = NewHF1.e
+  file = NewLF0.e
 []
 
 [GlobalParams]
@@ -95,26 +95,26 @@
     type = DirichletBC
     variable = disp_x
     boundary = Top
-    value = 0.001
+    value = '0.10086956192617647'
   [../]
   [./freey1]
     type = DirichletBC
     variable = disp_y
     boundary = Top
-    value = 0.001
+    value = '0.11383750273049204'
   [../]
   [./freez1]
     type = DirichletBC
     variable = disp_z
     boundary = Top
-    value = 0.001
+    value = '0.16018100613503206'
   [../]
 []
 
 [Materials]
   [./elasticity]
     type = ComputeElasticityTensor
-    C_ijkl = '-183.341 -312.176 -312.176 100.0 80.769'
+    C_ijkl = '240.03981149839288 73.2018565404995 84.45039101448718 416.6619555539218 132.37826132036366'
     fill_method = axisymmetric_rz
   [../]
   [./strain]
@@ -138,10 +138,12 @@
   petsc_options_iname = '-pc_type -pc_factor_mat_solver_package'
   petsc_options_value = 'lu       superlu_dist'
   solve_type = NEWTON
-  # line_search = 'none'
+  line_search = 'none'
   nl_max_its = 15
+  l_max_its = 10
   nl_rel_tol = 1e-5
   nl_abs_tol = 1e-5
+  # automatic_scaling = true
 []
 
 [Postprocessors]

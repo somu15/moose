@@ -111,7 +111,7 @@ MaxVonMises::execute()
 Real
 MaxVonMises::getValue()
 {
-  gatherSum(_max_value);
+  // gatherSum(_max_value);
   return _max_value;
 }
 
