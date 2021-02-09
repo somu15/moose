@@ -1,18 +1,20 @@
 [Mesh]
   type = FileMesh
-  file = NewLF1.e
+  file = HF.e
 []
 
 [GlobalParams]
-  displacements = 'disp_x disp_y disp_z'
+  displacements = 'disp_x disp_y'
 []
 
 [Variables]
   [./disp_x]
+    # order = SECOND
+    # family = LAGRANGE
   [../]
   [./disp_y]
-  [../]
-  [./disp_z]
+    # order = SECOND
+    # family = LAGRANGE
   [../]
 []
 
@@ -20,24 +22,32 @@
   [./stress_xx]
     order = CONSTANT
     family = MONOMIAL
+    # order = FIRST
+    # family = LAGRANGE
   [../]
   [./stress_yy]
     order = CONSTANT
     family = MONOMIAL
+    # order = FIRST
+    # family = LAGRANGE
   [../]
   [./stress_xy]
     order = CONSTANT
     family = MONOMIAL
+    # order = FIRST
+    # family = LAGRANGE
   [../]
   [./vmstress]
     order = CONSTANT
     family = MONOMIAL
+    # order = FIRST
+    # family = LAGRANGE
   [../]
 []
 
 [Kernels]
   [./TensorMechanics]
-    displacements = 'disp_x disp_y disp_z'
+    displacements = 'disp_x disp_y'
   [../]
 []
 
@@ -76,50 +86,38 @@
   [./fixx1]
     type = DirichletBC
     variable = disp_x
-    boundary = Bottom
+    boundary = Left
     value = 0.0
   [../]
   [./fixy1]
     type = DirichletBC
     variable = disp_y
-    boundary = Bottom
-    value = 0.0
-  [../]
-  [./fixz1]
-    type = DirichletBC
-    variable = disp_z
-    boundary = Bottom
+    boundary = Left
     value = 0.0
   [../]
   [./freex1]
     type = DirichletBC
     variable = disp_x
-    boundary = Top
-    value = '0.1393155041911177'
+    boundary = Right
+    value = '0.13657387138772567'
   [../]
   [./freey1]
     type = DirichletBC
     variable = disp_y
-    boundary = Top
-    value = '0.2508173178702996'
-  [../]
-  [./freez1]
-    type = DirichletBC
-    variable = disp_z
-    boundary = Top
-    value = '0.07440892715726787'
+    boundary = Right
+    value = '0.0'
   [../]
 []
 
 [Materials]
   [./elasticity]
     type = ComputeIsotropicElasticityTensor
-    youngs_modulus = 191.48694709070827
-    poissons_ratio = 0.2769421712532158
+    youngs_modulus = 183.59665498033965
+    poissons_ratio = 0.18855103640768095
   [../]
   [./strain]
     type = ComputeFiniteStrain
-    displacements = 'disp_x disp_y disp_z'
+    displacements = 'disp_x disp_y'
   [../]
   [./stress]
     type =  ComputeFiniteStrainElasticStress
@@ -138,10 +136,12 @@
   petsc_options_iname = '-pc_type -pc_factor_mat_solver_package'
   petsc_options_value = 'lu       superlu_dist'
   solve_type = NEWTON
-  # line_search = 'none'
-  nl_max_its = 15
-  nl_rel_tol = 1e-5
-  nl_abs_tol = 1e-5
+  line_search = 'none'
+  nl_max_its = 50
+  l_max_its = 10
+  nl_rel_tol = 1e-3
+  nl_abs_tol = 1e-4
+  # automatic_scaling = true
 []
 
 [Postprocessors]
@@ -152,7 +152,8 @@
 []
 
 [Outputs]
-  file_base = 'Cylinder_LF1'
-  exodus = false
+  file_base = 'HF_out'
+  exodus = true
   csv = true
+  # perf_graph = true
 []

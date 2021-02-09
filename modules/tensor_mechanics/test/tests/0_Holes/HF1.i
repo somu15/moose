@@ -1,7 +1,6 @@
 [Mesh]
   type = FileMesh
   file = HF1.e
-  # second_order = true
 []
 
 [GlobalParams]
@@ -100,7 +99,7 @@
     type = DirichletBC
     variable = disp_x
     boundary = Right
-    value = '0.1'
+    value = '0.015091478986067615'
   [../]
   [./freey1]
     type = DirichletBC
@@ -113,8 +112,8 @@
 [Materials]
   [./elasticity]
     type = ComputeIsotropicElasticityTensor
-    youngs_modulus = 205.4768329592063
-    poissons_ratio = 0.3
+    youngs_modulus = 286.55342687258684
+    poissons_ratio = 0.17897663721707585
   [../]
   [./strain]
     type = ComputeFiniteStrain
@@ -138,7 +137,7 @@
   petsc_options_value = 'lu       superlu_dist'
   solve_type = NEWTON
   line_search = 'none'
-  nl_max_its = 15
+  nl_max_its = 50
   l_max_its = 10
   nl_rel_tol = 1e-5
   nl_abs_tol = 1e-5
@@ -154,7 +153,7 @@
 
 [Outputs]
   file_base = 'HF1_out'
-  exodus = true
+  # exodus = true
   csv = true
   # perf_graph = true
 []

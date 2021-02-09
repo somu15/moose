@@ -1,6 +1,6 @@
 [Mesh]
   type = FileMesh
-  file = NewLF0.e
+  file = NewHF0.e
 []
 
 [GlobalParams]
@@ -91,30 +91,66 @@
     boundary = Bottom
     value = 0.0
   [../]
+  # [./freex1]
+  #   type = DirichletBC
+  #   variable = disp_x
+  #   boundary = Top
+  #   value = '0.03591140858949984'
+  # [../]
+  # [./freey1]
+  #   type = DirichletBC
+  #   variable = disp_y
+  #   boundary = Top
+  #   value = '0.03591140858949984'
+  # [../]
+  # [./freez1]
+  #   type = DirichletBC
+  #   variable = disp_z
+  #   boundary = Top
+  #   value = '0.03591140858949984'
+  # [../]
   [./freex1]
-    type = DirichletBC
+    type = FunctionDirichletBC
     variable = disp_x
     boundary = Top
-    value = '0.10086956192617647'
+    function = function_x
   [../]
   [./freey1]
-    type = DirichletBC
+    type = FunctionDirichletBC
     variable = disp_y
     boundary = Top
-    value = '0.11383750273049204'
+    function = function_y
   [../]
   [./freez1]
-    type = DirichletBC
+    type = FunctionDirichletBC
     variable = disp_z
     boundary = Top
-    value = '0.16018100613503206'
+    function = function_z
+  [../]
+[]
+
+[Functions]
+  [./function_x]
+    type = PiecewiseLinear
+    x = '0.0 1.0 2.0 3.0'
+    y = '0.0 0.046438501397039235 0.09287700279407847 0.1393155041911177'
+  [../]
+  [./function_y]
+    type = PiecewiseLinear
+    x = '0.0 1.0 2.0 3.0'
+    y = '0.0 0.08360577262343319 0.16721154524686638 0.2508173178702996'
+  [../]
+  [./function_z]
+    type = PiecewiseLinear
+    x = '0.0 1.0 2.0 3.0'
+    y = '0.0 0.024802975719089286 0.04960595143817857 0.07440892715726787'
   [../]
 []
 
 [Materials]
   [./elasticity]
     type = ComputeElasticityTensor
-    C_ijkl = '240.03981149839288 73.2018565404995 84.45039101448718 416.6619555539218 132.37826132036366'
+    C_ijkl = '225.1863380782528 75.22892308993016 84.94375155336458 405.52253056580656 130.03130514309157'
     fill_method = axisymmetric_rz
   [../]
   [./strain]
@@ -127,23 +163,28 @@
 []
 
 [Preconditioning]
-  [./smp]
+  [./SMP]
     type = SMP
     full = true
+    solve_type = 'NEWTON'
   [../]
 []
 
 [Executioner]
-  type = Steady
+  type = Transient
   petsc_options_iname = '-pc_type -pc_factor_mat_solver_package'
   petsc_options_value = 'lu       superlu_dist'
   solve_type = NEWTON
   line_search = 'none'
   nl_max_its = 15
   l_max_its = 10
-  nl_rel_tol = 1e-5
-  nl_abs_tol = 1e-5
-  # automatic_scaling = true
+  nl_rel_tol = 1e-2
+  l_tol = 1e-4
+  nl_abs_tol = 1e-3
+  start_time = 0.0
+  end_time = 3.0
+  dt = 1.0
+  automatic_scaling = true
 []
 
 [Postprocessors]
@@ -157,4 +198,5 @@
   file_base = 'Cylinder_HF1'
   exodus = false
   csv = true
+  perf_graph = true
 []

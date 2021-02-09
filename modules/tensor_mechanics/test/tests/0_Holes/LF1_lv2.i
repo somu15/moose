@@ -1,6 +1,6 @@
 [Mesh]
   type = FileMesh
-  file = LF1_lv2.e
+  file = LF1_lv1_new.e
   # second_order = true
 []
 
@@ -100,7 +100,7 @@
     type = DirichletBC
     variable = disp_x
     boundary = Right
-    value = '0.1'
+    value = '0.009940131788511367'
   [../]
   [./freey1]
     type = DirichletBC
@@ -113,8 +113,8 @@
 [Materials]
   [./elasticity]
     type = ComputeIsotropicElasticityTensor
-    youngs_modulus = 205.4768329592063
-    poissons_ratio = 0.3
+    youngs_modulus = 261.48449782296456
+    poissons_ratio = 0.3378679974055761
   [../]
   [./strain]
     type = ComputeFiniteStrain
@@ -138,7 +138,7 @@
   petsc_options_value = 'lu       superlu_dist'
   solve_type = NEWTON
   line_search = 'none'
-  nl_max_its = 15
+  nl_max_its = 50
   l_max_its = 10
   nl_rel_tol = 1e-5
   nl_abs_tol = 1e-5
@@ -154,7 +154,7 @@
 
 [Outputs]
   file_base = 'LF1_lv2_out'
-  exodus = true
+  # exodus = true
   csv = true
   # perf_graph = true
 []

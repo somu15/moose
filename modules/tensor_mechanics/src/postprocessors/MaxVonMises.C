@@ -112,6 +112,7 @@ Real
 MaxVonMises::getValue()
 {
   // gatherSum(_max_value);
+  gatherMax(_max_value);
   return _max_value;
 }
 
