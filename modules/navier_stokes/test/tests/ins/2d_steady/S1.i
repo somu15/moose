@@ -74,25 +74,25 @@
     type = VectorDirichletBC
     variable = velocity
     boundary = 'top'
-    values = '1.2673214277118194 0.0 0.0'
+    values = '0.767904974109169 0.0 0.0'
   [../]
   [./lid1]
     type = VectorDirichletBC
     variable = velocity
     boundary = 'bottom'
-    values = '0.8254980430739072 0.0 0.0'
+    values = '0.6896539758932714 0.0 0.0'
   [../]
   [./lid2]
     type = VectorDirichletBC
     variable = velocity
     boundary = 'left'
-    values = '0.0 1.1316850643942347 0.0'
+    values = '0.0 0.8844899538268424 0.0'
   [../]
   [./lid3]
     type = VectorDirichletBC
     variable = velocity
     boundary = 'right'
-    values = '0.0 1.2336522797072058 0.0'
+    values = '0.0 0.9643844043360704 0.0'
   [../]
 
   [./pressure_pin]
@@ -107,7 +107,7 @@
   [./const]
     type = ADGenericConstantMaterial
     prop_names = 'rho mu'
-    prop_values = '1.4724579557383466 0.01849496275800853'
+    prop_values = '0.6070368119140684 0.023473100358023802'
   [../]
   [ins_mat]
     type = INSADMaterial
