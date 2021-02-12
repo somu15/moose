@@ -145,21 +145,21 @@ SubsetSimulation::computeSample(dof_id_type /*row_index*/, dof_id_type col_index
       // Real rv_old;
       for (dof_id_type i = 0; i < _distributions.size(); ++i)
       {
-        rv = Uniform::quantile(getRand(_step), (_markov_seed[i] - _proposal_std[i]), (_markov_seed[i] + _proposal_std[i]));
-
-        _acceptance_ratio = std::log(_distributions[i]->pdf(rv)) - std::log(_distributions[i]->pdf(_markov_seed[i]));
-        
-        if (_acceptance_ratio > std::log(getRand(_step)))
-          _new_sample_vec[i] = rv;
-        else
-          _new_sample_vec[i] = _markov_seed[i];
-
-        // rv = std::exp(Normal::quantile(getRand(_step), std::log(_markov_seed[i]), _proposal_std[i]));
+        // rv = Uniform::quantile(getRand(_step), (_markov_seed[i] - _proposal_std[i]), (_markov_seed[i] + _proposal_std[i]));
+        //
         // _acceptance_ratio = std::log(_distributions[i]->pdf(rv)) - std::log(_distributions[i]->pdf(_markov_seed[i]));
+        //
         // if (_acceptance_ratio > std::log(getRand(_step)))
         //   _new_sample_vec[i] = rv;
         // else
         //   _new_sample_vec[i] = _markov_seed[i];
+
+        rv = std::exp(Normal::quantile(getRand(_step), std::log(_markov_seed[i]), _proposal_std[i]));
+        _acceptance_ratio = std::log(_distributions[i]->pdf(rv)) - std::log(_distributions[i]->pdf(_markov_seed[i]));
+        if (_acceptance_ratio > std::log(getRand(_step)))
+          _new_sample_vec[i] = rv;
+        else
+          _new_sample_vec[i] = _markov_seed[i];
 
         // rv_old = Normal::quantile(_distributions[i]->cdf(_markov_seed[i]), 0.0, 1.0);
         // rv = Normal::quantile(getRand(_step), rv_old, _proposal_std[i]); // std::exp(Normal::quantile(getRand(_step), std::log(_markov_seed[i]), _proposal_std[i]));
