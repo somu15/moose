@@ -23,7 +23,7 @@
     execute_on = PRE_MULTIAPP_SETUP
     subset_probability = 0.1
     proposal_std = '0.03375 1.0125' # '0.15 0.15'
-    num_samplessub = 6000
+    num_samplessub = 50
     use_absolute_value = true
     seed = 1012
     inputs_reporter = 'adaptive_MC/mu1 adaptive_MC/mu2'
@@ -81,7 +81,7 @@
 
 [Executioner]
   type = Transient
-  num_steps = 18000
+  num_steps = 100
 []
 
 [Outputs]
