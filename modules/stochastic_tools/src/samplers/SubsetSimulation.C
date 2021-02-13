@@ -129,7 +129,7 @@ SubsetSimulation::computeSample(dof_id_type /*row_index*/, dof_id_type col_index
           _inputs_sorted[j] = sortINPUT(_inputs_sto[j], _outputs_sto, _num_samplessub, _subset, _subset_probability);
         }
       }
-      if (_count > _count_max)
+      if (_count >= _count_max)
       {
         ++_ind_sto;
         for (dof_id_type k = 0; k < _distributions.size(); ++k)
@@ -148,7 +148,6 @@ SubsetSimulation::computeSample(dof_id_type /*row_index*/, dof_id_type col_index
         rv = Uniform::quantile(getRand(_step), (_markov_seed[i] - _proposal_std[i]), (_markov_seed[i] + _proposal_std[i]));
 
         _acceptance_ratio = std::log(_distributions[i]->pdf(rv)) - std::log(_distributions[i]->pdf(_markov_seed[i]));
-        
         if (_acceptance_ratio > std::log(getRand(_step)))
           _new_sample_vec[i] = rv;
         else

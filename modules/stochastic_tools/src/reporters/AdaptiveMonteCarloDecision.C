@@ -133,7 +133,7 @@ AdaptiveMonteCarloDecision::execute()
         }
         _output_limits.push_back(computeMIN(_output_sorted));
       }
-      if (_count > _count_max)
+      if (_count >= _count_max)
       {
         ++_ind_sto;
         _count = 0;
