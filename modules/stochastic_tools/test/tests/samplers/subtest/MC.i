@@ -18,7 +18,7 @@
 [Samplers]
   [sample]
     type = MonteCarlo
-    num_rows = 20000
+    num_rows = 100000
     distributions = 'mu1 mu2'
     execute_on = PRE_MULTIAPP_SETUP # 'initial timestep_end'
   []
