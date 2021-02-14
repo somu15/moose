@@ -35,6 +35,8 @@ protected:
   /// Storage for distribution objects to be utilized
   std::vector<Distribution const *> _distributions;
 
+  const std::vector<ReporterName> & _inputs_names;
+
   /// Distribution names
   const std::vector<DistributionName> & _distribution_names;
 
@@ -47,6 +49,8 @@ protected:
   const int & _num_samples_train;
 
   const Real & _std_factor;
+
+  const bool & _use_absolute_value;
 
 private:
 

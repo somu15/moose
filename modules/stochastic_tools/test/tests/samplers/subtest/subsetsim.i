@@ -23,7 +23,7 @@
     execute_on = PRE_MULTIAPP_SETUP
     subset_probability = 0.1
     proposal_std = '0.03375 1.0125' # '0.15 0.15'
-    num_samplessub = 50
+    num_samplessub = 750
     use_absolute_value = true
     seed = 1012
     inputs_reporter = 'adaptive_MC/mu1 adaptive_MC/mu2'
@@ -36,7 +36,7 @@
     type = SamplerFullSolveMultiApp
     input_files = sub1.i
     sampler = sample
-    mode = batch-reset
+    # mode = batch-reset
   []
 []
 
@@ -81,7 +81,7 @@
 
 [Executioner]
   type = Transient
-  num_steps = 100
+  num_steps = 3000
 []
 
 [Outputs]
