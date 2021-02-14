@@ -18,12 +18,12 @@
 [Samplers]
   [sample]
     type = SubsetSimulation
-    num_rows = 1
+    num_rows = 2
     distributions = 'mu1 mu2'
     execute_on = PRE_MULTIAPP_SETUP
     subset_probability = 0.1
     proposal_std = '0.03375 1.0125' # '0.15 0.15'
-    num_samplessub = 750
+    num_samplessub = 50
     use_absolute_value = true
     seed = 1012
     inputs_reporter = 'adaptive_MC/mu1 adaptive_MC/mu2'
@@ -36,7 +36,7 @@
     type = SamplerFullSolveMultiApp
     input_files = sub1.i
     sampler = sample
-    # mode = batch-reset
+    mode = normal # batch-reset
   []
 []
 
@@ -81,7 +81,7 @@
 
 [Executioner]
   type = Transient
-  num_steps = 3000
+  num_steps = 100
 []
 
 [Outputs]

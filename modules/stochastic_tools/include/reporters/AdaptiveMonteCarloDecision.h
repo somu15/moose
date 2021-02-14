@@ -49,10 +49,14 @@ private:
   std::vector<Real> _markov_seed;
   unsigned int _count;
   unsigned int _count_max;
-  std::vector<Real> _output_sorted;
-  std::vector<Real> _outputs_sto;
-  std::vector<std::vector<Real>> _inputs_sto;
-  std::vector<std::vector<Real>> _inputs_sorted;
+  // std::vector<Real> _output_sorted;
+  // std::vector<Real> _outputs_sto;
+  // std::vector<std::vector<Real>> _inputs_sto;
+  // std::vector<std::vector<Real>> _inputs_sorted;
+  std::vector<std::vector<Real>> _output_sorted;
+  std::vector<std::vector<std::vector<Real>>> _inputs_sorted;
+  std::vector<std::vector<std::vector<Real>>> _inputs_sto;
+  std::vector<std::vector<Real>> _outputs_sto;
   unsigned int _subset;
   std::vector<Real> _output_limits;
   int _check_even;

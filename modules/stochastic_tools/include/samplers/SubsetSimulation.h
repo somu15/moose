@@ -43,9 +43,9 @@ protected:
 
   const std::vector<Real> & _proposal_std;
 
-  std::vector<std::vector<Real>> _inputs_sto;
+  std::vector<std::vector<std::vector<Real>>> _inputs_sto;
 
-  std::vector<Real> _outputs_sto;
+  std::vector<std::vector<Real>> _outputs_sto;
 
 private:
 
@@ -64,8 +64,8 @@ private:
   unsigned int _count;
   int _check_even;
   unsigned int _count_max;
-  std::vector<Real> _output_sorted;
-  std::vector<std::vector<Real>> _inputs_sorted;
+  std::vector<std::vector<Real>> _output_sorted;
+  std::vector<std::vector<std::vector<Real>>> _inputs_sorted;
 
   /// Storage of the previous sample to propose the next sample
   std::vector<std::vector<Real>> _prev_val;
