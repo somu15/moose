@@ -12,6 +12,9 @@
 #include "Sampler.h"
 #include "StochasticToolsTransfer.h"
 
+// Active learning
+#include "StochasticToolsAppTypes.h"
+
 registerMooseObject("StochasticToolsApp", SamplerFullSolveMultiApp);
 
 InputParameters
@@ -21,6 +24,12 @@ SamplerFullSolveMultiApp::validParams()
   params += SamplerInterface::validParams();
   params.addClassDescription(
       "Creates a full-solve type sub-application for each row of each Sampler matrix.");
+
+  ExecFlagEnum exec_enum = ExecFlagEnum();
+  exec_enum.addAvailableFlags(EXEC_NONE, EXEC_SAMPLER, EXEC_SUBAPP1);
+  params.addParam<ExecFlagEnum>(
+      "execute_on", exec_enum, "List of flags indicating when this multiapp should solve.");
+
   params.addParam<SamplerName>("sampler", "The Sampler object to utilize for creating MultiApps.");
   params.suppressParameter<std::vector<Point>>("positions");
   params.suppressParameter<bool>("output_in_position");

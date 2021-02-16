@@ -196,6 +196,8 @@ Sampler::setNumberOfRandomSeeds(std::size_t n_seeds)
 void
 Sampler::execute()
 {
+  std::cout << "Calling Monte Carlo" << std::endl;
+  
   executeSetUp();
   if (_needs_reinit)
     reinit();

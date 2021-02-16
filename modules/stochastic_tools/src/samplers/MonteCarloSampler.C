@@ -10,6 +10,9 @@
 #include "MonteCarloSampler.h"
 #include "Distribution.h"
 
+// Active learning
+#include "StochasticToolsAppTypes.h"
+
 registerMooseObjectAliased("StochasticToolsApp", MonteCarloSampler, "MonteCarlo");
 registerMooseObjectReplaced("StochasticToolsApp",
                             MonteCarloSampler,
@@ -21,6 +24,12 @@ MonteCarloSampler::validParams()
 {
   InputParameters params = Sampler::validParams();
   params.addClassDescription("Monte Carlo Sampler.");
+
+  ExecFlagEnum exec_enum = ExecFlagEnum();
+  exec_enum.addAvailableFlags(EXEC_NONE, EXEC_SAMPLER, EXEC_SUBAPP1);
+  params.addParam<ExecFlagEnum>(
+      "execute_on", exec_enum, "List of flags indicating when this multiapp should solve.");
+
   params.addRequiredParam<dof_id_type>("num_rows", "The number of rows per matrix to generate.");
   params.addRequiredParam<std::vector<DistributionName>>(
       "distributions",
@@ -45,5 +54,6 @@ Real
 MonteCarloSampler::computeSample(dof_id_type /*row_index*/, dof_id_type col_index)
 {
   TIME_SECTION(_perf_compute_sample);
+
   return _distributions[col_index]->quantile(getRand());
 }

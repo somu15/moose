@@ -11,6 +11,7 @@
 #include "Moose.h"
 #include "AppFactory.h"
 #include "MooseSyntax.h"
+#include "StochasticToolsAppTypes.h"
 
 InputParameters
 StochasticToolsApp::validParams()
@@ -73,6 +74,13 @@ StochasticToolsApp::registerAll(Factory & f, ActionFactory & af, Syntax & syntax
   // Adds action for loading Covariance data in model
   registerTask("load_covariance_data", true);
   addTaskDependency("load_covariance_data", "load_surrogate_data");
+
+  // auto & syntax = s;
+  auto & factory = f;
+
+  // Active Learning execution flags
+  registerExecFlag(EXEC_SAMPLER);
+  registerExecFlag(EXEC_SUBAPP1);
 }
 
 void
@@ -99,6 +107,7 @@ void
 StochasticToolsApp::registerExecFlags(Factory & /*factory*/)
 {
   mooseDeprecated("use registerAll instead of registerExecFlags");
+
 }
 
 extern "C" void
