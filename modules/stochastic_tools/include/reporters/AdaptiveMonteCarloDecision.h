@@ -55,6 +55,9 @@ private:
   std::vector<std::vector<Real>> _inputs_sorted;
   unsigned int _subset;
   std::vector<Real> _output_limits;
+  int _check_even;
+  std::vector<std::vector<Real>> _prev_val;
+  std::vector<Real> _prev_val_out;
 };
 
 template <typename T>
