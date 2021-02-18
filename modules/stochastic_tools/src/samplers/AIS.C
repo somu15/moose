@@ -79,7 +79,7 @@ AIS::AIS(const InputParameters & parameters)
   // std::cout << "Here D" << std::endl;
   for (unsigned int i = 0; i < _distributions.size(); ++i)
     _inputs_sto[i].push_back(Normal::quantile(_distributions[i]->cdf(_seeds[i]),0,1));
-  setNumberOfRandomSeeds(100000);
+  // setNumberOfRandomSeeds(100000);
   _check_even = 0;
   _sum_R = 0.0;
   _prev_val.resize(_distributions.size());
@@ -118,8 +118,10 @@ AIS::computeSample(dof_id_type row_index, dof_id_type col_index)
 {
   TIME_SECTION(_perf_compute_sample);
   // dof_id_type offset = _values_distributed ? getLocalRowBegin() : 0;
+  // std::cout << "Offset is" << offset << std::endl;
   if (_step <= _num_samples_train)
   {
+    // std::cout << "Here" << std::endl;
     if (_step > 1 && col_index == 0 && _check_even != _step)
     {
       for (dof_id_type j = 0; j < _distributions.size(); ++j)
@@ -127,7 +129,7 @@ AIS::computeSample(dof_id_type row_index, dof_id_type col_index)
       _acceptance_ratio = 0.0;
       for (dof_id_type i = 0; i < _distributions.size(); ++i)
         _acceptance_ratio += std::log(Normal::pdf(_prev_val[i][row_index],0,1)) - std::log(Normal::pdf(_inputs_sto[i][_inputs_sto[i].size()-1],0,1));
-      if (_acceptance_ratio > std::log(getRand(_step)))
+      if (_acceptance_ratio > std::log(getRand()))
       {
         for (dof_id_type i = 0; i < _distributions.size(); ++i)
           _inputs_sto[i].push_back(_prev_val[i][row_index]);
@@ -139,7 +141,7 @@ AIS::computeSample(dof_id_type row_index, dof_id_type col_index)
     }
     // std::cout << "Here 4" << std::endl;
     _check_even = _step;
-    _prev_val[col_index][row_index] = Normal::quantile(getRand(_step), _inputs_sto[col_index][_inputs_sto[col_index].size()-1], _proposal_std[col_index]);
+    _prev_val[col_index][row_index] = Normal::quantile(getRand(), _inputs_sto[col_index][_inputs_sto[col_index].size()-1], _proposal_std[col_index]);
     return _distributions[col_index]->quantile(Normal::cdf(_prev_val[col_index][row_index],0,1));
   } else
   {
@@ -147,7 +149,7 @@ AIS::computeSample(dof_id_type row_index, dof_id_type col_index)
     {
       for (dof_id_type i = 0; i < _distributions.size(); ++i)
       {
-        _prev_val[i][row_index] = (Normal::quantile(getRand(_step), computeMEAN(_inputs_sto[i]), _std_factor * computeSTD(_inputs_sto[i])));
+        _prev_val[i][row_index] = (Normal::quantile(getRand(), computeMEAN(_inputs_sto[i]), _std_factor * computeSTD(_inputs_sto[i])));
       }
     }
     _check_even = _step;

@@ -62,7 +62,7 @@ private:
   int _ind_sto;
   std::vector<Real> _markov_seed;
   unsigned int _count;
-  int _check_even;
+  std::vector<int> _check_even;
   unsigned int _count_max;
   std::vector<std::vector<Real>> _output_sorted;
   std::vector<std::vector<std::vector<Real>>> _inputs_sorted;
