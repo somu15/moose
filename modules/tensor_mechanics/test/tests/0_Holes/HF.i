@@ -99,7 +99,7 @@
     type = DirichletBC
     variable = disp_x
     boundary = Right
-    value = '0.13657387138772567'
+    value = '0.14252725580733847'
   [../]
   [./freey1]
     type = DirichletBC
@@ -112,8 +112,8 @@
 [Materials]
   [./elasticity]
     type = ComputeIsotropicElasticityTensor
-    youngs_modulus = 183.59665498033965
-    poissons_ratio = 0.18855103640768095
+    youngs_modulus = 253.17199401869263
+    poissons_ratio = 0.2683101351802119
   [../]
   [./strain]
     type = ComputeFiniteStrain
