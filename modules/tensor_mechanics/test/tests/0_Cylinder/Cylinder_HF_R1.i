@@ -195,7 +195,7 @@
 []
 
 [Outputs]
-  file_base = 'Cylinder_HF_R2'
+  file_base = 'Cylinder_HF_R1'
   exodus = false
   csv = true
   perf_graph = true

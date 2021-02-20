@@ -1,6 +1,6 @@
 [Mesh]
   type = FileMesh
-  file = NewHF_R2.e
+  file = NewHF0_R2.e
 []
 
 [GlobalParams]
@@ -101,13 +101,13 @@
   #   type = DirichletBC
   #   variable = disp_y
   #   boundary = Top
-  #   value = '0.1536467185512155'
+  #   value = '0.03591140858949984'
   # [../]
   # [./freez1]
   #   type = DirichletBC
   #   variable = disp_z
   #   boundary = Top
-  #   value = '0.06609279628750095'
+  #   value = '0.03591140858949984'
   # [../]
   [./freex1]
     type = FunctionDirichletBC
@@ -133,24 +133,24 @@
   [./function_x]
     type = PiecewiseLinear
     x = '0.0 1.0 2.0 3.0'
-    y = '0.0 0.01015856154685741 0.02031712309371482 0.03047568464057223'
+    y = '0.0 0.011203341937150705 0.02240668387430141 0.033610025811452116'
   [../]
   [./function_y]
     type = PiecewiseLinear
     x = '0.0 1.0 2.0 3.0'
-    y = '0.0 0.01783554436321292 0.03567108872642584 0.053506633089638767'
+    y = '0.0 0.008184173846364719 0.016368347692729438 0.02455252153909416'
   [../]
   [./function_z]
     type = PiecewiseLinear
     x = '0.0 1.0 2.0 3.0'
-    y = '0.0 0.008154420992119275 0.01630884198423855 0.024463262976357824'
+    y = '0.0 0.022417421637406648 0.044834843274813296 0.06725226491221994'
   [../]
 []
 
 [Materials]
   [./elasticity]
     type = ComputeElasticityTensor
-    C_ijkl = '295.9563568332149 103.02491153147164 131.95057823509003 372.8248229787782 157.169528908155'
+    C_ijkl = '234.75427498823225 74.56539856619446 101.73792091123993 390.4590796682868 147.21031238957832'
     fill_method = axisymmetric_rz
   [../]
   [./strain]
@@ -178,9 +178,9 @@
   line_search = 'none'
   nl_max_its = 15
   l_max_its = 10
-  nl_rel_tol = 1e-3
+  nl_rel_tol = 1e-2
   l_tol = 1e-4
-  nl_abs_tol = 1e-2
+  nl_abs_tol = 1e-3
   start_time = 0.0
   end_time = 3.0
   dt = 1.0
@@ -195,7 +195,7 @@
 []
 
 [Outputs]
-  file_base = 'Cylinder_HF_R2'
+  file_base = 'Cylinder_HF1_R1'
   exodus = false
   csv = true
   perf_graph = true
