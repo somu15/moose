@@ -76,12 +76,12 @@ void SamplerFullSolveMultiApp::preTransfer(Real /*dt*/, Real /*target_time*/)
   {
     // Reinitialize MultiApp size
     const auto num_rows = _sampler.getNumberOfRows();
+
     if (num_rows != _number_of_sampler_rows)
     {
       init(_sampler.getNumberOfRows());
       _number_of_sampler_rows = num_rows;
     }
-
     // Reinitialize app to original state prior to solve, if a solve has occured
     if (_solved_once)
       initialSetup();

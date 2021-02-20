@@ -35,8 +35,8 @@
   [nonlin_function]
     type = ExponentialReaction
     variable = U
-    mu1 = 0.3047877262263
-    mu2 = 9.8242837098253
+    mu1 = 0.29978287069117
+    mu2 = 11.429152227011
   []
   [source]
     type = BodyForce

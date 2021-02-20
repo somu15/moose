@@ -56,28 +56,6 @@ SubsetSimulation::SubsetSimulation(const InputParameters & parameters)
     _step(getCheckedPointerParam<FEProblemBase *>("_fe_problem_base")->timeStep()),
     _perf_compute_sample(registerTimedSection("computeSample", 0))
 {
-  // for (const DistributionName & name : _distribution_names)
-  //   _distributions.push_back(&getDistributionByName(name));
-  //
-  // setNumberOfRows(getParam<dof_id_type>("num_rows"));
-  // setNumberOfCols(_distributions.size());
-  // _new_sample_vec.resize(_distributions.size());
-  // _acceptance_ratio = 0.0;
-  // _inputs_sto.resize(_distributions.size());
-  // _inputs_sorted.resize(_distributions.size());
-  // for (unsigned int i = 0; i < _distributions.size(); ++i)
-  // {
-  //   _inputs_sto[i].resize(getParam<dof_id_type>("num_rows"));
-  //   _inputs_sorted[i].resize(getParam<dof_id_type>("num_rows"));
-  // }
-  // _outputs_sto.resize(getParam<dof_id_type>("num_rows"));
-  // _output_sorted.resize(getParam<dof_id_type>("num_rows"));
-  // _markov_seed.resize(_distributions.size());
-  // _subset = 0;
-  // // _check_even = 0;
-  // _check_even.resize(getParam<dof_id_type>("num_rows"));
-  // setNumberOfRandomSeeds(100000);
-
   for (const DistributionName & name : _distribution_names)
     _distributions.push_back(&getDistributionByName(name));
 
@@ -87,69 +65,35 @@ SubsetSimulation::SubsetSimulation(const InputParameters & parameters)
   _acceptance_ratio = 0.0;
   _inputs_sto.resize(_distributions.size());
   _inputs_sorted.resize(_distributions.size());
-  for (unsigned int i = 0; i < _distributions.size(); ++i)
-  {
-    _inputs_sto[i].resize(1);
-    _inputs_sorted[i].resize(1);
-  }
-  _outputs_sto.resize(1);
-  _output_sorted.resize(1);
   _markov_seed.resize(_distributions.size());
   _subset = 0;
-  // _check_even = 0;
-  _check_even.resize(1);
+  _check_even = 0;
+  setNumberOfRandomSeeds(100000);
 }
 
-// std::vector<Real>
-// SubsetSimulation::sortINPUT(const std::vector<Real> & inputs, const std::vector<Real> & outputs, const int & samplessub, const unsigned int & subset, const Real & subset_prob)
-// {
-//   std::vector<Real> tmp;
-//   std::vector<Real> tmp1;
-//   tmp.resize(samplessub);
-//   tmp1.resize(samplessub);
-//   for (unsigned int i = ((subset-1) * samplessub); i < (subset * samplessub); ++i)
-//   {
-//     tmp[i - ((subset-1) * samplessub)] = outputs[i];
-//     tmp1[i - ((subset-1) * samplessub)] = inputs[i];
-//   }
-//   std::vector<int> tmp2(tmp.size());
-//   std::iota(tmp2.begin(), tmp2.end(), 0);
-//   auto comparator = [&tmp](int a, int b){ return tmp[a] < tmp[b]; };
-//   std::sort(tmp2.begin(), tmp2.end(), comparator);
-//   std::vector<Real> out;
-//   out.resize(std::floor(samplessub * subset_prob));
-//   for (unsigned int i = 0; i < out.size(); ++i)
-//   {
-//     out[i] = tmp1[tmp2[i + std::ceil(samplessub * (1-subset_prob))]];
-//   }
-//   return out;
-// }
-
 Real
-SubsetSimulation::computeSample(dof_id_type row_index, dof_id_type col_index)
+SubsetSimulation::computeSample(dof_id_type /*row_index*/, dof_id_type col_index)
 {
   TIME_SECTION(_perf_compute_sample);
   if (_step <= (_num_samplessub))
   {
     _subset = std::floor(_step / _num_samplessub);
-    if (_step > 1 && col_index == 0 && _check_even[row_index] != _step)
+    if (_step > 1 && col_index == 0 && _check_even != _step)
     {
-      // std::cout << getReporterValue<Real>("output_reporter") << std::endl;
       for (dof_id_type j = 0; j < _distributions.size(); ++j)
-        _inputs_sto[j][row_index].push_back(getReporterValueByName<Real>(_inputs_names[j]));
-      _outputs_sto[row_index].push_back((_use_absolute_value) ? std::abs(getReporterValue<Real>("output_reporter")) : getReporterValue<Real>("output_reporter"));
+        _inputs_sto[j].push_back(getReporterValueByName<Real>(_inputs_names[j]));
+      _outputs_sto.push_back((_use_absolute_value) ? std::abs(getReporterValue<Real>("output_reporter")) : getReporterValue<Real>("output_reporter"));
     }
-    _check_even[row_index] = _step;
-    // std::cout << getReporterValue<Real>("output_reporter") << std::endl;
-    return _distributions[col_index]->quantile(getRand());
+    _check_even = _step;
+    return _distributions[col_index]->quantile(getRand(_step));
   } else
   {
     _subset = (std::floor((_step-1) / _num_samplessub));
-    if (col_index == 0 && _check_even[row_index] != _step)
+    if (col_index == 0 && _check_even != _step)
     {
       for (dof_id_type j = 0; j < _distributions.size(); ++j)
-        _inputs_sto[j][row_index].push_back(getReporterValueByName<Real>(_inputs_names[j]));
-      _outputs_sto[row_index].push_back((_use_absolute_value) ? std::abs(getReporterValue<Real>("output_reporter")) : getReporterValue<Real>("output_reporter"));
+        _inputs_sto[j].push_back(getReporterValueByName<Real>(_inputs_names[j]));
+      _outputs_sto.push_back((_use_absolute_value) ? std::abs(getReporterValue<Real>("output_reporter")) : getReporterValue<Real>("output_reporter"));
       _count_max = std::floor(1 / _subset_probability);
       if (_subset > (std::floor((_step-2) / _num_samplessub)))
       {
@@ -157,43 +101,45 @@ SubsetSimulation::computeSample(dof_id_type row_index, dof_id_type col_index)
         _count = INT_MAX;
         for (dof_id_type j = 0; j < _distributions.size(); ++j)
         {
-          _inputs_sorted[j][row_index].resize(std::floor(_num_samplessub * _subset_probability));
-          _inputs_sorted[j][row_index] = AdaptiveMonteCarloUtils::sortINPUT(_inputs_sto[j][row_index], _outputs_sto[row_index], _num_samplessub, _subset, _subset_probability);
+          _inputs_sorted[j].resize(std::floor(_num_samplessub * _subset_probability));
+          _inputs_sorted[j] = AdaptiveMonteCarloUtils::sortINPUT(_inputs_sto[j], _outputs_sto, _num_samplessub, _subset, _subset_probability);
         }
       }
       if (_count >= _count_max)
       {
         ++_ind_sto;
         for (dof_id_type k = 0; k < _distributions.size(); ++k)
-          _markov_seed[k] = _inputs_sorted[k][row_index][_ind_sto];
+          _markov_seed[k] = _inputs_sorted[k][_ind_sto];
         _count = 0;
       } else
       {
         for (dof_id_type k = 0; k < _distributions.size(); ++k)
-          _markov_seed[k] = _inputs_sto[k][row_index][_inputs_sto[k].size()-1];
+          _markov_seed[k] = _inputs_sto[k][_inputs_sto[k].size()-1];
       }
       ++_count;
-      Real rv;
+      Real rv, rv1;
       for (dof_id_type i = 0; i < _distributions.size(); ++i)
       {
-        rv = Uniform::quantile(getRand(), (_markov_seed[i] - _proposal_std[i]), (_markov_seed[i] + _proposal_std[i]));
-
+        // rv = Uniform::quantile(getRand(_step), (_markov_seed[i] - 0.5*_proposal_std[i]), (_markov_seed[i] + 0.5*_proposal_std[i]));
+        rv = std::exp(Normal::quantile(getRand(_step), std::log(_markov_seed[i]), _proposal_std[i]));
         _acceptance_ratio = std::log(_distributions[i]->pdf(rv)) - std::log(_distributions[i]->pdf(_markov_seed[i]));
-        if (_acceptance_ratio > std::log(getRand()))
-          _new_sample_vec[i] = rv;
-        else
-          _new_sample_vec[i] = _markov_seed[i];
+
+        // rv1 = Normal::quantile(_distributions[i]->cdf(_markov_seed[i]),0.0,1.0);
+        // rv = Normal::quantile(getRand(), rv1, _proposal_std[i]);
+        // _acceptance_ratio = std::log(Normal::pdf(rv, 0.0, 1.0)) - std::log(Normal::pdf(rv1, 0.0, 1.0));
+        // std::cout << "Value is " << _acceptance_ratio << std::endl;
 
         // rv = std::exp(Normal::quantile(getRand(), std::log(_markov_seed[i]), _proposal_std[i]));
         // _acceptance_ratio = std::log(_distributions[i]->pdf(rv)) - std::log(_distributions[i]->pdf(_markov_seed[i]));
-        // if (_acceptance_ratio > std::log(getRand()))
-        //   _new_sample_vec[i] = rv;
-        // else
-        //   _new_sample_vec[i] = _markov_seed[i];
-
+        if (_acceptance_ratio > std::log(getRand(_step)))
+        {
+          // std::cout << "Accepted" << std::endl;
+          _new_sample_vec[i] = rv; // _distributions[i]->quantile(Normal::cdf(rv,rv1,_proposal_std[i]));
+        } else
+            _new_sample_vec[i] = _markov_seed[i];
       }
     }
-    _check_even[row_index] = _step;
+    _check_even = _step;
     return _new_sample_vec[col_index];
   }
 }

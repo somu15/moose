@@ -55,6 +55,32 @@ AdaptiveMonteCarloUtils::sortOUTPUT(const std::vector<Real> & outputs, const int
 }
 
 Real
+AdaptiveMonteCarloUtils::computeSTD(const std::vector<Real> & data)
+{
+  Real sum1 = 0.0, sq_diff1 = 0.0;
+  for (unsigned int i = 2; i < data.size(); ++i)
+  {
+    sum1 += (data[i]);
+  }
+  for (unsigned int i = 2; i < data.size(); ++i)
+  {
+    sq_diff1 += std::pow(((data[i])-sum1/data.size()), 2);
+  }
+  return std::pow(sq_diff1 / data.size(), 0.5);
+}
+
+Real
+AdaptiveMonteCarloUtils::computeMEAN(const std::vector<Real> & data)
+{
+  Real sum1 = 0.0;
+  for (unsigned int i = 2; i < data.size(); ++i)
+  {
+    sum1 += (data[i]);
+  }
+  return (sum1 / data.size());
+}
+
+Real
 AdaptiveMonteCarloUtils::computeMIN(const std::vector<Real> & data)
 {
   Real tmp = data[0];

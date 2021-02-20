@@ -10,9 +10,8 @@
 #include "AIS.h"
 #include "Distribution.h"
 #include "Normal.h"
-#include "TruncatedNormal.h"
 #include "Uniform.h"
-#include "KernelDensity1D.h"
+#include "AdaptiveMonteCarloUtils.h"
 
 registerMooseObjectAliased("StochasticToolsApp", AIS, "AIS");
 registerMooseObjectReplaced("StochasticToolsApp",
@@ -24,14 +23,12 @@ InputParameters
 AIS::validParams()
 {
   InputParameters params = Sampler::validParams();
+  MooseEnum proposal_distribution("StandardNormal Uniform LogNormal");
   params.addClassDescription("Adaptive Importance Sampler.");
-  params.addRequiredParam<dof_id_type>("num_rows", "The number of rows per matrix to generate.");
   params.addRequiredParam<std::vector<DistributionName>>(
       "distributions",
       "The distribution names to be sampled, the number of distributions provided defines the "
       "number of columns per matrix.");
-  // params.addRequiredParam<ReporterName>(
-  //     "results_reporter", "Reporter with results of samples created by trainer.");
   params.addRequiredParam<ReporterName>(
       "output_reporter", "Reporter with results of samples created by trainer.");
   params.addRequiredParam<std::vector<ReporterName>>(
@@ -43,8 +40,8 @@ AIS::validParams()
       "output_limit",
       "Limit values of the VPPs");
   params.addRequiredParam<std::vector<Real>>(
-      "seeds",
-      "Seed input values to get the MCMC sampler started");
+      "initial_values",
+      "Initial input values to get the importance sampler started");
   params.addRequiredParam<int>(
       "num_samples_train",
       "Number of samples");
@@ -54,6 +51,10 @@ AIS::validParams()
   params.addParam<bool>(
       "use_absolute_value", false,
       "Use absolute value of the sub app output");
+  params.addRequiredParam<MooseEnum>(
+      "proposal_distribution",
+      proposal_distribution,
+      "Helps the user select between different distributions for fitting the importance samples.");
   return params;
 }
 
@@ -62,97 +63,89 @@ AIS::AIS(const InputParameters & parameters)
     _inputs_names(getParam<std::vector<ReporterName>>("inputs_reporter")),
     _distribution_names(getParam<std::vector<DistributionName>>("distributions")),
     _proposal_std(getParam<std::vector<Real>>("proposal_std")),
-    _seeds(getParam<std::vector<Real>>("seeds")),
+    _initial_values(getParam<std::vector<Real>>("initial_values")),
     _output_limit(getParam<Real>("output_limit")),
     _num_samples_train(getParam<int>("num_samples_train")),
     _std_factor(getParam<Real>("std_factor")),
     _use_absolute_value(getParam<bool>("use_absolute_value")),
     _step(getCheckedPointerParam<FEProblemBase *>("_fe_problem_base")->timeStep()),
+    _proposal_distribution(getParam<MooseEnum>("proposal_distribution")),
     _perf_compute_sample(registerTimedSection("computeSample", 4))
 {
+  // Filling the `distributions` vector with the user-provided distributions.
   for (const DistributionName & name : _distribution_names)
     _distributions.push_back(&getDistributionByName(name));
 
-  setNumberOfRows(getParam<dof_id_type>("num_rows"));
+  // Adaptive Importance Sampling (AIS) relies on a Markov Chain Monte Carlo (MCMC) algorithm.
+  // As such, in MOOSE, any use of MCMC algorithms requires that the `num_steps` parameter in the
+  // main App's executioner would control the total number of samples. Therefore, the `num_rows` parameter
+  // typically used by exisiting non-MCMC samplers to set the total number of samples has no use here and is fixed to 1.
+  int num_rows = 1;
+  setNumberOfRows(num_rows);
+
+  // Setting the number of columns in the sampler matrix (equal to the number of distributions).
   setNumberOfCols(_distributions.size());
+
+  // `inputs_sto` is a member variable that aids in forming the importance distribution.
+  // One dimension of this variable is equal to the number of distributions. The other dimension
+  // of the variable, at the last step, is equal to the number of samples the user desires.
   _inputs_sto.resize(_distributions.size());
-  // std::cout << "Here D" << std::endl;
-  for (unsigned int i = 0; i < _distributions.size(); ++i)
-    _inputs_sto[i].push_back(Normal::quantile(_distributions[i]->cdf(_seeds[i]),0,1));
-  // setNumberOfRandomSeeds(100000);
-  _check_even = 0;
-  _sum_R = 0.0;
-  _prev_val.resize(_distributions.size());
-  for (unsigned i = 0; i < _distributions.size(); ++i)
-    _prev_val[i].resize(getParam<dof_id_type>("num_rows"));
+
+  // Mapping to the standard normal space if user requests this option
+  if (_proposal_distribution == "StandardNormal")
+  {
+    for (unsigned int i = 0; i < _distributions.size(); ++i)
+      _inputs_sto[i].push_back(Normal::quantile(_distributions[i]->cdf(_initial_values[i]),0,1));
+  }
+
+  // `prev_value` is a member variable for tracking the previously accepted samples in the
+  // MCMC algorithm and proposing the next sample.
+  _prev_value.resize(_distributions.size());
+
+  // `check_step` is a member variable for ensuring that the MCMC algorithm proceeds in a sequential fashion.
+  _check_step = 0;
+
+  setNumberOfRandomSeeds(100000);
 }
 
 Real
-AIS::computeSTD(const std::vector<Real> & data)
+AIS::computeSample(dof_id_type /*row_index*/, dof_id_type col_index)
 {
-  Real sum1 = 0.0, sq_diff1 = 0.0;
-  for (unsigned int i = 2; i < data.size(); ++i)
-  {
-    sum1 += (data[i]);
-  }
-  for (unsigned int i = 2; i < data.size(); ++i)
-  {
-    sq_diff1 += std::pow(((data[i])-sum1/data.size()), 2); // std::log
-  }
-  return std::pow(sq_diff1 / data.size(), 0.5);
-}
 
-Real
-AIS::computeMEAN(const std::vector<Real> & data)
-{
-  Real sum1 = 0.0;
-  for (unsigned int i = 2; i < data.size(); ++i)
-  {
-    sum1 += (data[i]);
-  }
-  return (sum1 / data.size());
-}
-
-Real
-AIS::computeSample(dof_id_type row_index, dof_id_type col_index)
-{
   TIME_SECTION(_perf_compute_sample);
-  // dof_id_type offset = _values_distributed ? getLocalRowBegin() : 0;
-  // std::cout << "Offset is" << offset << std::endl;
+
   if (_step <= _num_samples_train)
   {
-    // std::cout << "Here" << std::endl;
-    if (_step > 1 && col_index == 0 && _check_even != _step)
+    if (_step > 1 && col_index == 0 && _check_step != _step)
     {
       for (dof_id_type j = 0; j < _distributions.size(); ++j)
-        _prev_val[j][row_index] = Normal::quantile(_distributions[j]->cdf(getReporterValueByName<Real>(_inputs_names[j])),0,1);
+        _prev_value[j] = Normal::quantile(_distributions[j]->cdf(getReporterValueByName<Real>(_inputs_names[j])),0,1);
       _acceptance_ratio = 0.0;
       for (dof_id_type i = 0; i < _distributions.size(); ++i)
-        _acceptance_ratio += std::log(Normal::pdf(_prev_val[i][row_index],0,1)) - std::log(Normal::pdf(_inputs_sto[i][_inputs_sto[i].size()-1],0,1));
-      if (_acceptance_ratio > std::log(getRand()))
+        _acceptance_ratio += std::log(Normal::pdf(_prev_value[i],0,1)) - std::log(Normal::pdf(_inputs_sto[i][_inputs_sto[i].size()-1],0,1));
+      if (_acceptance_ratio > std::log(getRand(_step)))
       {
         for (dof_id_type i = 0; i < _distributions.size(); ++i)
-          _inputs_sto[i].push_back(_prev_val[i][row_index]);
+          _inputs_sto[i].push_back(_prev_value[i]);
       } else
       {
         for (dof_id_type i = 0; i < _distributions.size(); ++i)
           _inputs_sto[i].push_back(_inputs_sto[i][_inputs_sto[i].size()-1]);
       }
     }
-    // std::cout << "Here 4" << std::endl;
-    _check_even = _step;
-    _prev_val[col_index][row_index] = Normal::quantile(getRand(), _inputs_sto[col_index][_inputs_sto[col_index].size()-1], _proposal_std[col_index]);
-    return _distributions[col_index]->quantile(Normal::cdf(_prev_val[col_index][row_index],0,1));
+    _check_step = _step;
+    _prev_value[col_index] = Normal::quantile(getRand(_step), _inputs_sto[col_index][_inputs_sto[col_index].size()-1], _proposal_std[col_index]);
+    return _distributions[col_index]->quantile(Normal::cdf(_prev_value[col_index],0,1));
   } else
   {
-    if (col_index == 0 && _check_even != _step)
+    if (col_index == 0 && _check_step != _step)
     {
       for (dof_id_type i = 0; i < _distributions.size(); ++i)
       {
-        _prev_val[i][row_index] = (Normal::quantile(getRand(), computeMEAN(_inputs_sto[i]), _std_factor * computeSTD(_inputs_sto[i])));
+        _prev_value[i] = (Normal::quantile(getRand(_step), AdaptiveMonteCarloUtils::computeMEAN(_inputs_sto[i]), _std_factor * AdaptiveMonteCarloUtils::computeSTD(_inputs_sto[i])));
       }
     }
-    _check_even = _step;
-    return _distributions[col_index]->quantile(Normal::cdf(_prev_val[col_index][row_index],0,1));
+    _check_step = _step;
+    return _distributions[col_index]->quantile(Normal::cdf(_prev_value[col_index],0,1));
   }
 }

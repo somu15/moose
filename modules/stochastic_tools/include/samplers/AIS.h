@@ -13,8 +13,9 @@
 #include "ReporterInterface.h"
 
 /**
- * A class used to perform Adaptive Importance Sampling
+ * A class used to perform Adaptive Importance Sampling using a Markov Chain Monte Carlo algorithm
  */
+
 class AIS : public Sampler, public ReporterInterface
 {
 public:
@@ -28,11 +29,7 @@ protected:
   /// Return the sample for the given row and column
   virtual Real computeSample(dof_id_type row_index, dof_id_type col_index) override;
 
-  Real computeSTD(const std::vector<Real> & data);
 
-  Real computeMEAN(const std::vector<Real> & data);
-
-  /// Storage for distribution objects to be utilized
   std::vector<Distribution const *> _distributions;
 
   const std::vector<ReporterName> & _inputs_names;
@@ -40,31 +37,40 @@ protected:
   /// Distribution names
   const std::vector<DistributionName> & _distribution_names;
 
+  /// The proposal distribution standard deviations
   const std::vector<Real> & _proposal_std;
 
-  const std::vector<Real> & _seeds;
+  /// Initial values values vector to start the importance sampler
+  const std::vector<Real> & _initial_values;
 
+  /// The output limit, exceedance of which indicates failure
   const Real & _output_limit;
 
+  /// Number of samples to train the importance sampler
   const int & _num_samples_train;
 
+  /// Factor to be multiplied to the standard deviation of the proposal distribution
   const Real & _std_factor;
 
+  /// Absolute value of the model result. Use this when failure is defined as a non-exceedance rather than an exceedance.
   const bool & _use_absolute_value;
 
 private:
 
-  // bool _values_distributed;
-
+  /// Acceptance ratio variable for the MCMC sampler.
   Real _acceptance_ratio;
 
+  /// Track the current step of the main App
   const int & _step;
 
-  int _check_even;
+  /// Ensure that the MCMC algorithm proceeds in a sequential fashion
+  int _check_step;
 
-  std::vector<std::vector<Real>> _prev_val;
+  /// For proposing the next sample in the MCMC algorithm
+  std::vector<Real> _prev_value;
 
-  Real _sum_R;
+  /// Helps the user select between different distributions for proposing the next sample
+  const MooseEnum & _proposal_distribution;
 
   /// PerfGraph timer
   const PerfID _perf_compute_sample;

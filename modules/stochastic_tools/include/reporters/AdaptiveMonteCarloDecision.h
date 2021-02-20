@@ -53,15 +53,15 @@ private:
   // std::vector<Real> _outputs_sto;
   // std::vector<std::vector<Real>> _inputs_sto;
   // std::vector<std::vector<Real>> _inputs_sorted;
-  std::vector<std::vector<Real>> _output_sorted;
-  std::vector<std::vector<std::vector<Real>>> _inputs_sorted;
-  std::vector<std::vector<std::vector<Real>>> _inputs_sto;
-  std::vector<std::vector<Real>> _outputs_sto;
+  std::vector<Real> _output_sorted;
+  std::vector<std::vector<Real>> _inputs_sorted;
+  std::vector<std::vector<Real>> _inputs_sto;
+  std::vector<Real> _outputs_sto;
   unsigned int _subset;
   std::vector<Real> _output_limits;
   int _check_even;
-  std::vector<std::vector<Real>> _prev_val;
-  std::vector<Real> _prev_val_out;
+  std::vector<Real> _prev_val;
+  Real _prev_val_out;
 };
 
 template <typename T>

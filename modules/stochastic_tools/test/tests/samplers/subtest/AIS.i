@@ -18,16 +18,16 @@
 [Samplers]
   [sample]
     type = AIS
-    num_rows = 1
     distributions = 'mu1 mu2'
-    execute_on = 'PRE_MULTIAPP_SETUP TIMESTEP_BEGIN' #
+    execute_on = 'PRE_MULTIAPP_SETUP' # TIMESTEP_END
     proposal_std = '0.75 0.75'
-    output_limit = 0.1
-    num_samples_train = 500
+    output_limit = 0.19
+    num_samples_train = 50
     std_factor = 0.85
     use_absolute_value = true
     # seed = 1012
-    seeds = '0.2875 11.059'
+    initial_values = '0.36477415890676 12.104205698488'
+    proposal_distribution = 'StandardNormal'
     inputs_reporter = 'adaptive_MC/mu1 adaptive_MC/mu2'
     output_reporter = 'adaptive_MC/output_reporter1'
   []
@@ -38,7 +38,7 @@
     type = SamplerFullSolveMultiApp
     input_files = sub1.i
     sampler = sample
-    mode = normal
+    # mode = normal
   []
 []
 
@@ -49,8 +49,7 @@
     sampler = sample
     parameters = 'Kernels/nonlin_function/mu1 Kernels/nonlin_function/mu2'
     to_control = 'stochastic'
-    execute_on  = 'TIMESTEP_BEGIN'
-    # check_multiapp_execute_on = false
+    check_multiapp_execute_on = false
   []
   [data]
     type = MultiAppReporterTransfer
@@ -58,8 +57,6 @@
     from_reporters = 'average/value'
     direction = from_multiapp
     multi_app = sub
-    subapp_index = 0
-    execute_on  = 'TIMESTEP_END'
   []
 []
 
@@ -80,16 +77,16 @@
     inputs_names = 'mu1 mu2'
     inputs_values = '0.0 0.0'
     sampler = sample
-    execute_on = 'TIMESTEP_BEGIN TIMESTEP_END'
   []
 []
 
 [Executioner]
   type = Transient
-  num_steps = 1000
+  num_steps = 150
 []
 
 [Outputs]
   csv = true
   exodus = false
+  perf_graph = true
 []

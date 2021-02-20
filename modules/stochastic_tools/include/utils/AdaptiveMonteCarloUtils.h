@@ -15,9 +15,6 @@
 #ifndef ADAPTIVEMONTECARLOUTILS_H
 #define ADAPTIVEMONTECARLOUTILS_H
 
-// MOOSE includes
-// #include "GeneralVectorPostprocessor.h"
-
 // Forward Declarations
 namespace AdaptiveMonteCarloUtils
 {
@@ -28,6 +25,10 @@ namespace AdaptiveMonteCarloUtils
  std::vector<Real> sortINPUT(const std::vector<Real> & inputs, const std::vector<Real> & outputs, const int & samplessub, const unsigned int & subset, const Real & subset_prob);
 
  std::vector<Real> sortOUTPUT(const std::vector<Real> & outputs, const int & samplessub, const unsigned int & subset, const Real & subset_prob);
+
+ Real computeSTD(const std::vector<Real> & data);
+
+ Real computeMEAN(const std::vector<Real> & data);
 
  Real computeMIN(const std::vector<Real> & data);
 

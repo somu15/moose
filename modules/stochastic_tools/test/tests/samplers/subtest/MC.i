@@ -18,9 +18,10 @@
 [Samplers]
   [sample]
     type = MonteCarlo
-    num_rows = 100000
+    num_rows = 1
     distributions = 'mu1 mu2'
-    execute_on = PRE_MULTIAPP_SETUP # 'initial timestep_end'
+    execute_on = 'PRE_MULTIAPP_SETUP TIMESTEP_BEGIN' # 'initial timestep_end'
+    seed = 1012
   []
 []
 
@@ -29,7 +30,8 @@
     type = SamplerFullSolveMultiApp
     input_files = sub.i
     sampler = sample
-    mode = batch-reset
+    # mode = batch-reset
+    mode = normal
   []
 []
 
@@ -71,6 +73,12 @@
     sampler = sample
     execute_on = 'timestep_end'
   []
+[]
+
+[Executioner]
+  type = Transient
+  num_steps = 200
+  # execute_on = 'TIMESTEP_END'
 []
 
 [Outputs]

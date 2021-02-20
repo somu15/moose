@@ -18,12 +18,12 @@
 [Samplers]
   [sample]
     type = SubsetSimulation
-    # num_rows = 1
+    num_rows = 1
     distributions = 'mu1 mu2'
-    execute_on = 'PRE_MULTIAPP_SETUP TIMESTEP_END' #
+    execute_on = 'PRE_MULTIAPP_SETUP' # TIMESTEP_BEGIN
     subset_probability = 0.1
-    proposal_std = '0.03375 1.0125' # '0.15 0.15'
-    num_samplessub = 10
+    proposal_std = '0.25 0.25'
+    num_samplessub = 1000
     use_absolute_value = true
     # seed = 1012
     inputs_reporter = 'adaptive_MC/mu1 adaptive_MC/mu2'
@@ -47,7 +47,6 @@
     sampler = sample
     parameters = 'Kernels/nonlin_function/mu1 Kernels/nonlin_function/mu2'
     to_control = 'stochastic'
-    # check_multiapp_execute_on = false
   []
   [data]
     type = MultiAppReporterTransfer
@@ -55,7 +54,6 @@
     from_reporters = 'average/value'
     direction = from_multiapp
     multi_app = sub
-    subapp_index = 0
   []
 []
 
@@ -81,7 +79,7 @@
 
 [Executioner]
   type = Transient
-  num_steps = 10
+  num_steps = 3000
 []
 
 [Outputs]

@@ -264,7 +264,6 @@ MultiApp::initialSetup()
   if (!AppFactory::instance().isRegistered(_app_type))
     _app.dynamicAppRegistration(
         _app_type, getParam<std::string>("library_path"), getParam<std::string>("library_name"));
-
   for (unsigned int i = 0; i < _my_num_apps; i++)
   {
     createApp(i, _global_time_offset);
