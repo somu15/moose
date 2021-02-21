@@ -1,7 +1,6 @@
 [Mesh]
   type = FileMesh
-  file = LF1_lv1_new.e
-  # second_order = true
+  file = HF1_R3.e
 []
 
 [GlobalParams]
@@ -100,7 +99,7 @@
     type = DirichletBC
     variable = disp_x
     boundary = Right
-    value = '0.009940131788511367'
+    value = '0.14252725580733847'
   [../]
   [./freey1]
     type = DirichletBC
@@ -113,8 +112,8 @@
 [Materials]
   [./elasticity]
     type = ComputeIsotropicElasticityTensor
-    youngs_modulus = 261.48449782296456
-    poissons_ratio = 0.3378679974055761
+    youngs_modulus = 253.17199401869263
+    poissons_ratio = 0.2683101351802119
   [../]
   [./strain]
     type = ComputeFiniteStrain
@@ -153,7 +152,7 @@
 []
 
 [Outputs]
-  file_base = 'LF1_lv2_out'
+  file_base = 'HF1_R3'
   # exodus = true
   csv = true
   # perf_graph = true

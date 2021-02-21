@@ -1,6 +1,6 @@
 [Mesh]
   type = FileMesh
-  file = HF1.e
+  file = HF1_R4.e
 []
 
 [GlobalParams]
@@ -99,7 +99,7 @@
     type = DirichletBC
     variable = disp_x
     boundary = Right
-    value = '0.015091478986067615'
+    value = '0.14252725580733847'
   [../]
   [./freey1]
     type = DirichletBC
@@ -112,8 +112,8 @@
 [Materials]
   [./elasticity]
     type = ComputeIsotropicElasticityTensor
-    youngs_modulus = 286.55342687258684
-    poissons_ratio = 0.17897663721707585
+    youngs_modulus = 253.17199401869263
+    poissons_ratio = 0.2683101351802119
   [../]
   [./strain]
     type = ComputeFiniteStrain
@@ -152,7 +152,7 @@
 []
 
 [Outputs]
-  file_base = 'HF1_out'
+  file_base = 'HF1_R4'
   # exodus = true
   csv = true
   # perf_graph = true
