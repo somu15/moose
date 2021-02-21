@@ -1,6 +1,6 @@
 [Mesh]
   type = FileMesh
-  file = NewHF_R2.e
+  file = NewHF_R1.e
 []
 
 [GlobalParams]
