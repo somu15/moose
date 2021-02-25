@@ -118,11 +118,11 @@
     poissons_ratio = 0.23076896559340387
   [../]
   [./strain]
-    type = ComputeFiniteStrain
+    type = ComputeSmallStrain
     displacements = 'disp_x disp_y disp_z'
   [../]
   [./stress]
-    type =  ComputeFiniteStrainElasticStress
+    type =  ComputeLinearElasticStress
   [../]
 []
 

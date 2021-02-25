@@ -1,6 +1,6 @@
 [Mesh]
   type = FileMesh
-  file = NewHF0_R2.e
+  file = NewHF0_R1.e
 []
 
 [GlobalParams]
@@ -91,74 +91,38 @@
     boundary = Bottom
     value = 0.0
   [../]
-  # [./freex1]
-  #   type = DirichletBC
-  #   variable = disp_x
-  #   boundary = Top
-  #   value = '0.03591140858949984'
-  # [../]
-  # [./freey1]
-  #   type = DirichletBC
-  #   variable = disp_y
-  #   boundary = Top
-  #   value = '0.03591140858949984'
-  # [../]
-  # [./freez1]
-  #   type = DirichletBC
-  #   variable = disp_z
-  #   boundary = Top
-  #   value = '0.03591140858949984'
-  # [../]
   [./freex1]
-    type = FunctionDirichletBC
+    type = DirichletBC
     variable = disp_x
     boundary = Top
-    function = function_x
+    value = '0.03591140858949984'
   [../]
   [./freey1]
-    type = FunctionDirichletBC
+    type = DirichletBC
     variable = disp_y
     boundary = Top
-    function = function_y
+    value = '0.1536467185512155'
   [../]
   [./freez1]
-    type = FunctionDirichletBC
+    type = DirichletBC
     variable = disp_z
     boundary = Top
-    function = function_z
-  [../]
-[]
-
-[Functions]
-  [./function_x]
-    type = PiecewiseLinear
-    x = '0.0 1.0 2.0 3.0'
-    y = '0.0 0.011203341937150705 0.02240668387430141 0.033610025811452116'
-  [../]
-  [./function_y]
-    type = PiecewiseLinear
-    x = '0.0 1.0 2.0 3.0'
-    y = '0.0 0.008184173846364719 0.016368347692729438 0.02455252153909416'
-  [../]
-  [./function_z]
-    type = PiecewiseLinear
-    x = '0.0 1.0 2.0 3.0'
-    y = '0.0 0.022417421637406648 0.044834843274813296 0.06725226491221994'
+    value = '0.06609279628750095'
   [../]
 []
 
 [Materials]
   [./elasticity]
     type = ComputeElasticityTensor
-    C_ijkl = '234.75427498823225 74.56539856619446 101.73792091123993 390.4590796682868 147.21031238957832'
+    C_ijkl = '295.9563568332149 103.02491153147164 131.95057823509003 372.8248229787782 157.169528908155'
     fill_method = axisymmetric_rz
   [../]
   [./strain]
-    type = ComputeFiniteStrain
+    type = ComputeSmallStrain
     displacements = 'disp_x disp_y disp_z'
   [../]
   [./stress]
-    type =  ComputeFiniteStrainElasticStress
+    type =  ComputeLinearElasticStress
   [../]
 []
 
@@ -171,20 +135,16 @@
 []
 
 [Executioner]
-  type = Transient
+  type = Steady
   petsc_options_iname = '-pc_type -pc_factor_mat_solver_package'
   petsc_options_value = 'lu       superlu_dist'
   solve_type = NEWTON
   line_search = 'none'
-  nl_max_its = 15
+  nl_max_its = 50
   l_max_its = 10
-  nl_rel_tol = 1e-2
-  l_tol = 1e-4
-  nl_abs_tol = 1e-3
-  start_time = 0.0
-  end_time = 3.0
-  dt = 1.0
-  automatic_scaling = true
+  nl_rel_tol = 1e-3
+  nl_abs_tol = 1e-4
+  # automatic_scaling = true
 []
 
 [Postprocessors]

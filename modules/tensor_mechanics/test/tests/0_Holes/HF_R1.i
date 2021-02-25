@@ -99,7 +99,7 @@
     type = DirichletBC
     variable = disp_x
     boundary = Right
-    value = '0.14252725580733847'
+    value = '0.50'
   [../]
   [./freey1]
     type = DirichletBC
@@ -116,11 +116,11 @@
     poissons_ratio = 0.2683101351802119
   [../]
   [./strain]
-    type = ComputeFiniteStrain
+    type = ComputeSmallStrain
     displacements = 'disp_x disp_y'
   [../]
   [./stress]
-    type =  ComputeFiniteStrainElasticStress
+    type =  ComputeLinearElasticStress
   [../]
 []
 

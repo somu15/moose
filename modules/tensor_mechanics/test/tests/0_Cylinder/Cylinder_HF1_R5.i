@@ -91,74 +91,38 @@
     boundary = Bottom
     value = 0.0
   [../]
-  # [./freex1]
-  #   type = DirichletBC
-  #   variable = disp_x
-  #   boundary = Top
-  #   value = '0.03591140858949984'
-  # [../]
-  # [./freey1]
-  #   type = DirichletBC
-  #   variable = disp_y
-  #   boundary = Top
-  #   value = '0.03591140858949984'
-  # [../]
-  # [./freez1]
-  #   type = DirichletBC
-  #   variable = disp_z
-  #   boundary = Top
-  #   value = '0.03591140858949984'
-  # [../]
   [./freex1]
-    type = FunctionDirichletBC
+    type = DirichletBC
     variable = disp_x
     boundary = Top
-    function = function_x
+    value = '0.03591140858949984'
   [../]
   [./freey1]
-    type = FunctionDirichletBC
+    type = DirichletBC
     variable = disp_y
     boundary = Top
-    function = function_y
+    value = '0.1536467185512155'
   [../]
   [./freez1]
-    type = FunctionDirichletBC
+    type = DirichletBC
     variable = disp_z
     boundary = Top
-    function = function_z
-  [../]
-[]
-
-[Functions]
-  [./function_x]
-    type = PiecewiseLinear
-    x = '0.0 1.0 2.0 3.0'
-    y = '0.0 0.0068875240314147275 0.013775048062829455 0.020662572094244182'
-  [../]
-  [./function_y]
-    type = PiecewiseLinear
-    x = '0.0 1.0 2.0 3.0'
-    y = '0.0 0.00892417293556804 0.01784834587113608 0.026772518806704126'
-  [../]
-  [./function_z]
-    type = PiecewiseLinear
-    x = '0.0 1.0 2.0 3.0'
-    y = '0.0 0.015864868489289797 0.031729736978579594 0.047594605467869394'
+    value = '0.06609279628750095'
   [../]
 []
 
 [Materials]
   [./elasticity]
     type = ComputeElasticityTensor
-    C_ijkl = '290.8068844809044 110.40140122845304 128.0661666472009 382.68518103994694 126.5000362946433'
+    C_ijkl = '295.9563568332149 103.02491153147164 131.95057823509003 372.8248229787782 157.169528908155'
     fill_method = axisymmetric_rz
   [../]
   [./strain]
-    type = ComputeFiniteStrain
+    type = ComputeSmallStrain
     displacements = 'disp_x disp_y disp_z'
   [../]
   [./stress]
-    type =  ComputeFiniteStrainElasticStress
+    type =  ComputeLinearElasticStress
   [../]
 []
 
@@ -171,20 +135,16 @@
 []
 
 [Executioner]
-  type = Transient
+  type = Steady
   petsc_options_iname = '-pc_type -pc_factor_mat_solver_package'
   petsc_options_value = 'lu       superlu_dist'
   solve_type = NEWTON
   line_search = 'none'
-  nl_max_its = 15
+  nl_max_its = 50
   l_max_its = 10
-  nl_rel_tol = 1e-2
-  l_tol = 1e-4
-  nl_abs_tol = 1e-3
-  start_time = 0.0
-  end_time = 3.0
-  dt = 1.0
-  automatic_scaling = true
+  nl_rel_tol = 1e-3
+  nl_abs_tol = 1e-4
+  # automatic_scaling = true
 []
 
 [Postprocessors]
