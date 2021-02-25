@@ -125,7 +125,8 @@ public:
   StatisticsReporter(const InputParameters & parameters);
 
   /// Not used; all operations are  wrapped in the ReporterStatisticsContext
-  virtual void execute() final{};
+  // virtual void execute() final{};
+  virtual void execute() override;
   virtual void initialize() final{};
   virtual void finalize() final{};
   virtual void store(nlohmann::json & json) const override;
@@ -146,6 +147,12 @@ private:
   // Random seed for producing CI replicates
   const unsigned int & _ci_seed;
 
+  bool _amcs_check;
+  const MultiMooseEnum & _amcs_method;
+  std::vector<Real *> _output;
+  Sampler * _sampler;
+  const int & _step;
+
   /**
    * Helper for adding statistic reporter values
    *
@@ -153,4 +160,10 @@ private:
    */
   template <typename InType, typename OutType>
   void declareValueHelper(const ReporterName & r_name);
+
+  ///@{
+  /// Helper for declaring constant reporter values
+  template <typename T>
+  std::vector<T *> declareAMCSStatistics(const MultiMooseEnum & statistics);
+  ///@}
 };

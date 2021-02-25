@@ -69,7 +69,6 @@ AIS::AIS(const InputParameters & parameters)
     _std_factor(getParam<Real>("std_factor")),
     _use_absolute_value(getParam<bool>("use_absolute_value")),
     _step(getCheckedPointerParam<FEProblemBase *>("_fe_problem_base")->timeStep()),
-    _proposal_distribution(getParam<MooseEnum>("proposal_distribution")),
     _perf_compute_sample(registerTimedSection("computeSample", 4))
 {
   // Filling the `distributions` vector with the user-provided distributions.
@@ -79,7 +78,8 @@ AIS::AIS(const InputParameters & parameters)
   // Adaptive Importance Sampling (AIS) relies on a Markov Chain Monte Carlo (MCMC) algorithm.
   // As such, in MOOSE, any use of MCMC algorithms requires that the `num_steps` parameter in the
   // main App's executioner would control the total number of samples. Therefore, the `num_rows` parameter
-  // typically used by exisiting non-MCMC samplers to set the total number of samples has no use here and is fixed to 1.
+  // typically used by exisiting non-MCMC samplers to set the total number of samples
+  // has no use here and is fixed to 1.
   int num_rows = 1;
   setNumberOfRows(num_rows);
 
@@ -91,12 +91,9 @@ AIS::AIS(const InputParameters & parameters)
   // of the variable, at the last step, is equal to the number of samples the user desires.
   _inputs_sto.resize(_distributions.size());
 
-  // Mapping to the standard normal space if user requests this option
-  if (_proposal_distribution == "StandardNormal")
-  {
-    for (unsigned int i = 0; i < _distributions.size(); ++i)
-      _inputs_sto[i].push_back(Normal::quantile(_distributions[i]->cdf(_initial_values[i]),0,1));
-  }
+  // Mapping all the input distributions to a standard normal space
+  for (unsigned int i = 0; i < _distributions.size(); ++i)
+    _inputs_sto[i].push_back(Normal::quantile(_distributions[i]->cdf(_initial_values[i]),0,1));
 
   // `prev_value` is a member variable for tracking the previously accepted samples in the
   // MCMC algorithm and proposing the next sample.
@@ -116,6 +113,12 @@ AIS::computeSample(dof_id_type /*row_index*/, dof_id_type col_index)
 
   if (_step <= _num_samples_train)
   {
+    // This is the importance distribution training step. Markov Chains are set up
+    // to sample from the importance region or the failure region using the Metropolis
+    // algorithm. Given that the previous sample resulted in a model failure, the next
+    // sample is proposed such that it is very likely to result in a model failure as well.
+    // The `initial_values` and `proposal_std` parameters provided by the user affects the
+    // formation of the importance distribution.
     if (_step > 1 && col_index == 0 && _check_step != _step)
     {
       for (dof_id_type j = 0; j < _distributions.size(); ++j)
@@ -138,6 +141,9 @@ AIS::computeSample(dof_id_type /*row_index*/, dof_id_type col_index)
     return _distributions[col_index]->quantile(Normal::cdf(_prev_value[col_index],0,1));
   } else
   {
+    // This is the importance sampling step using the importance distribution created
+    // in the previous step. Once the importance distribution is known, sampling from
+    // it is similar to a regular Monte Carlo sampling.
     if (col_index == 0 && _check_step != _step)
     {
       for (dof_id_type i = 0; i < _distributions.size(); ++i)

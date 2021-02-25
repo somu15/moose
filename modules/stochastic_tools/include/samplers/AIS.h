@@ -69,9 +69,6 @@ private:
   /// For proposing the next sample in the MCMC algorithm
   std::vector<Real> _prev_value;
 
-  /// Helps the user select between different distributions for proposing the next sample
-  const MooseEnum & _proposal_distribution;
-
   /// PerfGraph timer
   const PerfID _perf_compute_sample;
 };

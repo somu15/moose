@@ -23,7 +23,7 @@
     execute_on = 'PRE_MULTIAPP_SETUP' # TIMESTEP_BEGIN
     subset_probability = 0.1
     proposal_std = '0.25 0.25'
-    num_samplessub = 100
+    num_samplessub = 10
     use_absolute_value = true
     # seed = 1012
     inputs_reporter = 'adaptive_MC/mu1 adaptive_MC/mu2'
@@ -77,19 +77,17 @@
   []
   [stats]
     type = StatisticsReporter
-    output_reporter = 'adaptive_MC/output_reporter1'
-    amcs_method = 'pf cov'
-    sampler = sample
+    reporters = 'adaptive_MC/output_reporter1 adaptive_MC/mu1 adaptive_MC/mu2'
+    compute = 'mean'
   []
 []
 
 [Executioner]
   type = Transient
-  num_steps = 500
+  num_steps = 20
 []
 
 [Outputs]
   csv = true
-  json = true
   exodus = false
 []

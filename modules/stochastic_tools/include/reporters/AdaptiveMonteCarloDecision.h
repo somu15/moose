@@ -37,10 +37,16 @@ protected:
   template <typename T>
   std::vector<std::vector<T> *> declareAdaptiveMonteCarloDecisionVectorValues(const std::string & prefix);
   ///@}
+  ///@{
+  /// Helper for declaring constant reporter values
+  template <typename T>
+  std::vector<T *> declareAMCSStatistics(const std::string & statistics);
+  ///@}
 
   /// Real reporter data
   std::vector<Real *> _output;
   std::vector<Real *> _inputs;
+  std::vector<unsigned int *> _subset_out;
 
 private:
   const int & _step;
@@ -62,6 +68,7 @@ private:
   int _check_even;
   std::vector<Real> _prev_val;
   Real _prev_val_out;
+
 };
 
 template <typename T>
@@ -108,6 +115,8 @@ AdaptiveMonteCarloDecision::declareAdaptiveMonteCarloDecisionValues(const std::s
                " must match number of values specified in ",
                values_param);
 
+   // std::cout << "here " << names[0] << std::endl;
+   // std::cout << "here1 " << values[0] << std::endl;
   for (unsigned int i = 0; i < names.size(); ++i)
     data.push_back(&this->declareValueByName<T>(names[i], values[i]));
 

@@ -13,6 +13,7 @@
 #include "MooseVariable.h"
 #include "ThreadedElementLoopBase.h"
 #include "ThreadedNodeLoop.h"
+#include "Sampler.h"
 
 #include "libmesh/quadrature.h"
 
@@ -35,7 +36,7 @@ StatisticsReporter::validParams()
       "reporters", "List of Reporter values to utilized for statistic computations.");
 
   MultiMooseEnum stats = StochasticTools::makeCalculatorEnum();
-  params.addRequiredParam<MultiMooseEnum>(
+  params.addParam<MultiMooseEnum>( // Required
       "compute",
       stats,
       "The statistic(s) to compute for each of the supplied vector postprocessors.");
@@ -57,6 +58,20 @@ StatisticsReporter::validParams()
                                 1,
                                 "The random number generator seed used for creating replicates "
                                 "while computing confidence level intervals.");
+  // Adaptive Monte Carlo Samplers (AMCS) stuff
+  // params.addParam<ReporterName>(
+  //     "output_reporter", "Reporter with results of samples created by trainer.");
+  // params.addParam<std::vector<ReporterName>>(
+  //     "inputs_reporter", "Reporter with input parameters.");
+  // params.addParam<SamplerName>("sampler", "Training set defined by a sampler object.");
+  MultiMooseEnum amcs("pf cov");
+  params.addParam<MultiMooseEnum>(
+      "amcs_method", amcs, "The method to use for computing statistics of the samples from an adaptive Monte Carlo algorithm.");
+  params.addParam<ReporterName>(
+      "output_reporter", "Reporter with results of samples created by trainer.");
+  params.addParam<std::vector<ReporterName>>(
+      "inputs_reporter", "Reporter with input parameters.");
+  params.addParam<SamplerName>("sampler", "Training set defined by a sampler object.");
   return params;
 }
 
@@ -66,7 +81,9 @@ StatisticsReporter::StatisticsReporter(const InputParameters & parameters)
     _ci_method(getParam<MooseEnum>("ci_method")),
     _ci_levels(getParam<std::vector<Real>>("ci_levels")),
     _ci_replicates(getParam<unsigned int>("ci_replicates")),
-    _ci_seed(getParam<unsigned int>("ci_seed"))
+    _ci_seed(getParam<unsigned int>("ci_seed")),
+    _amcs_method(getParam<MultiMooseEnum>("amcs_method")),
+    _step(getCheckedPointerParam<FEProblemBase *>("_fe_problem_base")->timeStep())
 {
   // CI levels error checking
   if (_ci_method.isValid())
@@ -122,9 +139,18 @@ StatisticsReporter::StatisticsReporter(const InputParameters & parameters)
     }
   }
 
-  if ((!isParamValid("reporters") && !isParamValid("vectorpostprocessors")) ||
-      (getParam<std::vector<ReporterName>>("reporters").empty() &&
-       getParam<std::vector<VectorPostprocessorName>>("vectorpostprocessors").empty()))
+  if (isParamValid("output_reporter"))
+  {
+    _amcs_check = true;
+    _output = declareAMCSStatistics<Real>(_amcs_method);
+    _sampler = &getSamplerByName(getParam<SamplerName>("sampler"));
+  }
+
+  // ||
+  //     (getParam<std::vector<ReporterName>>("reporters").empty() &&
+  //      getParam<std::vector<VectorPostprocessorName>>("vectorpostprocessors").empty() && getParam<ReporterName>("output_reporter").empty())
+
+  if ((!isParamValid("reporters") && !isParamValid("vectorpostprocessors") && !isParamValid("output_reporter")) ) //
     mooseError(
         "The 'vectorpostprocessors' and/or 'reporters' parameters must be defined and non-empty.");
 }
@@ -138,6 +164,33 @@ StatisticsReporter::store(nlohmann::json & json) const
                                     {"levels", _ci_levels},
                                     {"replicates", _ci_replicates},
                                     {"seed", _ci_seed}};
+}
+
+void
+StatisticsReporter::execute()
+{
+  if (_amcs_check)
+  {
+    (*_output[0]) = 1.0;
+    // std::cout << getReporterValue<Real>("subset") << std::endl;
+    // dynamic_cast<std::string>(getFunctionByName(_hardening_functions_names[i]))
+    if (_sampler->parameters().get<std::string>("_type") == "SubsetSimulation")
+    {
+      // && _step > (_sampler->parameters().get<int>("num_samplessub") * ())
+
+    }
+  }
+
+}
+
+template <typename T>
+std::vector<T *>
+StatisticsReporter::declareAMCSStatistics(const MultiMooseEnum & statistics)
+{
+  std::vector<T *> data;
+  for (unsigned int i = 0; i < statistics.size(); ++i)
+    data.push_back(&this->declareValueByName<T>(statistics[i], 0.0));
+  return data;
 }
 
 template <typename InType, typename OutType>
