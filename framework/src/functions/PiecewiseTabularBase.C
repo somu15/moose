@@ -23,7 +23,9 @@ PiecewiseTabularBase::validParams()
   params.addParam<std::vector<Real>>("xy_data",
                                      "All function data, supplied in abscissa, ordinate pairs");
   params.addParam<std::vector<Real>>("x", "The abscissa values");
+  params.declareControllable("x");
   params.addParam<std::vector<Real>>("y", "The ordinate values");
+  params.declareControllable("y");
   params.addParam<FileName>("data_file", "File holding CSV data");
   params.addParam<unsigned int>("x_index_in_file", 0, "The abscissa index in the data file");
   params.addParam<unsigned int>("y_index_in_file", 1, "The ordinate index in the data file");
