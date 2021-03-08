@@ -150,6 +150,11 @@ AIS::computeSample(dof_id_type /*row_index*/, dof_id_type col_index)
       {
         _prev_value[i] = (Normal::quantile(getRand(_step), AdaptiveMonteCarloUtils::computeMEAN(_inputs_sto[i]), _std_factor * AdaptiveMonteCarloUtils::computeSTD(_inputs_sto[i])));
       }
+      for (dof_id_type i = 0; i < _distributions.size(); ++i)
+      {
+        std::cout << "Mean is " <<  AdaptiveMonteCarloUtils::computeMEAN(_inputs_sto[i]) << std::endl;
+        std::cout << "Std is " <<  AdaptiveMonteCarloUtils::computeSTD(_inputs_sto[i]) << std::endl;
+      }
     }
     _check_step = _step;
     return _distributions[col_index]->quantile(Normal::cdf(_prev_value[col_index],0,1));

@@ -57,32 +57,32 @@ AdaptiveMonteCarloUtils::sortOUTPUT(const std::vector<Real> & outputs, const int
 Real
 AdaptiveMonteCarloUtils::computeSTD(const std::vector<Real> & data)
 {
-  // Real sum1 = 0.0, sq_diff1 = 0.0;
-  // for (unsigned int i = 2; i < data.size(); ++i)
-  // {
-  //   sum1 += (data[i]);
-  // }
-  auto sum1 = std::accumulate(data.begin(), data.end(), 0);
-  Real sq_diff1 = 0.0;
+  Real sum1 = 0.0, sq_diff1 = 0.0;
   for (unsigned int i = 2; i < data.size(); ++i)
   {
-    sq_diff1 += std::pow(((data[i])-sum1/data.size()), 2);
+    sum1 += (data[i]);
   }
-  return std::pow(sq_diff1 / data.size(), 0.5);
+  //auto sum1 = std::accumulate(data.begin(), data.end(), 0);
+  // Real sq_diff1 = 0.0;
+  for (unsigned int i = 2; i < data.size(); ++i)
+  {
+    sq_diff1 += std::pow(((data[i])-sum1/(data.size()-2)), 2);
+  }
+  return std::pow(sq_diff1 / (data.size()-2), 0.5);
 }
 
 Real
 AdaptiveMonteCarloUtils::computeMEAN(const std::vector<Real> & data)
 {
-  // Real sum1 = 0.0;
-  // for (unsigned int i = 2; i < data.size(); ++i)
-  // {
-  //   sum1 += (data[i]);
-  // }
-  // return (sum1 / data.size());
-  auto local_sum = std::accumulate(data.begin(), data.end(), 0.);
-  auto local_count = data.size();
-  return data.empty() ? 0. : local_sum / local_count;
+  Real sum1 = 0.0;
+  for (unsigned int i = 2; i < data.size(); ++i)
+  {
+    sum1 += (data[i]);
+  }
+  return (sum1 / (data.size()-2));
+  // auto local_sum = std::accumulate(data.begin(), data.end(), 0.);
+  // auto local_count = data.size();
+  // return data.empty() ? 0. : local_sum / local_count;
 }
 
 Real
