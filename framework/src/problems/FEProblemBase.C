@@ -748,8 +748,8 @@ FEProblemBase::initialSetup()
       (_material_props.hasStatefulProperties() || _bnd_material_props.hasStatefulProperties() ||
        _neighbor_material_props.hasStatefulProperties()))
   {
-    if (_has_internal_edge_residual_objects)
-      mooseError("Stateful neighbor material properties do not work with mesh adaptivity");
+    // if (_has_internal_edge_residual_objects)
+    //   mooseError("Stateful neighbor material properties do not work with mesh adaptivity");
 
     _mesh.buildRefinementAndCoarseningMaps(_assembly[0].get());
   }
