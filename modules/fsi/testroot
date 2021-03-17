@@ -1,8 +1,4 @@
-<<<<<<< HEAD:tutorials/tutorial01_app_development/step09_mat_props/testroot
-app_name = babbler
-=======
 app_name = fsi
->>>>>>> 6e7c9cf753... Rename fluid_structure_interaction to fsi:modules/fsi/testroot
 allow_warnings = false
 allow_unused = false
 allow_override = false

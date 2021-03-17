@@ -55,6 +55,7 @@ Applications:
         app_types:
             - FunctionalExpansionToolsApp
         content_directory: modules/functional_expansion_tools/doc/content
+        show_warning: false
 
     heat_conduction:
         exe_directory: modules/combined

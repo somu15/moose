@@ -1,10 +1,6 @@
 #!/bin/bash
 
-<<<<<<< HEAD:modules/tensor_mechanics/unit/run_tests
-APPLICATION_NAME=tensor_mechanics
-=======
 APPLICATION_NAME=fsi
->>>>>>> 6e7c9cf753... Rename fluid_structure_interaction to fsi:modules/fsi/unit/run_tests
 # If $METHOD is not set, use opt
 if [ -z $METHOD ]; then
   export METHOD=opt

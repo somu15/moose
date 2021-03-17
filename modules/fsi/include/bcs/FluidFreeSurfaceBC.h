@@ -9,20 +9,21 @@
 
 #pragma once
 
-#include "MeshGenerator.h"
+#include "IntegratedBC.h"
 
-class BoundaryDeletionGenerator : public MeshGenerator
+class FluidFreeSurfaceBC : public IntegratedBC
 {
 public:
   static InputParameters validParams();
 
-  BoundaryDeletionGenerator(const InputParameters & parameters);
-
-  virtual std::unique_ptr<MeshBase> generate() override;
+  FluidFreeSurfaceBC(const InputParameters & parameters);
 
 protected:
-  ///The input mesh
-  std::unique_ptr<MeshBase> & _input;
-  ///The boundaries to be removed
-  const std::vector<BoundaryName> _boundary_names;
+  virtual Real computeQpResidual() override;
+  virtual Real computeQpJacobian() override;
+
+  /// Ratio of u to du/dn. alpha is the inverse of acceleration due to gravity
+  Real _alpha;
+  const VariableValue & _u_dotdot;
+  const VariableValue & _du_dotdot_du;
 };

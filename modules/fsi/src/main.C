@@ -7,11 +7,7 @@
 //* Licensed under LGPL 2.1, please see LICENSE for details
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
-<<<<<<< HEAD:tutorials/tutorial01_app_development/step09_mat_props/src/main.C
-#include "BabblerTestApp.h"
-=======
 #include "FsiTestApp.h"
->>>>>>> 6e7c9cf753... Rename fluid_structure_interaction to fsi:modules/fsi/src/main.C
 #include "MooseInit.h"
 #include "Moose.h"
 #include "MooseApp.h"
@@ -28,17 +24,10 @@ main(int argc, char * argv[])
   MooseInit init(argc, argv);
 
   // Register this application's MooseApp and any it depends on
-<<<<<<< HEAD:tutorials/tutorial01_app_development/step09_mat_props/src/main.C
-  BabblerTestApp::registerApps();
-
-  // Create an instance of the application and store it in a smart pointer for easy cleanup
-  std::shared_ptr<MooseApp> app = AppFactory::createAppShared("BabblerTestApp", argc, argv);
-=======
   FsiTestApp::registerApps();
 
   // Create an instance of the application and store it in a smart pointer for easy cleanup
   std::shared_ptr<MooseApp> app = AppFactory::createAppShared("FsiTestApp", argc, argv);
->>>>>>> 6e7c9cf753... Rename fluid_structure_interaction to fsi:modules/fsi/src/main.C
 
   // Execute the application
   app->run();
