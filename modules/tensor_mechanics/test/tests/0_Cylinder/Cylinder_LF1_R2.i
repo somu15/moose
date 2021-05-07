@@ -95,27 +95,27 @@
     type = DirichletBC
     variable = disp_x
     boundary = Top
-    value = '0.11138322057703692'
+    value = '0.1400708246541965'
   [../]
   [./freey1]
     type = DirichletBC
     variable = disp_y
     boundary = Top
-    value = '0.18313161460801133'
+    value = '0.17585327178515445'
   [../]
   [./freez1]
     type = DirichletBC
     variable = disp_z
     boundary = Top
-    value = '0.12375450740016126'
+    value = '0.11518568951907131'
   [../]
 []
 
 [Materials]
   [./elasticity]
     type = ComputeIsotropicElasticityTensor
-    youngs_modulus = 184.24778281535413
-    poissons_ratio = 0.2651259412717306
+    youngs_modulus = 205.20491169915002
+    poissons_ratio = 0.2621525211236091
   [../]
   [./strain]
     type = ComputeSmallStrain # ComputeFiniteStrain #

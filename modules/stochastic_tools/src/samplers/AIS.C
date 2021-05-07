@@ -103,6 +103,8 @@ AIS::AIS(const InputParameters & parameters)
   _check_step = 0;
 
   setNumberOfRandomSeeds(100000);
+
+  _count_check = 0.0;
 }
 
 Real
@@ -149,12 +151,16 @@ AIS::computeSample(dof_id_type /*row_index*/, dof_id_type col_index)
     {
       for (dof_id_type i = 0; i < _distributions.size(); ++i)
       {
-        _prev_value[i] = (Normal::quantile(getRand(_step+i+1), AdaptiveMonteCarloUtils::computeMEAN(_inputs_sto[i]), _std_factor * AdaptiveMonteCarloUtils::computeSTD(_inputs_sto[i])));
+        _prev_value[i] = (Normal::quantile(getRand(_step+i+1), AdaptiveMonteCarloUtils::computeMEAN(_inputs_sto[i]), _std_factor * AdaptiveMonteCarloUtils::computeSTD(_inputs_sto[i],0)));
       }
-      for (dof_id_type i = 0; i < _distributions.size(); ++i)
+      if (_count_check < 1.0)
       {
-        std::cout << "Mean is " <<  AdaptiveMonteCarloUtils::computeMEAN(_inputs_sto[i]) << std::endl;
-        std::cout << "Std is " <<  AdaptiveMonteCarloUtils::computeSTD(_inputs_sto[i]) << std::endl;
+        for (dof_id_type i = 0; i < _distributions.size(); ++i)
+        {
+          std::cout << "Mean is " <<  AdaptiveMonteCarloUtils::computeMEAN(_inputs_sto[i]) << std::endl;
+          std::cout << "Std is " <<  AdaptiveMonteCarloUtils::computeSTD(_inputs_sto[i],0) << std::endl;
+        }
+        _count_check = 1.0;
       }
     }
     _check_step = _step;

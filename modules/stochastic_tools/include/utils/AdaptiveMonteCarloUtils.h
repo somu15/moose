@@ -26,7 +26,7 @@ namespace AdaptiveMonteCarloUtils
 
  std::vector<Real> sortOUTPUT(const std::vector<Real> & outputs, const int & samplessub, const unsigned int & subset, const Real & subset_prob);
 
- Real computeSTD(const std::vector<Real> & data);
+ Real computeSTD(const std::vector<Real> & data, const unsigned int & uselog);
 
  Real computeMEAN(const std::vector<Real> & data);
 

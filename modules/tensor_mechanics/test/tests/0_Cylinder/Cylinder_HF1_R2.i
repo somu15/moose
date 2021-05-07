@@ -95,26 +95,26 @@
     type = DirichletBC
     variable = disp_x
     boundary = Top
-    value = '0.14785746269314493'
+    value = '0.1400708246541965'
   [../]
   [./freey1]
     type = DirichletBC
     variable = disp_y
     boundary = Top
-    value = '0.5972617020426105'
+    value = '0.17585327178515445'
   [../]
   [./freez1]
     type = DirichletBC
     variable = disp_z
     boundary = Top
-    value = '0.13653019719855958'
+    value = '0.11518568951907131'
   [../]
 []
 
 [Materials]
   [./elasticity]
     type = ComputeElasticityTensor
-    C_ijkl = '247.8771143980544 71.18019971315134 89.20071150315464 326.40873118823833 167.31604518195363'
+    C_ijkl = '266.7317073685161 104.14841552002385 135.02050099131054 393.0383528752687 157.37531830251666'
     fill_method = axisymmetric_rz
   [../]
   [./strain]

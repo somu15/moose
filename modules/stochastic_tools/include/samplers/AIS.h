@@ -69,6 +69,8 @@ private:
   /// For proposing the next sample in the MCMC algorithm
   std::vector<Real> _prev_value;
 
+  Real _count_check;
+
   /// PerfGraph timer
   const PerfID _perf_compute_sample;
 };
