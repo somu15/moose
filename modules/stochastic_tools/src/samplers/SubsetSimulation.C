@@ -9,6 +9,8 @@
 
 #include "SubsetSimulation.h"
 #include "AdaptiveMonteCarloUtils.h"
+#include "Normal.h"
+#include "Uniform.h"
 
 registerMooseObjectAliased("StochasticToolsApp", SubsetSimulation, "SubsetSimulation");
 registerMooseObjectReplaced("StochasticToolsApp",
@@ -72,6 +74,72 @@ SubsetSimulation::SubsetSimulation(const InputParameters & parameters)
   _proposal_std.resize(_distributions.size());
 }
 
+// Real
+// SubsetSimulation::computeSample(dof_id_type /*row_index*/, dof_id_type col_index)
+// {
+//   TIME_SECTION(_perf_compute_sample);
+//   if (_step <= (_num_samplessub))
+//   {
+//     _subset = std::floor(_step / _num_samplessub);
+//     if (_step > 1 && col_index == 0 && _check_even != _step)
+//     {
+//       for (dof_id_type j = 0; j < _distributions.size(); ++j)
+//         _inputs_sto[j].push_back(getReporterValueByName<Real>(_inputs_names[j]));
+//       _outputs_sto.push_back((_use_absolute_value) ? std::abs(getReporterValue<Real>("output_reporter")) : getReporterValue<Real>("output_reporter"));
+//     }
+//     _check_even = _step;
+//     return _distributions[col_index]->quantile(getRand(_step+col_index));
+//   } else
+//   {
+//     _subset = (std::floor((_step-1) / _num_samplessub));
+//     if (col_index == 0 && _check_even != _step)
+//     {
+//       for (dof_id_type j = 0; j < _distributions.size(); ++j)
+//         _inputs_sto[j].push_back(getReporterValueByName<Real>(_inputs_names[j]));
+//       _outputs_sto.push_back((_use_absolute_value) ? std::abs(getReporterValue<Real>("output_reporter")) : getReporterValue<Real>("output_reporter"));
+//       _count_max = std::floor(1 / _subset_probability);
+//       if (_subset > (std::floor((_step-2) / _num_samplessub)))
+//       {
+//         _ind_sto = -1;
+//         _count = INT_MAX;
+//         for (dof_id_type j = 0; j < _distributions.size(); ++j)
+//         {
+//           _inputs_sorted[j].resize(std::floor(_num_samplessub * _subset_probability));
+//           _inputs_sorted[j] = AdaptiveMonteCarloUtils::sortINPUT(_inputs_sto[j], _outputs_sto, _num_samplessub, _subset, _subset_probability);
+//           _proposal_std[j] = AdaptiveMonteCarloUtils::computeSTD((_inputs_sorted[j]),1);
+//           std::cout << "STD is " << _proposal_std[j] << std::endl;
+//         }
+//       }
+//       if (_count >= _count_max)
+//       {
+//         ++_ind_sto;
+//         for (dof_id_type k = 0; k < _distributions.size(); ++k)
+//           _markov_seed[k] = _inputs_sorted[k][_ind_sto];
+//         _count = 0;
+//       } else
+//       {
+//         for (dof_id_type k = 0; k < _distributions.size(); ++k)
+//           _markov_seed[k] = _inputs_sto[k][_inputs_sto[k].size()-1];
+//       }
+//       ++_count;
+//       Real rv, rv1;
+//       for (dof_id_type i = 0; i < _distributions.size(); ++i)
+//       {
+//         rv = std::exp(Normal::quantile(getRand(_step+i+_distributions.size()), std::log(_markov_seed[i]), _proposal_std[i]));
+//         _acceptance_ratio = std::log(_distributions[i]->pdf(rv)) - std::log(_distributions[i]->pdf(_markov_seed[i]));
+//
+//         if (_acceptance_ratio > std::log(getRand(_step+i+2*_distributions.size())))
+//         {
+//           _new_sample_vec[i] = rv;
+//         } else
+//             _new_sample_vec[i] = _markov_seed[i];
+//       }
+//     }
+//     _check_even = _step;
+//     return _new_sample_vec[col_index];
+//   }
+// }
+
 Real
 SubsetSimulation::computeSample(dof_id_type /*row_index*/, dof_id_type col_index)
 {
@@ -82,18 +150,18 @@ SubsetSimulation::computeSample(dof_id_type /*row_index*/, dof_id_type col_index
     if (_step > 1 && col_index == 0 && _check_even != _step)
     {
       for (dof_id_type j = 0; j < _distributions.size(); ++j)
-        _inputs_sto[j].push_back(getReporterValueByName<Real>(_inputs_names[j]));
+        _inputs_sto[j].push_back(Normal::quantile(_distributions[j]->cdf(getReporterValueByName<Real>(_inputs_names[j])),0,1));
       _outputs_sto.push_back((_use_absolute_value) ? std::abs(getReporterValue<Real>("output_reporter")) : getReporterValue<Real>("output_reporter"));
     }
     _check_even = _step;
-    return _distributions[col_index]->quantile(getRand(_step));
+    return _distributions[col_index]->quantile(getRand(_step+col_index));
   } else
   {
     _subset = (std::floor((_step-1) / _num_samplessub));
     if (col_index == 0 && _check_even != _step)
     {
       for (dof_id_type j = 0; j < _distributions.size(); ++j)
-        _inputs_sto[j].push_back(getReporterValueByName<Real>(_inputs_names[j]));
+        _inputs_sto[j].push_back(Normal::quantile(_distributions[j]->cdf(getReporterValueByName<Real>(_inputs_names[j])),0,1));
       _outputs_sto.push_back((_use_absolute_value) ? std::abs(getReporterValue<Real>("output_reporter")) : getReporterValue<Real>("output_reporter"));
       _count_max = std::floor(1 / _subset_probability);
       if (_subset > (std::floor((_step-2) / _num_samplessub)))
@@ -104,7 +172,8 @@ SubsetSimulation::computeSample(dof_id_type /*row_index*/, dof_id_type col_index
         {
           _inputs_sorted[j].resize(std::floor(_num_samplessub * _subset_probability));
           _inputs_sorted[j] = AdaptiveMonteCarloUtils::sortINPUT(_inputs_sto[j], _outputs_sto, _num_samplessub, _subset, _subset_probability);
-          _proposal_std[j] = AdaptiveMonteCarloUtils::computeSTD((_inputs_sorted[j]),1);
+          _proposal_std[j] = AdaptiveMonteCarloUtils::computeSTD((_inputs_sorted[j]),0);
+          // std::cout << "STD is " << _proposal_std[j] << std::endl;
         }
       }
       if (_count >= _count_max)
@@ -122,10 +191,10 @@ SubsetSimulation::computeSample(dof_id_type /*row_index*/, dof_id_type col_index
       Real rv, rv1;
       for (dof_id_type i = 0; i < _distributions.size(); ++i)
       {
-        rv = std::exp(Normal::quantile(getRand(_step), std::log(_markov_seed[i]), _proposal_std[i]));
-        _acceptance_ratio = std::log(_distributions[i]->pdf(rv)) - std::log(_distributions[i]->pdf(_markov_seed[i]));
+        rv = _markov_seed[i] + (2 * getRand(_step+i+_distributions.size()) - 1) * _proposal_std[i];
+        _acceptance_ratio = std::log(Normal::pdf(rv, 0, 1)) - std::log(Normal::pdf(_markov_seed[i], 0, 1));
 
-        if (_acceptance_ratio > std::log(getRand(_step)))
+        if (_acceptance_ratio > std::log(getRand(_step+i+2*_distributions.size())))
         {
           _new_sample_vec[i] = rv;
         } else
@@ -133,6 +202,6 @@ SubsetSimulation::computeSample(dof_id_type /*row_index*/, dof_id_type col_index
       }
     }
     _check_even = _step;
-    return _new_sample_vec[col_index];
+    return _distributions[col_index]->quantile(Normal::cdf(_new_sample_vec[col_index],0,1));
   }
 }
