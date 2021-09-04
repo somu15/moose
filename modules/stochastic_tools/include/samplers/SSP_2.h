@@ -15,12 +15,12 @@
 /**
  * A class used to perform Subset Simulation Sampling
  */
-class SSP_1 : public Sampler, public ReporterInterface
+class SSP_2 : public Sampler, public ReporterInterface
 {
 public:
   static InputParameters validParams();
 
-  SSP_1(const InputParameters & parameters);
+  SSP_2(const InputParameters & parameters);
 
 protected:
   /// Return the sample for the given row and column

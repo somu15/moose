@@ -15,12 +15,12 @@
 /**
  * A class used to perform Subset Simulation Sampling
  */
-class SSP_1 : public Sampler, public ReporterInterface
+class SubsetSimulation : public Sampler, public ReporterInterface
 {
 public:
   static InputParameters validParams();
 
-  SSP_1(const InputParameters & parameters);
+  SubsetSimulation(const InputParameters & parameters);
 
 protected:
   /// Return the sample for the given row and column
@@ -34,7 +34,7 @@ protected:
   /// Distribution names
   const std::vector<DistributionName> & _distribution_names;
 
-  // const std::vector<ReporterName> & _inputs_names;
+  const std::vector<ReporterName> & _inputs_names;
 
   const int & _num_samplessub;
 
@@ -47,16 +47,9 @@ protected:
 
 private:
 
-  // std::vector<Real> _data_rep;
-
-  // const std::vector<Real> & _vector;
-
-  // std::vector<Real> _new_sample_vec;
-  std::vector<std::vector<Real>> _new_sample_vec;
+  std::vector<Real> _new_sample_vec;
 
   std::vector<Real> _proposal_std;
-
-  Real count2;
 
   Real _acceptance_ratio;
 
@@ -67,8 +60,7 @@ private:
   unsigned int _subset;
 
   int _ind_sto;
-  // std::vector<Real> _markov_seed;
-  std::vector<std::vector<Real>> _markov_seed;
+  std::vector<Real> _markov_seed;
   unsigned int _count;
   int _check_even;
   unsigned int _count_max;

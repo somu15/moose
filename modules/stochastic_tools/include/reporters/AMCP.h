@@ -11,11 +11,11 @@
 
 #include "GeneralReporter.h"
 
-class AMCP_1 : public GeneralReporter
+class AMCP : public GeneralReporter
 {
 public:
   static InputParameters validParams();
-  AMCP_1(const InputParameters & parameters);
+  AMCP(const InputParameters & parameters);
   virtual void initialize() override;
   virtual void finalize() override {}
   virtual void execute() override;
@@ -33,17 +33,15 @@ protected:
   ///@{
   /// Helper for declaring constant reporter values
   template <typename T>
-  std::vector<T *> declareAMCP_1Values(const std::string & prefix);
-  // template <typename T>
-  // std::vector<std::vector<T *>> declareAMCP_1Values(const std::string & prefix); // , const dof_id_type & num_rows
+  std::vector<std::vector<T *>> declareAMCPValues(const std::string & prefix, const dof_id_type & num_rows);
   template <typename T>
-  std::vector<std::vector<T> *> declareAMCP_1VectorValues(const std::string & prefix);
+  std::vector<std::vector<T> *> declareAMCPVectorValues(const std::string & prefix);
   ///@}
 
   // ///@{
   // /// Helper for declaring constant reporter values
   // template <typename T>
-  // std::vector<T *> declareAMCP_1Values(const std::string & prefix);
+  // std::vector<T *> declareAMCPValues(const std::string & prefix);
   // template <typename T>
   // std::vector<std::vector<T> *> declareConstantVectorReporterValues(const std::string & prefix);
   // ///@}
@@ -53,24 +51,11 @@ protected:
   // Sampler * _sampler;
   // std::vector<std::vector<Real *>> _output;
   // std::vector<std::vector<Real *>> _inputs;
-  // std::vector<std::vector<Real *>> _output;
-  // std::vector<std::vector<Real *>> _inputs;
-
-  // const std::vector<Real> & _output;
-  const std::vector<Real> * _output;
-  // std::vector<Real *> _output;
-  // std::vector<Real> & _output;
-  std::vector<Real> & _data;
-
-  std::vector<Real> & _data_in;
-
-  // std::vector<Real> & _output; // Real &
-  std::vector<std::vector<Real>> & _inputs;
+  std::vector<std::vector<Real *>> _output;
+  std::vector<std::vector<Real *>> _inputs;
   std::vector<unsigned int *> _subset_out;
 
 private:
-
-  std::vector<Real> _Tmp;
   const int & _step;
   Sampler * _sampler;
   // std::vector<std::vector<Real *>> _output;
@@ -78,7 +63,6 @@ private:
   int _ind_sto;
   std::vector<Real> _markov_seed;
   unsigned int _count;
-  Real count2;
   unsigned int _count_max;
   // std::vector<Real> _output_sorted;
   // std::vector<Real> _outputs_sto;
@@ -91,14 +75,14 @@ private:
   unsigned int _subset;
   std::vector<Real> _output_limits;
   int _check_even;
-  std::vector<std::vector<Real>> _prev_val;
-  std::vector<Real> _prev_val_out;
+  std::vector<Real> _prev_val;
+  Real _prev_val_out;
 
 };
 
 template <typename T>
 InputParameters
-AMCP_1::addReporterTypeParams(const std::string & prefix, bool add_vector)
+AMCP::addReporterTypeParams(const std::string & prefix, bool add_vector)
 {
   InputParameters params = emptyInputParameters();
 
@@ -121,49 +105,14 @@ AMCP_1::addReporterTypeParams(const std::string & prefix, bool add_vector)
   return params;
 }
 
-// template <typename T>
-// std::vector<std::vector<T *>>
-// AMCP_1::declareAMCP_1Values(const std::string & prefix, const dof_id_type & num_rows)
-// {
-//   std::string names_param(prefix + "_names");
-//   std::string values_param(prefix + "_values");
-//   std::vector<std::vector<T *>> data;
-//   data.resize(num_rows);
-//
-//   if (isParamValid(names_param) && !isParamValid(values_param))
-//     paramError(names_param, "Must specify values using ", values_param);
-//   else if (!isParamValid(names_param) && isParamValid(values_param))
-//     paramError(values_param, "Use ", names_param, " to specify reporter names.");
-//   else if (!isParamValid(names_param) && !isParamValid(values_param))
-//     return data;
-//
-//   auto & names = getParam<std::vector<ReporterValueName>>(names_param);
-//   auto & values = this->getParam<std::vector<T>>(values_param);
-//   if (names.size() != values.size())
-//     paramError(values_param,
-//                "Number of names specified in ",
-//                names_param,
-//                " must match number of values specified in ",
-//                values_param);
-//    std::cout << "Here" << std::endl;
-//
-//    // std::cout << "here " << names[0] << std::endl;
-//    // std::cout << "here1 " << values[0] << std::endl;
-//   for (unsigned int ss = 0; ss < num_rows; ++ss)
-//   {
-//     for (unsigned int i = 0; i < names.size(); ++i)
-//      (data[ss]).push_back(&this->declareValueByName<T>(names[i], values[i]));
-//   }
-//   return data;
-// }
-
 template <typename T>
-std::vector<T *>
-AMCP_1::declareAMCP_1Values(const std::string & prefix)
+std::vector<std::vector<T *>>
+AMCP::declareAMCPValues(const std::string & prefix, const dof_id_type & num_rows)
 {
   std::string names_param(prefix + "_names");
   std::string values_param(prefix + "_values");
-  std::vector<T *> data;
+  std::vector<std::vector<T *>> data;
+  data.resize(num_rows);
 
   if (isParamValid(names_param) && !isParamValid(values_param))
     paramError(names_param, "Must specify values using ", values_param);
@@ -180,18 +129,21 @@ AMCP_1::declareAMCP_1Values(const std::string & prefix)
                names_param,
                " must match number of values specified in ",
                values_param);
+   std::cout << "Here" << std::endl;
 
    // std::cout << "here " << names[0] << std::endl;
    // std::cout << "here1 " << values[0] << std::endl;
-  for (unsigned int i = 0; i < names.size(); ++i)
-    data.push_back(&this->declareValueByName<T>(names[i], values[i]));
-
+  for (unsigned int ss = 0; ss < num_rows; ++ss)
+  {
+    for (unsigned int i = 0; i < names.size(); ++i)
+     (data[ss]).push_back(&this->declareValueByName<T>(names[i], values[i]));
+  }
   return data;
 }
 
 // template <typename T>
 // std::vector<T *>
-// AMCP_1::declareAMCP_1Values(const std::string & prefix)
+// AMCP::declareAMCPValues(const std::string & prefix)
 // {
 //   std::string names_param(prefix + "_names");
 //   std::string values_param(prefix + "_values");
@@ -221,7 +173,7 @@ AMCP_1::declareAMCP_1Values(const std::string & prefix)
 //
 // template <typename T>
 // std::vector<std::vector<T> *>
-// AMCP_1::declareConstantVectorReporterValues(const std::string & prefix)
+// AMCP::declareConstantVectorReporterValues(const std::string & prefix)
 // {
-//   return this->declareAMCP_1Values<std::vector<T>>(prefix + "_vector");
+//   return this->declareAMCPValues<std::vector<T>>(prefix + "_vector");
 // }

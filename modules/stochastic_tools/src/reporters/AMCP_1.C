@@ -133,6 +133,141 @@ AMCP_1::initialize()
 {
 }
 
+// void
+// AMCP_1::execute()
+// {
+//   if (_sampler->parameters().get<std::string>("_type") == "SSP_1")
+//   {
+//     if (_step <= (_sampler->parameters().get<int>("num_samplessub") / n_processors()))
+//     {
+//       _subset = std::floor((_step * n_processors()) / _sampler->parameters().get<int>("num_samplessub"));
+//       for (dof_id_type ss = _sampler->getLocalRowBegin(); ss < _sampler->getLocalRowEnd(); ++ss)
+//       {
+//         const auto data = _sampler->getNextLocalRow();
+//         _data_in = data;
+//         _communicator.allgather(_data_in);
+//       }
+//       for (dof_id_type ss = 0; ss < (_sampler->getNumberOfRows()); ++ss)
+//       {
+//         for (dof_id_type i = 0; i < _sampler->parameters().get<std::vector<DistributionName>>("distributions").size(); ++i)
+//         {
+//           _inputs_sto[i].push_back(_data_in[(_sampler->parameters().get<std::vector<DistributionName>>("distributions").size())*ss+i]);
+//           _inputs[i][ss] = _data_in[(_sampler->parameters().get<std::vector<DistributionName>>("distributions").size())*ss+i];
+//         }
+//       }
+//       // std::cerr << "Here" << std::endl;
+//       // std::cerr << Moose::stringify((*_output)) << std::endl; // Moose::stringify((*_output))  (*_output)[0]
+//       _data = (_sampler->parameters().get<bool>("use_absolute_value")) ? AdaptiveMonteCarloUtils::computeABS((*_output)) : (*_output); // (*_output);
+//       // (*_output) = _data; // (_sampler->parameters().get<bool>("use_absolute_value")) ? AdaptiveMonteCarloUtils::computeABS((_output)) : (_output); //
+//       _communicator.allgather(_data);
+//       // std::cerr << Moose::stringify(_data) << std::endl;
+//       for (dof_id_type ss = 0; ss < _data.size(); ++ss)
+//         _outputs_sto.push_back(_data[ss]);
+//     } else
+//     {
+//       _subset = std::floor(((_step-1) * n_processors()) / _sampler->parameters().get<int>("num_samplessub"));
+//       _count_max = std::floor(1 / _sampler->parameters().get<Real>("subset_probability"));
+//       if (_subset > (std::floor(((_step-2) * n_processors()) /  _sampler->parameters().get<int>("num_samplessub"))))
+//       {
+//         _ind_sto = -1;
+//         _count = INT_MAX;
+//         _output_sorted = AdaptiveMonteCarloUtils::sortOUTPUT(_outputs_sto, _sampler->parameters().get<int>("num_samplessub"), _subset, _sampler->parameters().get<Real>("subset_probability"));
+//         for (dof_id_type j = 0; j < _sampler->parameters().get<std::vector<DistributionName>>("distributions").size(); ++j)
+//         {
+//           _inputs_sorted[j].resize(std::floor(_sampler->parameters().get<int>("num_samplessub") * _sampler->parameters().get<Real>("subset_probability")));
+//           _inputs_sorted[j] = AdaptiveMonteCarloUtils::sortINPUT(_inputs_sto[j], _outputs_sto, _sampler->parameters().get<int>("num_samplessub"), _subset, _sampler->parameters().get<Real>("subset_probability"));
+//         }
+//         _output_limits.push_back(AdaptiveMonteCarloUtils::computeMIN(_output_sorted));
+//       }
+//       if (_count >= _count_max)
+//       {
+//         for (dof_id_type jj = 0; jj < n_processors(); ++jj)
+//         {
+//           ++_ind_sto;
+//           for (dof_id_type k = 0; k < _sampler->parameters().get<std::vector<DistributionName>>("distributions").size(); ++k)
+//             _prev_val[k][jj] = _inputs_sorted[k][_ind_sto];
+//           _prev_val_out[jj] = _output_sorted[_ind_sto];
+//         }
+//         _count = 0;
+//       } else
+//       {
+//         for (dof_id_type jj = 0; jj < n_processors(); ++jj)
+//         {
+//           for (dof_id_type k = 0; k < _sampler->parameters().get<std::vector<DistributionName>>("distributions").size(); ++k)
+//             _prev_val[k][jj] = _inputs_sto[k][_inputs_sto[k].size()-n_processors()+jj];
+//           _prev_val_out[jj] = _outputs_sto[_outputs_sto.size()-n_processors()+jj];
+//         }
+//       }
+//       ++_count;
+//       for (dof_id_type ss = _sampler->getLocalRowBegin(); ss < _sampler->getLocalRowEnd(); ++ss)
+//       {
+//         const auto data = _sampler->getNextLocalRow();
+//         _data_in = data;
+//         _communicator.allgather(_data_in);
+//       }
+//       _data = (_sampler->parameters().get<bool>("use_absolute_value")) ? AdaptiveMonteCarloUtils::computeABS((*_output)) :  (*_output); //;
+//       _communicator.allgather(_data);
+//       std::vector<Real> Tmp2 = _data;
+//       // std::cerr << Moose::stringify(_data) << std::endl;
+//       for (dof_id_type ss = 0; ss < n_processors(); ++ss)
+//       {
+//         if (Tmp2[ss] >= _output_limits[_subset-1])
+//         {
+//           for (dof_id_type i = 0; i < _sampler->parameters().get<std::vector<DistributionName>>("distributions").size(); ++i)
+//           {
+//             _inputs[i][ss] = _data_in[(_sampler->parameters().get<std::vector<DistributionName>>("distributions").size())*ss+i];
+//             _inputs_sto[i].push_back(_inputs[i][ss]);
+//           }
+//           // (_output[ss]) = _data[ss];
+//           _outputs_sto.push_back(Tmp2[ss]);
+//         } else
+//         {
+//           for (dof_id_type i = 0; i < _sampler->parameters().get<std::vector<DistributionName>>("distributions").size(); ++i)
+//           {
+//             _inputs[i][ss] = _prev_val[i][ss];
+//             _data_in[(_sampler->parameters().get<std::vector<DistributionName>>("distributions").size())*ss+i] = _inputs[i][ss];
+//             _inputs_sto[i].push_back(_inputs[i][ss]);
+//           }
+//           Tmp2[ss] = _prev_val_out[ss];
+//           // (_output[ss]) = _prev_val_out[ss];
+//           _outputs_sto.push_back(Tmp2[ss]);
+//         }
+//         //
+//       }
+//       _data = Tmp2;
+//       // std::cerr << Moose::stringify(_output_limits) << std::endl;
+//       // std::cerr << Moose::stringify(_outputs_sto) << std::endl;
+//     }
+//
+//
+//
+//
+//     // _subset = std::floor(_step / _sampler->parameters().get<int>("num_samplessub"));
+//     //
+//     // for (dof_id_type ss = _sampler->getLocalRowBegin(); ss < _sampler->getLocalRowEnd(); ++ss)
+//     // {
+//     //   const auto data = _sampler->getNextLocalRow();
+//     //   _data_in = data;
+//     //   _communicator.allgather(_data_in);
+//     // }
+//     //
+//     // for (dof_id_type ss = 0; ss < (_sampler->getNumberOfRows()); ++ss)
+//     // {
+//     //   for (dof_id_type i = 0; i < _sampler->parameters().get<std::vector<DistributionName>>("distributions").size(); ++i)
+//     //   {
+//     //     _inputs_sto[i].push_back(_data_in[(_sampler->parameters().get<std::vector<DistributionName>>("distributions").size())*ss+i]);
+//     //     _inputs[i][ss] = _data_in[(_sampler->parameters().get<std::vector<DistributionName>>("distributions").size())*ss+i];
+//     //   }
+//     // }
+//     //
+//     // _data = (*_output);
+//     // _communicator.allgather(_data);
+//     // for (dof_id_type ss = 0; ss < _data.size(); ++ss)
+//     //   _outputs_sto.push_back(_data[ss]);
+//
+//   }
+// }
+
 void
 AMCP_1::execute()
 {
@@ -160,9 +295,10 @@ AMCP_1::execute()
       _data = (_sampler->parameters().get<bool>("use_absolute_value")) ? AdaptiveMonteCarloUtils::computeABS((*_output)) : (*_output); // (*_output);
       // (*_output) = _data; // (_sampler->parameters().get<bool>("use_absolute_value")) ? AdaptiveMonteCarloUtils::computeABS((_output)) : (_output); //
       _communicator.allgather(_data);
-      // std::cerr << Moose::stringify(_data) << std::endl;
+      // std::cout << "Gather " << Moose::stringify(_data) << std::endl;
       for (dof_id_type ss = 0; ss < _data.size(); ++ss)
         _outputs_sto.push_back(_data[ss]);
+      // std::cout << "sto " << Moose::stringify(_outputs_sto) << std::endl;
     } else
     {
       _subset = std::floor(((_step-1) * n_processors()) / _sampler->parameters().get<int>("num_samplessub"));
@@ -199,6 +335,7 @@ AMCP_1::execute()
         }
       }
       ++_count;
+      std::cout << "Reporter " << Moose::stringify(_prev_val) << std::endl;
       for (dof_id_type ss = _sampler->getLocalRowBegin(); ss < _sampler->getLocalRowEnd(); ++ss)
       {
         const auto data = _sampler->getNextLocalRow();
@@ -208,7 +345,7 @@ AMCP_1::execute()
       _data = (_sampler->parameters().get<bool>("use_absolute_value")) ? AdaptiveMonteCarloUtils::computeABS((*_output)) :  (*_output); //;
       _communicator.allgather(_data);
       std::vector<Real> Tmp2 = _data;
-      // std::cerr << Moose::stringify(_data) << std::endl;
+      // std::cout << "Gather " << Moose::stringify(_data) << std::endl;
       for (dof_id_type ss = 0; ss < n_processors(); ++ss)
       {
         if (Tmp2[ss] >= _output_limits[_subset-1])
@@ -234,6 +371,7 @@ AMCP_1::execute()
         }
         //
       }
+      // std::cout << "sto " << Moose::stringify(_outputs_sto) << std::endl;
       _data = Tmp2;
       // std::cerr << Moose::stringify(_output_limits) << std::endl;
       // std::cerr << Moose::stringify(_outputs_sto) << std::endl;
@@ -267,12 +405,3 @@ AMCP_1::execute()
 
   }
 }
-
-// template <typename T>
-// std::vector<T *>
-// AMCP_1::declareAMCSStatistics(const std::string & statistics)
-// {
-//   std::vector<T *> data;
-//   data.push_back(&this->declareValueByName<T>(statistics, 0));
-//   return data;
-// }

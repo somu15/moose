@@ -11,11 +11,11 @@
 
 #include "GeneralReporter.h"
 
-class AMCP_1 : public GeneralReporter
+class AMCP_2 : public GeneralReporter
 {
 public:
   static InputParameters validParams();
-  AMCP_1(const InputParameters & parameters);
+  AMCP_2(const InputParameters & parameters);
   virtual void initialize() override;
   virtual void finalize() override {}
   virtual void execute() override;
@@ -33,17 +33,17 @@ protected:
   ///@{
   /// Helper for declaring constant reporter values
   template <typename T>
-  std::vector<T *> declareAMCP_1Values(const std::string & prefix);
+  std::vector<T *> declareAMCP_2Values(const std::string & prefix);
   // template <typename T>
-  // std::vector<std::vector<T *>> declareAMCP_1Values(const std::string & prefix); // , const dof_id_type & num_rows
+  // std::vector<std::vector<T *>> declareAMCP_2Values(const std::string & prefix); // , const dof_id_type & num_rows
   template <typename T>
-  std::vector<std::vector<T> *> declareAMCP_1VectorValues(const std::string & prefix);
+  std::vector<std::vector<T> *> declareAMCP_2VectorValues(const std::string & prefix);
   ///@}
 
   // ///@{
   // /// Helper for declaring constant reporter values
   // template <typename T>
-  // std::vector<T *> declareAMCP_1Values(const std::string & prefix);
+  // std::vector<T *> declareAMCP_2Values(const std::string & prefix);
   // template <typename T>
   // std::vector<std::vector<T> *> declareConstantVectorReporterValues(const std::string & prefix);
   // ///@}
@@ -98,7 +98,7 @@ private:
 
 template <typename T>
 InputParameters
-AMCP_1::addReporterTypeParams(const std::string & prefix, bool add_vector)
+AMCP_2::addReporterTypeParams(const std::string & prefix, bool add_vector)
 {
   InputParameters params = emptyInputParameters();
 
@@ -123,7 +123,7 @@ AMCP_1::addReporterTypeParams(const std::string & prefix, bool add_vector)
 
 // template <typename T>
 // std::vector<std::vector<T *>>
-// AMCP_1::declareAMCP_1Values(const std::string & prefix, const dof_id_type & num_rows)
+// AMCP_2::declareAMCP_2Values(const std::string & prefix, const dof_id_type & num_rows)
 // {
 //   std::string names_param(prefix + "_names");
 //   std::string values_param(prefix + "_values");
@@ -159,7 +159,7 @@ AMCP_1::addReporterTypeParams(const std::string & prefix, bool add_vector)
 
 template <typename T>
 std::vector<T *>
-AMCP_1::declareAMCP_1Values(const std::string & prefix)
+AMCP_2::declareAMCP_2Values(const std::string & prefix)
 {
   std::string names_param(prefix + "_names");
   std::string values_param(prefix + "_values");
@@ -191,7 +191,7 @@ AMCP_1::declareAMCP_1Values(const std::string & prefix)
 
 // template <typename T>
 // std::vector<T *>
-// AMCP_1::declareAMCP_1Values(const std::string & prefix)
+// AMCP_2::declareAMCP_2Values(const std::string & prefix)
 // {
 //   std::string names_param(prefix + "_names");
 //   std::string values_param(prefix + "_values");
@@ -221,7 +221,7 @@ AMCP_1::declareAMCP_1Values(const std::string & prefix)
 //
 // template <typename T>
 // std::vector<std::vector<T> *>
-// AMCP_1::declareConstantVectorReporterValues(const std::string & prefix)
+// AMCP_2::declareConstantVectorReporterValues(const std::string & prefix)
 // {
-//   return this->declareAMCP_1Values<std::vector<T>>(prefix + "_vector");
+//   return this->declareAMCP_2Values<std::vector<T>>(prefix + "_vector");
 // }

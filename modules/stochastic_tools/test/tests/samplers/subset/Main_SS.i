@@ -21,7 +21,7 @@
     distributions = 'mu1 mu2'
     execute_on = PRE_MULTIAPP_SETUP
     subset_probability = 0.1
-    num_samplessub = 50
+    num_samplessub = 30
     use_absolute_value = true
     inputs_reporter = 'adaptive_MC/inputs'
     output_reporter = constant/data1:average:value
@@ -91,7 +91,7 @@
 
 [Executioner]
   type = Transient
-  num_steps = 20
+  num_steps = 40
 []
 
 [Outputs]
