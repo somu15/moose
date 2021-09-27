@@ -66,6 +66,8 @@ private:
 
   unsigned int _subset;
 
+  unsigned int _seed_value;
+
   int _ind_sto;
   // std::vector<Real> _markov_seed;
   std::vector<std::vector<Real>> _markov_seed;

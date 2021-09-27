@@ -81,100 +81,8 @@ SSP_clean::SSP_clean(const InputParameters & parameters)
   _check_even = 0;
   setNumberOfRandomSeeds(100000);
   _proposal_std.resize(_distributions.size());
+  _seed_value = n_processors();
 }
-
-// Real
-// SSP_clean::computeSample(dof_id_type row_index, dof_id_type col_index)
-// {
-//   // TIME_SECTION(_perf_compute_sample);
-//
-//   if (_step <= (_num_samplessub / n_processors()))
-//   {
-//     _subset = std::floor((_step * n_processors()) / _num_samplessub);
-//     if (_step > 1 && col_index == 0 && _check_even != _step)
-//     {
-//       // const auto & _data_rep = getReporterValueByName<std::vector<Real>>("data");
-//       // std::cerr << Moose::stringify(getReporterValueByName<std::vector<Real>>("data")) << std::endl; //
-//       // std::cerr << Moose::stringify(getReporterValue<std::vector<Real>>("data_reporter")) << std::endl; //
-//       for (dof_id_type j = 0; j < _distributions.size(); ++j)
-//       {
-//         for (dof_id_type ss = 0; ss < n_processors(); ++ss)
-//           _inputs_sto[j].push_back(Normal::quantile(_distributions[j]->cdf(getReporterValue<std::vector<std::vector<Real>>>("inputs_reporter")[j][ss]),0,1));
-//       }
-//       // std::vector<Real> Tmp1 = getReporterValue<std::vector<Real>>("output_reporter"); // (_use_absolute_value) ? std::abs(getReporterValue<Real>("output_reporter")) : getReporterValue<Real>("output_reporter")
-//       std::vector<Real> Tmp1 = (_use_absolute_value) ? AdaptiveMonteCarloUtils::computeABS(getReporterValue<std::vector<Real>>("data_reporter")) : getReporterValue<std::vector<Real>>("data_reporter"); // output_reporter
-//       _communicator.allgather(Tmp1);
-//       for (dof_id_type ss = 0; ss < n_processors(); ++ss)
-//         _outputs_sto.push_back(Tmp1[ss]);
-//       // std::cerr << Moose::stringify(_outputs_sto) << std::endl;
-//     }
-//     _check_even = _step;
-//     return _distributions[col_index]->quantile(getRand(_step+col_index+processor_id()));
-//   } else
-//   {
-//     _subset = std::floor(((_step-1) * n_processors()) / _num_samplessub);
-//     if (col_index == 0 && _check_even != _step)
-//     {
-//       for (dof_id_type j = 0; j < _distributions.size(); ++j)
-//       {
-//         for (dof_id_type ss = 0; ss < n_processors(); ++ss)
-//           _inputs_sto[j].push_back(Normal::quantile(_distributions[j]->cdf(getReporterValue<std::vector<std::vector<Real>>>("inputs_reporter")[j][ss]),0,1));
-//           // _inputs_sto[j].push_back(getReporterValue<std::vector<std::vector<Real>>>("inputs_reporter")[j][ss]);
-//       }
-//       // std::vector<Real> Tmp1 = getReporterValue<std::vector<Real>>("output_reporter");
-//       std::vector<Real> Tmp1 = (_use_absolute_value) ? AdaptiveMonteCarloUtils::computeABS(getReporterValue<std::vector<Real>>("data_reporter")) : getReporterValue<std::vector<Real>>("data_reporter");
-//       _communicator.allgather(Tmp1);
-//       for (dof_id_type ss = 0; ss < n_processors(); ++ss)
-//         _outputs_sto.push_back(Tmp1[ss]);
-//       // std::cerr << Moose::stringify(_outputs_sto) << std::endl;
-//       _count_max = std::floor(1 / _subset_probability);
-//       if (_subset > (std::floor(((_step-2) * n_processors()) / _num_samplessub)))
-//       {
-//         _ind_sto = -1;
-//         _count = INT_MAX;
-//         for (dof_id_type j = 0; j < _distributions.size(); ++j)
-//         {
-//           _inputs_sorted[j].resize(std::floor(_num_samplessub * _subset_probability));
-//           _inputs_sorted[j] = AdaptiveMonteCarloUtils::sortINPUT(_inputs_sto[j], _outputs_sto, _num_samplessub, _subset, _subset_probability);
-//         }
-//       }
-//       if (_count >= _count_max)
-//       {
-//         for (dof_id_type jj = 0; jj < n_processors(); ++jj)
-//         {
-//           ++_ind_sto;
-//           for (dof_id_type k = 0; k < _distributions.size(); ++k)
-//             _markov_seed[k][jj] = _inputs_sorted[k][_ind_sto];
-//         }
-//         _count = 0;
-//       } else
-//       {
-//         for (dof_id_type jj = 0; jj < n_processors(); ++jj)
-//         {
-//           for (dof_id_type k = 0; k < _distributions.size(); ++k)
-//             _markov_seed[k][jj] = _inputs_sto[k][_inputs_sto[k].size()-n_processors()+jj];
-//         }
-//       }
-//       ++_count;
-//       Real rv; // , rv1;
-//       for (dof_id_type jj = 0; jj < n_processors(); ++jj)
-//       {
-//         for (dof_id_type i = 0; i < _distributions.size(); ++i)
-//         {
-//           rv = _markov_seed[i][jj] + (2 * getRand(_step+i+_distributions.size()+processor_id()) - 1) * 3.0; // _proposal_std[i]
-//           _acceptance_ratio = std::log(Normal::pdf(rv, 0, 1)) - std::log(Normal::pdf(_markov_seed[i][jj], 0, 1));
-//
-//           if (_acceptance_ratio > std::log(getRand(_step+i+2*_distributions.size()+processor_id())))
-//             _new_sample_vec[i][jj] = rv;
-//           else
-//             _new_sample_vec[i][jj] = _markov_seed[i][jj];
-//         }
-//       }
-//     }
-//     _check_even = _step;
-//     return _distributions[col_index]->quantile(Normal::cdf(_new_sample_vec[col_index][row_index],0,1));
-//   }
-// }
 
 Real
 SSP_clean::computeSample(dof_id_type row_index, dof_id_type col_index)
@@ -186,6 +94,7 @@ SSP_clean::computeSample(dof_id_type row_index, dof_id_type col_index)
     _subset = std::floor((_step * n_processors()) / _num_samplessub);
     if (_step > 1 && col_index == 0 && _check_even != _step)
     {
+      _seed_value = _step * n_processors();
       // const auto & _data_rep = getReporterValueByName<std::vector<Real>>("data");
       // std::cerr << Moose::stringify(getReporterValueByName<std::vector<Real>>("data")) << std::endl; //
       // std::cerr << Moose::stringify(getReporterValue<std::vector<Real>>("data_reporter")) << std::endl; //
@@ -202,12 +111,13 @@ SSP_clean::computeSample(dof_id_type row_index, dof_id_type col_index)
       // std::cerr << Moose::stringify(_outputs_sto) << std::endl;
     }
     _check_even = _step;
-    return _distributions[col_index]->quantile(getRand(_step+col_index+processor_id()));
+    return _distributions[col_index]->quantile(getRand(_seed_value)); // _step+col_index+processor_id()
   } else
   {
     _subset = std::floor(((_step-1) * n_processors()) / _num_samplessub);
     if (col_index == 0 && _check_even != _step)
     {
+      _seed_value = _step * n_processors() + 1;
       for (dof_id_type j = 0; j < _distributions.size(); ++j)
       {
         for (dof_id_type ss = 0; ss < n_processors(); ++ss)
@@ -256,10 +166,10 @@ SSP_clean::computeSample(dof_id_type row_index, dof_id_type col_index)
         for (dof_id_type i = 0; i < _distributions.size(); ++i)
         {
           // rv = _markov_seed[i][jj] + (2 * getRand(_step+i+_distributions.size()+processor_id()) - 1) * 1.0; // _proposal_std[i]
-          rv = Normal::quantile(getRand(_step+i+_distributions.size()+processor_id()), _markov_seed[i][jj], 1.0);
+          rv = Normal::quantile(getRand(_seed_value-1), _markov_seed[i][jj], 1.0); // _step+i+_distributions.size()+processor_id()
           _acceptance_ratio = std::log(Normal::pdf(rv, 0, 1)) - std::log(Normal::pdf(_markov_seed[i][jj], 0, 1));
 
-          if (_acceptance_ratio > std::log(getRand(_step+i+2*_distributions.size()+processor_id())))
+          if (_acceptance_ratio > std::log(getRand(_seed_value))) // _step+i+2*_distributions.size()+processor_id()
             _new_sample_vec[i][jj] = rv;
           else
             _new_sample_vec[i][jj] = _markov_seed[i][jj];
