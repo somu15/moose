@@ -74,7 +74,7 @@ private:
   unsigned int _count_max;
   std::vector<Real> _output_sorted;
   std::vector<std::vector<Real>> _inputs_sorted;
-
+  unsigned int _seed_value;
   /// Storage of the previous sample to propose the next sample
   std::vector<Real> _prev_val;
 

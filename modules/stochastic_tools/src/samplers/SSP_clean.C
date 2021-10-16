@@ -81,6 +81,7 @@ SSP_clean::SSP_clean(const InputParameters & parameters)
   _check_even = 0;
   setNumberOfRandomSeeds(100000);
   _proposal_std.resize(_distributions.size());
+  _seed_value = n_processors();
 }
 
 // Real
@@ -186,6 +187,7 @@ SSP_clean::computeSample(dof_id_type row_index, dof_id_type col_index)
     _subset = std::floor((_step * n_processors()) / _num_samplessub);
     if (_step > 1 && col_index == 0 && _check_even != _step)
     {
+      _seed_value = _step * n_processors();
       // const auto & _data_rep = getReporterValueByName<std::vector<Real>>("data");
       // std::cerr << Moose::stringify(getReporterValueByName<std::vector<Real>>("data")) << std::endl; //
       // std::cerr << Moose::stringify(getReporterValue<std::vector<Real>>("data_reporter")) << std::endl; //
@@ -202,12 +204,13 @@ SSP_clean::computeSample(dof_id_type row_index, dof_id_type col_index)
       // std::cerr << Moose::stringify(_outputs_sto) << std::endl;
     }
     _check_even = _step;
-    return _distributions[col_index]->quantile(getRand(_step+col_index+processor_id()));
+    return _distributions[col_index]->quantile(getRand(_seed_value)); // _step+col_index+processor_id()
   } else
   {
     _subset = std::floor(((_step-1) * n_processors()) / _num_samplessub);
     if (col_index == 0 && _check_even != _step)
     {
+      _seed_value = _step * n_processors() + 1;
       for (dof_id_type j = 0; j < _distributions.size(); ++j)
       {
         for (dof_id_type ss = 0; ss < n_processors(); ++ss)
@@ -256,10 +259,11 @@ SSP_clean::computeSample(dof_id_type row_index, dof_id_type col_index)
         for (dof_id_type i = 0; i < _distributions.size(); ++i)
         {
           // rv = _markov_seed[i][jj] + (2 * getRand(_step+i+_distributions.size()+processor_id()) - 1) * 1.0; // _proposal_std[i]
-          rv = Normal::quantile(getRand(_step+i+_distributions.size()+processor_id()), _markov_seed[i][jj], 1.0);
+          rv = Normal::quantile(getRand(_seed_value-1), _markov_seed[i][jj], 1.0);
+          // rv = _markov_seed[i][jj] + (2 * getRand(_seed_value-1) - 1) * 1.0;
           _acceptance_ratio = std::log(Normal::pdf(rv, 0, 1)) - std::log(Normal::pdf(_markov_seed[i][jj], 0, 1));
 
-          if (_acceptance_ratio > std::log(getRand(_step+i+2*_distributions.size()+processor_id())))
+          if (_acceptance_ratio > std::log(getRand(_seed_value)))
             _new_sample_vec[i][jj] = rv;
           else
             _new_sample_vec[i][jj] = _markov_seed[i][jj];
