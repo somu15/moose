@@ -1,3 +1,368 @@
+// //* This file is part of the MOOSE framework
+// //* https://www.mooseframework.org
+// //*
+// //* All rights reserved, see COPYRIGHT for full restrictions
+// //* https://github.com/idaholab/moose/blob/master/COPYRIGHT
+// //*
+// //* Licensed under LGPL 2.1, please see LICENSE for details
+// //* https://www.gnu.org/licenses/lgpl-2.1.html
+//
+// #include "PorousFlowLineGeometry.h"
+// #include "RayTracing.h"
+// #include "LineSegment.h"
+// #include "libmesh/utility.h"
+//
+// #include <fstream>
+//
+// InputParameters
+// PorousFlowLineGeometry::validParams()
+// {
+//   InputParameters params = DiracKernel::validParams();
+//   params.addParam<std::string>(
+//       "point_file",
+//       "",
+//       "The file containing the coordinates of the points and their weightings that approximate the "
+//       "line sink.  The physical meaning of the weightings depend on the scenario, eg, they may be "
+//       "borehole radii.  Each line in the file must contain a space-separated weight and "
+//       "coordinate, viz r x y z.  For boreholes, the last point in the file is defined as the "
+//       "borehole bottom, where the borehole pressure is bottom_pressure.  If your file contains "
+//       "just one point, you must also specify the line_length and line_direction parameters.  Note "
+//       "that you will get segementation faults if your points do not lie within your mesh!");
+//   params.addParam<ReporterName>("output_value",
+//                                         "Value of the model output from the SubApp.");
+//   params.addRangeCheckedParam<Real>(
+//       "line_length",
+//       0.0,
+//       "line_length>=0",
+//       "Line length.  Note this is only used if there is only one point in the point_file.");
+//   params.addParam<RealVectorValue>(
+//       "line_direction",
+//       RealVectorValue(0.0, 0.0, 1.0),
+//       "Line direction.  Note this is only used if there is only one point in the point_file.");
+//   params.addParam<std::vector<Real>>(
+//       "line_base",
+//       "Line base point x,y,z coordinates.  This is the same format as a single-line point_file. "
+//       "Note this is only used if there is no point file specified.");
+//   params.addRequiredParam<ReporterName>(
+//       "r_name",
+//       "reporter x-coordinate name.  This uses the reporter syntax <reporter>/<name>.");
+//   params.addRequiredParam<ReporterName>(
+//       "x_coord_name",
+//       "reporter x-coordinate name.  This uses the reporter syntax <reporter>/<name>.");
+//   params.addRequiredParam<ReporterName>(
+//       "y_coord_name",
+//       "reporter y-coordinate name.  This uses the reporter syntax <reporter>/<name>.");
+//   params.addRequiredParam<ReporterName>(
+//       "z_coord_name",
+//       "reporter z-coordinate name.  This uses the reporter syntax <reporter>/<name>.");
+//   params.addClassDescription("Approximates a polyline sink in the mesh using a number of Dirac "
+//                              "point sinks with given weightings that are read from a file");
+//   return params;
+// }
+//
+// PorousFlowLineGeometry::PorousFlowLineGeometry(const InputParameters & parameters)
+//   : DiracKernel(parameters),
+//   ReporterInterface(this),
+//     _line_length(getParam<Real>("line_length")),
+//     _line_direction(getParam<RealVectorValue>("line_direction")),
+//     _point_file(getParam<std::string>("point_file")),
+//     // _inputs(getReporterValue<std::vector<Real>>("output_value"))
+//     _rs1(getReporterValue<Real>("r_name", REPORTER_MODE_REPLICATED)),
+//     _xs1(getReporterValue<Real>("x_coord_name", REPORTER_MODE_REPLICATED)),
+//     _ys1(getReporterValue<Real>("y_coord_name", REPORTER_MODE_REPLICATED)),
+//     _zs1(getReporterValue<Real>("z_coord_name", REPORTER_MODE_REPLICATED))
+// {
+//   // _output_value(getReporterValue<std::vector<Real>>("output_value")), // , REPORTER_MODE_DISTRIBUTED
+//   // _output_value = getReporterValueByName<std::vector<Real>>("output_value");
+//
+//
+//   statefulPropertiesAllowed(true);
+//
+//   if (isParamValid("line_base") && !_point_file.empty())
+//     paramError("point_file",
+//                "PorousFlowLineGeometry: must specify only one of 'point_file' and 'line_base'");
+//   if (!isParamValid("line_base") && _point_file.empty())
+//     paramError("point_file",
+//                "PorousFlowLineGeometry: must specify at least one of 'point_file' and 'line_base'");
+//
+//   if (!_point_file.empty())
+//   {
+//     // open file
+//     std::ifstream file(_point_file.c_str());
+//     if (!file.good())
+//       paramError("point_file", "PorousFlowLineGeometry: Error opening file " + _point_file);
+//
+//     // construct the arrays of weight, x, y and z
+//     std::vector<Real> scratch;
+//     while (parseNextLineReals(file, scratch))
+//     {
+//       if (scratch.size() >= 2)
+//       {
+//         _rs.push_back(scratch[0]);
+//         _xs.push_back(scratch[1]);
+//         if (scratch.size() >= 3)
+//           _ys.push_back(scratch[2]);
+//         else
+//           _ys.push_back(0.0);
+//         if (scratch.size() >= 4)
+//           _zs.push_back(scratch[3]);
+//         else
+//           _zs.push_back(0.0);
+//       }
+//     }
+//     file.close();
+//     calcLineLengths();
+//   }
+//   else
+//   {
+//     // _line_base = getParam<std::vector<Real>>("line_base");
+//
+//     _rs.push_back(_rs1);
+//     _xs.push_back(_xs1);
+//     _ys.push_back(_ys1);
+//     _zs.push_back(_zs1);
+//     _line_base.resize(4);
+//     _line_base[0] = _rs1; // 0.01; //
+//     _line_base[1] = _xs1; // 138.347655; //
+//     _line_base[2] = _ys1; // 79.633653; //
+//     _line_base[3] = _zs1; // 90.219592; //
+//
+//     // const auto & data = getReporterValue<std::vector<Real>>("output_value");
+//     // std::cerr << "Here ****" << _inputs[0] << std::endl;
+//
+//     // if (_line_base.size() != _mesh.effectiveSpatialDimension() + 1) // _mesh.dimension()
+//     //   paramError("line_base",
+//     //              "PorousFlowLineGeometry: wrong number of arguments - got ",
+//     //              _line_base.size(),
+//     //              ", expected ",
+//     //              _mesh.effectiveSpatialDimension() + 1, // _mesh.dimension()
+//     //              " '<weight> <x> [<y> [z]]'");
+//     //
+//     // for (size_t i = _line_base.size(); i < 4; i++)
+//     //   _line_base.push_back(0); // fill out zeros up to weight+3 dimensions
+//
+//     // make sure line base point is inside the mesh
+//     // Point start(_line_base[1], _line_base[2], _line_base[3]);
+//
+//     // Point middle(_line_base[1], _line_base[2], _line_base[3]);
+//     // Point start = middle - _line_length * _line_direction / _line_direction.norm();
+//     // Point end = middle + _line_length * _line_direction / _line_direction.norm();
+//     // auto pl = _subproblem.mesh().getPointLocator();
+//     // pl->enable_out_of_mesh_mode();
+//
+//     // auto * elem = (*pl)(start);
+//     // auto elem_id = elem ? elem->id() : DofObject::invalid_id;
+//     // _communicator.min(elem_id);
+//     // if (elem_id == DofObject::invalid_id)
+//     //   paramError("line_base", "base point ", start, " lies outside the mesh");
+//     //
+//     // elem = (*pl)(end);
+//     // elem_id = elem ? elem->id() : DofObject::invalid_id;
+//     // _communicator.min(elem_id);
+//     // if (elem_id == DofObject::invalid_id)
+//     //   paramError("line_length", "length causes end point ", end, " to lie outside the mesh");
+//     //
+//     // regenPoints();
+//
+//     // _rs.push_back(_rs1[0]);
+//     // _xs.push_back(_xs1[0]);
+//     // _ys.push_back(_ys1[0]);
+//     // _zs.push_back(_zs1[0]);
+//
+//
+//
+//     // _rs.push_back(_rs1); // line_base[0]
+//     // _xs.push_back(_xs1);
+//     // _ys.push_back(_ys1);
+//     // _zs.push_back(_zs1);
+//     calcLineLengths();
+//   }
+// }
+//
+// void
+// PorousFlowLineGeometry::calcLineLengths()
+// {
+//   const int num_pts = _zs.size();
+//   _bottom_point(0) = _xs[num_pts - 1];
+//   _bottom_point(1) = _ys[num_pts - 1];
+//   _bottom_point(2) = _zs[num_pts - 1];
+//
+//   // construct the line-segment lengths between each point
+//   _half_seg_len.clear();
+//   _half_seg_len.resize(std::max(num_pts - 1, 1));
+//   for (unsigned int i = 0; i + 1 < _xs.size(); ++i)
+//   {
+//     _half_seg_len[i] = 0.5 * std::sqrt(Utility::pow<2>(_xs[i + 1] - _xs[i]) +
+//                                        Utility::pow<2>(_ys[i + 1] - _ys[i]) +
+//                                        Utility::pow<2>(_zs[i + 1] - _zs[i]));
+//     if (_half_seg_len[i] == 0)
+//       mooseError("PorousFlowLineGeometry: zero-segment length detected at (x,y,z) = ",
+//                  _xs[i],
+//                  " ",
+//                  _ys[i],
+//                  " ",
+//                  _zs[i],
+//                  "\n");
+//   }
+//   if (num_pts == 1)
+//     _half_seg_len[0] = _line_length;
+// }
+//
+// void
+// PorousFlowLineGeometry::regenPoints()
+// {
+//   // // if (!_point_file.empty())
+//   // //   return;
+//   //
+//   // // recalculate the auto-generated points:
+//   // _rs.clear();
+//   // _xs.clear();
+//   // _ys.clear();
+//   // _zs.clear();
+//   //
+//   // Point middle(_line_base[1], _line_base[2], _line_base[3]);
+//   // Point p0 = middle - _line_length * _line_direction / _line_direction.norm();
+//   // Point p1 = middle + _line_length * _line_direction / _line_direction.norm();
+//   // // auto pl = _subproblem.mesh().getPointLocator();
+//   // // pl->enable_out_of_mesh_mode();
+//   //
+//   // // Point p0(_line_base[1], _line_base[2], _line_base[3]);
+//   // // Point p1 = p0 + _line_length * _line_direction / _line_direction.norm();
+//   //
+//   // // add point for each cell the line passes through
+//   // auto ploc = _mesh.getPointLocator();
+//   // ploc->enable_out_of_mesh_mode();
+//   // std::vector<Elem *> elems;
+//   // std::vector<LineSegment> segs;
+//   // Moose::elementsIntersectedByLine(p0, p1, _mesh, *ploc, elems, segs);
+//   // for (size_t i = 0; i < segs.size(); i++)
+//   // {
+//   //   // elementsIntersectedByLine sometimes returns segments with coincident points - check for this:
+//   //   auto & seg = segs[i];
+//   //   if (seg.start() == seg.end())
+//   //     continue;
+//   //
+//   //   auto middle = (seg.start() + seg.end()) * 0.5;
+//   //   _rs.push_back(_line_base[0]);
+//   //   _xs.push_back(middle(0));
+//   //   _ys.push_back(middle(1));
+//   //   _zs.push_back(middle(2));
+//   // }
+//   //
+//   // // make the start point be the line base point
+//   // _rs.front() = _line_base[0];
+//   // _xs.front() = p0(0);
+//   // _ys.front() = p0(1);
+//   // _zs.front() = p0(2);
+//   //
+//   // // force the end point only if our line traverses more than one element
+//   // if (segs.size() > 1)
+//   // {
+//   //   _rs.back() = _line_base[0];
+//   //   _xs.back() = p1(0);
+//   //   _ys.back() = p1(1);
+//   //   _zs.back() = p1(2);
+//   // }
+//   //
+//   // calcLineLengths();
+//
+//   _line_base.resize(4);
+//   _line_base[0] = _rs1; // 0.01; //
+//   _line_base[1] = _xs1; // 138.347655; //
+//   _line_base[2] = _ys1; // 79.633653; //
+//   _line_base[3] = _zs1; // 90.219592; //
+//
+//
+//
+//   if (!_point_file.empty())
+//     return;
+//
+//   // recalculate the auto-generated points:
+//   _rs.clear();
+//   _xs.clear();
+//   _ys.clear();
+//   _zs.clear();
+//
+//   Point p0(_line_base[1], _line_base[2], _line_base[3]);
+//   Point p1 = p0 + _line_length * _line_direction / _line_direction.norm();
+//
+//   // add point for each cell the line passes through
+//   auto ploc = _mesh.getPointLocator();
+//   std::vector<Elem *> elems;
+//   std::vector<LineSegment> segs;
+//   Moose::elementsIntersectedByLine(p0, p1, _mesh, *ploc, elems, segs);
+//   for (size_t i = 0; i < segs.size(); i++)
+//   {
+//     // elementsIntersectedByLine sometimes returns segments with coincident points - check for this:
+//     auto & seg = segs[i];
+//     if (seg.start() == seg.end())
+//       continue;
+//
+//     auto middle = (seg.start() + seg.end()) * 0.5;
+//     _rs.push_back(_line_base[0]);
+//     _xs.push_back(middle(0));
+//     _ys.push_back(middle(1));
+//     _zs.push_back(middle(2));
+//   }
+//
+//   // make the start point be the line base point
+//   _rs.front() = _line_base[0];
+//   _xs.front() = p0(0);
+//   _ys.front() = p0(1);
+//   _zs.front() = p0(2);
+//
+//   // force the end point only if our line traverses more than one element
+//   if (segs.size() > 1)
+//   {
+//     _rs.back() = _line_base[0];
+//     _xs.back() = p1(0);
+//     _ys.back() = p1(1);
+//     _zs.back() = p1(2);
+//   }
+//
+//   calcLineLengths();
+// }
+//
+// void
+// PorousFlowLineGeometry::meshChanged()
+// {
+//   DiracKernel::meshChanged();
+//   regenPoints();
+// }
+//
+// bool
+// PorousFlowLineGeometry::parseNextLineReals(std::ifstream & ifs, std::vector<Real> & myvec)
+// // reads a space-separated line of floats from ifs and puts in myvec
+// {
+//   std::string line;
+//   myvec.clear();
+//   bool gotline(false);
+//   if (getline(ifs, line))
+//   {
+//     gotline = true;
+//
+//     // Harvest floats separated by whitespace
+//     std::istringstream iss(line);
+//     Real f;
+//     while (iss >> f)
+//     {
+//       myvec.push_back(f);
+//     }
+//   }
+//   return gotline;
+// }
+//
+// void
+// PorousFlowLineGeometry::addPoints()
+// {
+//   // std::cout << "Here *****" << _xs1 << std::endl;
+//   // Add point using the unique ID "i", let the DiracKernel take
+//   // care of the caching.  This should be fast after the first call,
+//   // as long as the points don't move around.
+//   for (unsigned int i = 0; i < _zs.size(); i++)
+//     addPoint(Point(_xs[i], _ys[i], _zs[i]), i);
+// }
+
 //* This file is part of the MOOSE framework
 //* https://www.mooseframework.org
 //*
@@ -41,6 +406,18 @@ PorousFlowLineGeometry::validParams()
       "line_base",
       "Line base point x,y,z coordinates.  This is the same format as a single-line point_file. "
       "Note this is only used if there is no point file specified.");
+  params.addParam<ReporterName>(
+      "x_coord_name",
+      "reporter x-coordinate name.  This uses the reporter syntax <reporter>/<name>.");
+  params.addParam<ReporterName>(
+      "y_coord_name",
+      "reporter y-coordinate name.  This uses the reporter syntax <reporter>/<name>.");
+  params.addParam<ReporterName>(
+      "z_coord_name",
+      "reporter z-coordinate name.  This uses the reporter syntax <reporter>/<name>.");
+  params.addParam<ReporterName>(
+      "radii_name", "reporter bore radii name.  This uses the reporter syntax <reporter>/<name>.");
+
   params.addClassDescription("Approximates a polyline sink in the mesh using a number of Dirac "
                              "point sinks with given weightings that are read from a file");
   return params;
@@ -48,9 +425,26 @@ PorousFlowLineGeometry::validParams()
 
 PorousFlowLineGeometry::PorousFlowLineGeometry(const InputParameters & parameters)
   : DiracKernel(parameters),
+    ReporterInterface(this),
     _line_length(getParam<Real>("line_length")),
     _line_direction(getParam<RealVectorValue>("line_direction")),
-    _point_file(getParam<std::string>("point_file"))
+    _point_file(getParam<std::string>("point_file")),
+    //    _rs_reporter(isParamValid("radii_name")
+    //                     ? getReporterValue<std::vector<Real>>("radii_name",
+    //                     REPORTER_MODE_REPLICATED) : {}),
+    _rs_reporter(isParamValid("radii_name")
+                     ? &getReporterValue<std::vector<Real>>("radii_name", REPORTER_MODE_REPLICATED)
+                     : nullptr),
+    _xs_reporter(isParamValid("x_coord_name") ? &getReporterValue<std::vector<Real>>(
+                                                    "x_coord_name", REPORTER_MODE_REPLICATED)
+                                              : nullptr),
+    _ys_reporter(isParamValid("y_coord_name") ? &getReporterValue<std::vector<Real>>(
+                                                    "y_coord_name", REPORTER_MODE_REPLICATED)
+                                              : nullptr),
+    _zs_reporter(isParamValid("z_coord_name") ? &getReporterValue<std::vector<Real>>(
+                                                    "z_coord_name", REPORTER_MODE_REPLICATED)
+                                              : nullptr),
+    _initialized(false)
 {
   statefulPropertiesAllowed(true);
 
@@ -89,6 +483,25 @@ PorousFlowLineGeometry::PorousFlowLineGeometry(const InputParameters & parameter
     file.close();
     calcLineLengths();
   }
+  else if (_rs_reporter)
+  {
+    for (unsigned int i = 0; i < _rs_reporter->size(); ++i)
+    {
+      _rs.push_back((*_rs_reporter)[i]);
+      _xs.push_back((*_xs_reporter)[i]);
+      _ys.push_back((*_ys_reporter)[i]);
+      _zs.push_back((*_zs_reporter)[i]);
+    }
+    // _rs = (*_rs_reporter);
+    // _xs = (*_xs_reporter);
+    // _ys = (*_ys_reporter);
+    // _zs = (*_zs_reporter);
+    // _rs.push_back(*_rs_reporter);
+    // _xs.push_back(*_xs_reporter);
+    // _ys.push_back(*_ys_reporter);
+    // _zs.push_back(*_zs_reporter);
+    calcLineLengths();
+  }
   else
   {
     _line_base = getParam<std::vector<Real>>("line_base");
@@ -123,6 +536,34 @@ PorousFlowLineGeometry::PorousFlowLineGeometry(const InputParameters & parameter
 
     regenPoints();
   }
+}
+
+void
+PorousFlowLineGeometry::timestepSetup()
+{
+  if (_initialized)
+    return;
+
+  if (_rs_reporter)
+  {
+    for (unsigned int i = 0; i < _rs_reporter->size(); ++i)
+    {
+      _rs.push_back((*_rs_reporter)[i]);
+      _xs.push_back((*_xs_reporter)[i]);
+      _ys.push_back((*_ys_reporter)[i]);
+      _zs.push_back((*_zs_reporter)[i]);
+    }
+    // _rs = (*_rs_reporter);
+    // _xs = (*_xs_reporter);
+    // _ys = (*_ys_reporter);
+    // _zs = (*_zs_reporter);
+    // _rs.push_back(*_rs_reporter);
+    // _xs.push_back(*_xs_reporter);
+    // _ys.push_back(*_ys_reporter);
+    // _zs.push_back(*_zs_reporter);
+    calcLineLengths();
+  }
+  _initialized = true;
 }
 
 void
