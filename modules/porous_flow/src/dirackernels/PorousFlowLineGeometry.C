@@ -41,6 +41,18 @@ PorousFlowLineGeometry::validParams()
       "line_base",
       "Line base point x,y,z coordinates.  This is the same format as a single-line point_file. "
       "Note this is only used if there is no point file specified.");
+  params.addParam<ReporterName>(
+      "x_coord_name",
+      "reporter x-coordinate name.  This uses the reporter syntax <reporter>/<name>.");
+  params.addParam<ReporterName>(
+      "y_coord_name",
+      "reporter y-coordinate name.  This uses the reporter syntax <reporter>/<name>.");
+  params.addParam<ReporterName>(
+      "z_coord_name",
+      "reporter z-coordinate name.  This uses the reporter syntax <reporter>/<name>.");
+  params.addParam<ReporterName>(
+      "radii_name", "reporter bore radii name.  This uses the reporter syntax <reporter>/<name>.");
+
   params.addClassDescription("Approximates a polyline sink in the mesh using a number of Dirac "
                              "point sinks with given weightings that are read from a file");
   return params;
@@ -48,9 +60,26 @@ PorousFlowLineGeometry::validParams()
 
 PorousFlowLineGeometry::PorousFlowLineGeometry(const InputParameters & parameters)
   : DiracKernel(parameters),
+    ReporterInterface(this),
     _line_length(getParam<Real>("line_length")),
     _line_direction(getParam<RealVectorValue>("line_direction")),
-    _point_file(getParam<std::string>("point_file"))
+    _point_file(getParam<std::string>("point_file")),
+    //    _rs_reporter(isParamValid("radii_name")
+    //                     ? getReporterValue<std::vector<Real>>("radii_name",
+    //                     REPORTER_MODE_REPLICATED) : {}),
+    _rs_reporter(isParamValid("radii_name")
+                     ? &getReporterValue<std::vector<Real>>("radii_name", REPORTER_MODE_REPLICATED)
+                     : nullptr),
+    _xs_reporter(isParamValid("x_coord_name") ? &getReporterValue<std::vector<Real>>(
+                                                    "x_coord_name", REPORTER_MODE_REPLICATED)
+                                              : nullptr),
+    _ys_reporter(isParamValid("y_coord_name") ? &getReporterValue<std::vector<Real>>(
+                                                    "y_coord_name", REPORTER_MODE_REPLICATED)
+                                              : nullptr),
+    _zs_reporter(isParamValid("z_coord_name") ? &getReporterValue<std::vector<Real>>(
+                                                    "z_coord_name", REPORTER_MODE_REPLICATED)
+                                              : nullptr),
+    _initialized(false)
 {
   statefulPropertiesAllowed(true);
 
@@ -89,6 +118,14 @@ PorousFlowLineGeometry::PorousFlowLineGeometry(const InputParameters & parameter
     file.close();
     calcLineLengths();
   }
+  else if (_rs_reporter)
+  {
+    _rs = (*_rs_reporter);
+    _xs = (*_xs_reporter);
+    _ys = (*_ys_reporter);
+    _zs = (*_zs_reporter);
+    calcLineLengths();
+  }
   else
   {
     _line_base = getParam<std::vector<Real>>("line_base");
@@ -123,6 +160,23 @@ PorousFlowLineGeometry::PorousFlowLineGeometry(const InputParameters & parameter
 
     regenPoints();
   }
+}
+
+void
+PorousFlowLineGeometry::timestepSetup()
+{
+  if (_initialized)
+    return;
+
+  if (_rs_reporter)
+  {
+    _rs = (*_rs_reporter);
+    _xs = (*_xs_reporter);
+    _ys = (*_ys_reporter);
+    _zs = (*_zs_reporter);
+    calcLineLengths();
+  }
+  _initialized = true;
 }
 
 void

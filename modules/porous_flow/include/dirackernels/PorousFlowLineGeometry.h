@@ -10,11 +10,12 @@
 #pragma once
 
 #include "DiracKernel.h"
+#include "ReporterInterface.h"
 
 /**
  * Approximates a borehole by a sequence of Dirac Points
  */
-class PorousFlowLineGeometry : public DiracKernel
+class PorousFlowLineGeometry : public DiracKernel, public ReporterInterface
 {
 public:
   /**
@@ -54,6 +55,21 @@ protected:
   /// z points of borehole
   std::vector<Real> _zs;
 
+  /// Radii of the borehole
+  const std::vector<Real> * _rs_reporter;
+
+  /// x points of the borehole
+  const std::vector<Real> * _xs_reporter;
+
+  /// y points of the borehole
+  const std::vector<Real> * _ys_reporter;
+
+  /// z points of borehole
+  const std::vector<Real> * _zs_reporter;
+
+  /// Determine if reporter values have been set on timestep_initial
+  bool _initialized;
+
   /// The bottom point of the borehole (where bottom_pressure is defined)
   Point _bottom_point;
 
@@ -65,6 +81,9 @@ protected:
 
   /// regenerate points in each cell if using line_base
   virtual void meshChanged() override;
+
+  /// This sets the coordinates to those contained in the Reporter if the reporter exists.
+  void timestepSetup() override;
 
   /// Reads a space-separated line of floats from ifs and puts in myvec
   bool parseNextLineReals(std::ifstream & ifs, std::vector<Real> & myvec);
