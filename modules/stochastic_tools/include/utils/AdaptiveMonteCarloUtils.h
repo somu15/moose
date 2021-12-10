@@ -9,7 +9,8 @@
 
 #pragma once
 
-#include "MooseUtils.h"
+#include "libmesh/utility.h"
+#include "DataIO.h"
 
 namespace AdaptiveMonteCarloUtils
 {
@@ -34,8 +35,6 @@ Real computeSTD(const std::vector<Real> & data, const unsigned int & start_index
  */
 Real computeMean(const std::vector<Real> & data, const unsigned int & start_index);
 
-<<<<<<< HEAD
-=======
 /**
  * return input values corresponding to the largest po percentile output values.
  *
@@ -47,10 +46,11 @@ Real computeMean(const std::vector<Real> & data, const unsigned int & start_inde
  * @param the subset index
  * @param the subset intermediate failure probability
  */
-std::vector<std::vector<Real>> sortInput(const std::vector<std::vector<Real>> & inputs,
-                                         const std::vector<Real> & outputs,
-                                         const unsigned int samplessub,
-                                         const Real subset_prob);
+std::vector<Real> sortINPUT(const std::vector<Real> & inputs,
+                            const std::vector<Real> & outputs,
+                            const int & samplessub,
+                            const unsigned int & subset,
+                            const Real & subset_prob);
 
 /**
  * return the largest po percentile output values.
@@ -62,16 +62,17 @@ std::vector<std::vector<Real>> sortInput(const std::vector<std::vector<Real>> & 
  * @param the subset index
  * @param the subset intermediate failure probability
  */
-std::vector<Real> sortOutput(const std::vector<Real> & outputs,
-                             const unsigned int samplessub,
-                             const Real subset_prob);
+std::vector<Real> sortOUTPUT(const std::vector<Real> & outputs,
+                             const int & samplessub,
+                             const unsigned int & subset,
+                             const Real & subset_prob);
 
 /**
  * return the minimum value in a vector.
  *
  * @param the data vector
  */
-Real computeMin(const std::vector<Real> & data);
+Real computeMIN(const std::vector<Real> & data);
 
 /**
  * return the absolute values in a vector.
@@ -80,5 +81,4 @@ Real computeMin(const std::vector<Real> & data);
  */
 std::vector<Real> computeVectorABS(const std::vector<Real> & data);
 
->>>>>>> 6aae71efba... Cleaning up parallel subset simulation sampling #19398
 } // namespace AdaptiveMonteCarloUtils
