@@ -10,6 +10,7 @@
 #include "AdaptiveMonteCarloDecision.h"
 #include "Sampler.h"
 #include "DenseMatrix.h"
+#include "AdaptiveMonteCarloUtils.h"
 
 registerMooseObject("StochasticToolsApp", AdaptiveMonteCarloDecision);
 
@@ -34,26 +35,48 @@ AdaptiveMonteCarloDecision::AdaptiveMonteCarloDecision(const InputParameters & p
   : GeneralReporter(parameters),
     _output_value(getReporterValue<std::vector<Real>>("output_value", REPORTER_MODE_DISTRIBUTED)),
     _output_required(declareValue<std::vector<Real>>("output_required")),
-    _inputs(declareValue<std::vector<Real>>("inputs")),
+    _inputs(declareValue<std::vector<std::vector<Real>>>("inputs")),
     _step(getCheckedPointerParam<FEProblemBase *>("_fe_problem_base")->timeStep()),
     _sampler(getSampler("sampler")),
     _ais(dynamic_cast<const AdaptiveImportanceSampler *>(&_sampler)),
+    _pss(dynamic_cast<const ParallelSubsetSimulation *>(&_sampler)),
     _check_step(std::numeric_limits<int>::max())
 {
 
   // Check whether the selected sampler is an adaptive sampler or not
-  if (!_ais)
+  if (!_ais && !_pss)
     paramError("sampler", "The selected sampler is not an adaptive sampler.");
 
-  _inputs.resize(_sampler.getNumberOfCols());
-  _prev_val.resize(_sampler.getNumberOfCols());
+  auto cols = _sampler.getNumberOfCols();
 
   // Initialize the required variables depending upon the type of adaptive Monte Carlo algorithm
   if (_ais)
   {
-    _prev_val = _ais->getInitialValues();
-    _prev_val_out = 1.0;
+    _inputs.resize(1);
+    _inputs[0].resize(cols);
+    _prev_val.resize(1);
+    _prev_val[0].resize(cols);
+    _prev_val[0] = _ais->getInitialValues();
+    _prev_val_out.resize(1);
+    _prev_val_out[0] = 1.0;
     _output_required.resize(1);
+  }
+  else if (_pss)
+  {
+    auto rows = _sampler.getNumberOfRows();
+    _inputs_sto.resize(cols);
+    _inputs.resize(cols);
+    _prev_val.resize(cols);
+    for (dof_id_type i = 0; i < cols; ++i)
+    {
+      _inputs[i].resize(rows);
+      _prev_val[i].resize(rows);
+    }
+    _inputs_sorted.resize(cols);
+    _subset = 0;
+    _count = 0;
+    _prev_val_out.resize(rows);
+    _output_required.resize(rows);
   }
 }
 
@@ -78,19 +101,156 @@ AdaptiveMonteCarloDecision::execute()
       /* This is the training phase of the Adaptive Importance Sampling algorithm.
          Here, it is decided whether or not to accept a proposed sample by the
          AdaptiveImportanceSampler.C sampler depending upon the model output_value. */
-      _inputs = output_limit_reached ? _sampler.getNextLocalRow() : _prev_val;
+      _inputs[0] = output_limit_reached ? _sampler.getNextLocalRow() : _prev_val[0];
       if (output_limit_reached)
-        _prev_val = _inputs;
-      _prev_val_out = _output_required[0];
+        _prev_val[0] = _inputs[0];
+      _prev_val_out[0] = _output_required[0];
     }
     else
     {
       /* This is the sampling phase of the Adaptive Importance Sampling algorithm.
          Here, all proposed samples by the AdaptiveImportanceSampler.C sampler are accepted since
          the importance distribution traning phase is finished. */
-      _inputs = _sampler.getNextLocalRow();
-      _prev_val_out = tmp;
+      _inputs[0] = _sampler.getNextLocalRow();
+      _prev_val_out[0] = tmp;
     }
   }
+  else if (_pss)
+  {
+    std::vector<Real> data_in;
+    data_in.resize(_sampler.getNumberOfRows());
+    if (_step <= (int)(_pss->getNumSamplesSub() / _sampler.getNumberOfRows()))
+    {
+      // This is the first subset which uses a simple Monte Carlo sampling scheme
+
+      // Track the current subset
+      _subset = std::floor((_step * _sampler.getNumberOfRows()) / _pss->getNumSamplesSub());
+
+      // Get and store the accepted samples inputs across all the procs from the previous step
+      for (dof_id_type ss = _sampler.getLocalRowBegin(); ss < _sampler.getLocalRowEnd(); ++ss)
+      {
+        const auto data = _sampler.getNextLocalRow();
+        data_in = data;
+        _communicator.allgather(data_in);
+      }
+      for (dof_id_type ss = 0; ss < (_sampler.getNumberOfRows()); ++ss)
+      {
+        for (dof_id_type i = 0; i < _sampler.getNumberOfCols(); ++i)
+        {
+          _inputs_sto[i].push_back(data_in[(_sampler.getNumberOfCols()) * ss + i]);
+          _inputs[i][ss] = data_in[(_sampler.getNumberOfCols()) * ss + i];
+        }
+      }
+
+      // Get the accepted samples outputs across all the procs from the previous step
+      _output_required = (_pss->getUseAbsoluteValue())
+                             ? AdaptiveMonteCarloUtils::computeVectorABS(_output_value)
+                             : _output_value;
+      _communicator.allgather(_output_required);
+      // Store these accepted samples outputs
+      for (dof_id_type ss = 0; ss < _output_required.size(); ++ss)
+        _outputs_sto.push_back(_output_required[ss]);
+    }
+    else
+    {
+      // These are the subsequent subsets which use Markov Chain Monte Carlo sampling scheme
+
+      // Track the current subset
+      _subset = std::floor(((_step - 1) * _sampler.getNumberOfRows()) / _pss->getNumSamplesSub());
+      _count_max = std::floor(1 / _pss->getSubsetProbability());
+      if (_subset >
+          (std::floor(((_step - 2) * _sampler.getNumberOfRows()) / _pss->getNumSamplesSub())))
+      {
+        // Reinitialize some variables to facilitate getting the starting inputs values for Markov
+        // chains for the new subset
+        _ind_sto = -1;
+        _count = INT_MAX;
+        // _output_sorted contains largest po percentile output values
+        _output_sorted = AdaptiveMonteCarloUtils::sortOUTPUT(
+            _outputs_sto, _pss->getNumSamplesSub(), _subset, _pss->getSubsetProbability());
+        // _inputs_sorted contains the input values corresponding to the largest po percentile
+        // output values
+        for (dof_id_type j = 0; j < _sampler.getNumberOfCols(); ++j)
+        {
+          _inputs_sorted[j].resize(
+              std::floor(_pss->getNumSamplesSub() * _pss->getSubsetProbability()));
+          _inputs_sorted[j] = AdaptiveMonteCarloUtils::sortINPUT(_inputs_sto[j],
+                                                                 _outputs_sto,
+                                                                 _pss->getNumSamplesSub(),
+                                                                 _subset,
+                                                                 _pss->getSubsetProbability());
+        }
+        // Get the subset's intermediate failure threshold values
+        _output_limits.push_back(AdaptiveMonteCarloUtils::computeMIN(_output_sorted));
+      }
+      // Check whether the number of samples in a Markov chain exceeded the limit
+      if (_count >= _count_max)
+      {
+        // Reinitialize the starting inputs values for the next set of Markov chains
+        for (dof_id_type jj = 0; jj < _sampler.getNumberOfRows(); ++jj)
+        {
+          ++_ind_sto;
+          for (dof_id_type k = 0; k < _sampler.getNumberOfCols(); ++k)
+            _prev_val[k][jj] = _inputs_sorted[k][_ind_sto];
+          _prev_val_out[jj] = _output_sorted[_ind_sto];
+        }
+        _count = 0;
+      }
+      else
+      {
+        // Otherwise, use the previously accepted input values to propose the next set of input
+        // values
+        for (dof_id_type jj = 0; jj < _sampler.getNumberOfRows(); ++jj)
+        {
+          for (dof_id_type k = 0; k < _sampler.getNumberOfCols(); ++k)
+            _prev_val[k][jj] =
+                _inputs_sto[k][_inputs_sto[k].size() - _sampler.getNumberOfRows() + jj];
+          _prev_val_out[jj] = _outputs_sto[_outputs_sto.size() - _sampler.getNumberOfRows() + jj];
+        }
+      }
+      // Track the sample index in the current Markov chain
+      ++_count;
+      // Get the proposed input values in the current step by the Sampler object
+      for (dof_id_type ss = _sampler.getLocalRowBegin(); ss < _sampler.getLocalRowEnd(); ++ss)
+      {
+        const auto data = _sampler.getNextLocalRow();
+        data_in = data;
+        _communicator.allgather(data_in);
+      }
+      // Get the corrsponding output values in the current step
+      _output_required = (_pss->getUseAbsoluteValue())
+                             ? AdaptiveMonteCarloUtils::computeVectorABS(_output_value)
+                             : _output_value;
+      _communicator.allgather(_output_required);
+      std::vector<Real> Tmp2 = _output_required;
+      // Check whether the outputs exceed the subset's intermediate failure threshold value
+      for (dof_id_type ss = 0; ss < _sampler.getNumberOfRows(); ++ss)
+      {
+        // If so, accept the proposed input values by the Sampler object
+        if (Tmp2[ss] >= _output_limits[_subset - 1])
+        {
+          for (dof_id_type i = 0; i < _sampler.getNumberOfCols(); ++i)
+          {
+            _inputs[i][ss] = data_in[(_sampler.getNumberOfCols()) * ss + i];
+            _inputs_sto[i].push_back(_inputs[i][ss]);
+          }
+          _outputs_sto.push_back(Tmp2[ss]);
+        }
+        else // Otherwise, use the previously accepted input values
+        {
+          for (dof_id_type i = 0; i < _sampler.getNumberOfCols(); ++i)
+          {
+            _inputs[i][ss] = _prev_val[i][ss];
+            data_in[(_sampler.getNumberOfCols()) * ss + i] = _inputs[i][ss];
+            _inputs_sto[i].push_back(_inputs[i][ss]);
+          }
+          Tmp2[ss] = _prev_val_out[ss];
+          _outputs_sto.push_back(Tmp2[ss]);
+        }
+      }
+      _output_required = Tmp2;
+    }
+  }
+  // Track the current step
   _check_step = _step;
 }
