@@ -66,6 +66,8 @@ GaussianProcess::evaluate(const std::vector<Real> & x, Real & std_dev) const
   unsigned int _n_params = _training_params.cols();
   unsigned int _num_tests = 1;
 
+  // std::cout << "Here " << Moose::stringify(x) << std::endl;
+
   mooseAssert(x.size() == _n_params,
               "Number of parameters provided for evaluation does not match number of parameters "
               "used for training.");
@@ -74,12 +76,15 @@ GaussianProcess::evaluate(const std::vector<Real> & x, Real & std_dev) const
   for (unsigned int ii = 0; ii < _n_params; ++ii)
     test_points(0, ii) = x[ii];
 
+  // std::cout << "Here " << Moose::stringify(test_points) << std::endl;
   _param_standardizer.getStandardized(test_points);
 
   RealEigenMatrix K_train_test(_training_params.rows(), test_points.rows());
   _covariance_function->computeCovarianceMatrix(K_train_test, _training_params, test_points, false);
+  std::cout << "K_train_test" << Moose::stringify(K_train_test) << std::endl;
   RealEigenMatrix K_test(test_points.rows(), test_points.rows());
   _covariance_function->computeCovarianceMatrix(K_test, test_points, test_points, true);
+  std::cout << "K_test" << Moose::stringify(K_test) << std::endl;
 
   // Compute the predicted mean value (centered)
   RealEigenMatrix pred_value = (K_train_test.transpose() * _K_results_solve);
