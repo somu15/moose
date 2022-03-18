@@ -26,6 +26,24 @@ AdaptiveMonteCarloDecision::validParams()
       "output_required",
       "output_required",
       "Modified value of the model output from this reporter class.");
+  params.addRequiredParam<ReporterName>("x_value",
+                                        "Value of the model output from the SubApp.");
+  params.addParam<ReporterValueName>(
+      "x_required",
+      "x_required",
+      "Modified value of the model output from this reporter class.");
+  params.addRequiredParam<ReporterName>("y_value",
+                                        "Value of the model output from the SubApp.");
+  params.addParam<ReporterValueName>(
+      "y_required",
+      "y_required",
+      "Modified value of the model output from this reporter class.");
+  params.addRequiredParam<ReporterName>("z_value",
+                                        "Value of the model output from the SubApp.");
+  params.addParam<ReporterValueName>(
+      "z_required",
+      "z_required",
+      "Modified value of the model output from this reporter class.");
   params.addParam<ReporterValueName>("inputs", "inputs", "Uncertain inputs to the model.");
   params.addRequiredParam<SamplerName>("sampler", "The sampler object.");
   return params;
@@ -33,8 +51,14 @@ AdaptiveMonteCarloDecision::validParams()
 
 AdaptiveMonteCarloDecision::AdaptiveMonteCarloDecision(const InputParameters & parameters)
   : GeneralReporter(parameters),
-    _output_value(getReporterValue<std::vector<Real>>("output_value", REPORTER_MODE_DISTRIBUTED)),
+    _output_value(getReporterValue<std::vector<std::vector<Real>>>("output_value", REPORTER_MODE_DISTRIBUTED)),
     _output_required(declareValue<std::vector<Real>>("output_required")),
+    _x_value(getReporterValue<std::vector<std::vector<Real>>>("x_value", REPORTER_MODE_DISTRIBUTED)),
+    _x_required(declareValue<std::vector<Real>>("x_required")),
+    _y_value(getReporterValue<std::vector<std::vector<Real>>>("y_value", REPORTER_MODE_DISTRIBUTED)),
+    _y_required(declareValue<std::vector<Real>>("y_required")),
+    _z_value(getReporterValue<std::vector<std::vector<Real>>>("z_value", REPORTER_MODE_DISTRIBUTED)),
+    _z_required(declareValue<std::vector<Real>>("z_required")),
     _inputs(declareValue<std::vector<std::vector<Real>>>("inputs")),
     _step(getCheckedPointerParam<FEProblemBase *>("_fe_problem_base")->timeStep()),
     _sampler(getSampler("sampler")),
@@ -76,7 +100,13 @@ AdaptiveMonteCarloDecision::AdaptiveMonteCarloDecision(const InputParameters & p
     _subset = 0;
     _count = 0;
     _prev_val_out.resize(rows);
+    _prev_val_x.resize(rows);
+    _prev_val_y.resize(rows);
+    _prev_val_z.resize(rows);
     _output_required.resize(rows);
+    _x_required.resize(rows);
+    _y_required.resize(rows);
+    _z_required.resize(rows);
   }
 }
 
@@ -93,27 +123,27 @@ AdaptiveMonteCarloDecision::execute()
      This decision step changes with the type of adaptive Monte Carlo sampling algorithm. */
   if (_ais)
   {
-    const Real tmp = _ais->getUseAbsoluteValue() ? std::abs(_output_value[0]) : _output_value[0];
-    const bool output_limit_reached = tmp >= _ais->getOutputLimit();
-    _output_required[0] = output_limit_reached ? 1.0 : 0.0;
-    if (_step <= _ais->getNumSamplesTrain())
-    {
-      /* This is the training phase of the Adaptive Importance Sampling algorithm.
-         Here, it is decided whether or not to accept a proposed sample by the
-         AdaptiveImportanceSampler.C sampler depending upon the model output_value. */
-      _inputs[0] = output_limit_reached ? _sampler.getNextLocalRow() : _prev_val[0];
-      if (output_limit_reached)
-        _prev_val[0] = _inputs[0];
-      _prev_val_out[0] = _output_required[0];
-    }
-    else
-    {
-      /* This is the sampling phase of the Adaptive Importance Sampling algorithm.
-         Here, all proposed samples by the AdaptiveImportanceSampler.C sampler are accepted since
-         the importance distribution traning phase is finished. */
-      _inputs[0] = _sampler.getNextLocalRow();
-      _prev_val_out[0] = tmp;
-    }
+    // const Real tmp = _ais->getUseAbsoluteValue() ? AdaptiveMonteCarloUtils::computeVectorABS(_output_value[0]) : _output_value[0];
+    // const bool output_limit_reached = tmp >= _ais->getOutputLimit();
+    // _output_required[0] = output_limit_reached ? 1.0 : 0.0;
+    // if (_step <= _ais->getNumSamplesTrain())
+    // {
+    //   /* This is the training phase of the Adaptive Importance Sampling algorithm.
+    //      Here, it is decided whether or not to accept a proposed sample by the
+    //      AdaptiveImportanceSampler.C sampler depending upon the model output_value. */
+    //   _inputs[0] = output_limit_reached ? _sampler.getNextLocalRow() : _prev_val[0];
+    //   if (output_limit_reached)
+    //     _prev_val[0] = _inputs[0];
+    //   _prev_val_out[0] = _output_required[0];
+    // }
+    // else
+    // {
+    //   /* This is the sampling phase of the Adaptive Importance Sampling algorithm.
+    //      Here, all proposed samples by the AdaptiveImportanceSampler.C sampler are accepted since
+    //      the importance distribution traning phase is finished. */
+    //   _inputs[0] = _sampler.getNextLocalRow();
+    //   _prev_val_out[0] = tmp;
+    // }
   }
   else if (_pss)
   {
@@ -144,12 +174,23 @@ AdaptiveMonteCarloDecision::execute()
 
       // Get the accepted samples outputs across all the procs from the previous step
       _output_required = (_pss->getUseAbsoluteValue())
-                             ? AdaptiveMonteCarloUtils::computeVectorABS(_output_value)
-                             : _output_value;
+                             ? AdaptiveMonteCarloUtils::computeVectorABS(_output_value[0])
+                             : _output_value[0];
       _communicator.allgather(_output_required);
+      _x_required = _x_value[0];
+      _communicator.allgather(_x_required);
+      _y_required = _y_value[0];
+      _communicator.allgather(_y_required);
+      _z_required = _z_value[0];
+      _communicator.allgather(_z_required);
       // Store these accepted samples outputs
       for (dof_id_type ss = 0; ss < _output_required.size(); ++ss)
+      {
         _outputs_sto.push_back(_output_required[ss]);
+        _x_sto.push_back(_x_required[ss]);
+        _y_sto.push_back(_y_required[ss]);
+        _z_sto.push_back(_z_required[ss]);
+      }
     }
     else
     {
@@ -168,6 +209,12 @@ AdaptiveMonteCarloDecision::execute()
         // _output_sorted contains largest po percentile output values
         _output_sorted = AdaptiveMonteCarloUtils::sortOUTPUT(
             _outputs_sto, _pss->getNumSamplesSub(), _subset, _pss->getSubsetProbability());
+        _x_sorted.resize(std::floor(_pss->getNumSamplesSub() * _pss->getSubsetProbability()));
+        _y_sorted.resize(std::floor(_pss->getNumSamplesSub() * _pss->getSubsetProbability()));
+        _z_sorted.resize(std::floor(_pss->getNumSamplesSub() * _pss->getSubsetProbability()));
+        _x_sorted = AdaptiveMonteCarloUtils::sortINPUT(_x_sto, _outputs_sto, _pss->getNumSamplesSub(), _subset, _pss->getSubsetProbability());
+        _y_sorted = AdaptiveMonteCarloUtils::sortINPUT(_y_sto, _outputs_sto, _pss->getNumSamplesSub(), _subset, _pss->getSubsetProbability());
+        _z_sorted = AdaptiveMonteCarloUtils::sortINPUT(_z_sto, _outputs_sto, _pss->getNumSamplesSub(), _subset, _pss->getSubsetProbability());
         // _inputs_sorted contains the input values corresponding to the largest po percentile
         // output values
         for (dof_id_type j = 0; j < _sampler.getNumberOfCols(); ++j)
@@ -193,6 +240,9 @@ AdaptiveMonteCarloDecision::execute()
           for (dof_id_type k = 0; k < _sampler.getNumberOfCols(); ++k)
             _prev_val[k][jj] = _inputs_sorted[k][_ind_sto];
           _prev_val_out[jj] = _output_sorted[_ind_sto];
+          _prev_val_x[jj] = _x_sorted[_ind_sto];
+          _prev_val_y[jj] = _y_sorted[_ind_sto];
+          _prev_val_z[jj] = _z_sorted[_ind_sto];
         }
         _count = 0;
       }
@@ -206,6 +256,9 @@ AdaptiveMonteCarloDecision::execute()
             _prev_val[k][jj] =
                 _inputs_sto[k][_inputs_sto[k].size() - _sampler.getNumberOfRows() + jj];
           _prev_val_out[jj] = _outputs_sto[_outputs_sto.size() - _sampler.getNumberOfRows() + jj];
+          _prev_val_x[jj] = _x_sto[_x_sto.size() - _sampler.getNumberOfRows() + jj];
+          _prev_val_y[jj] = _y_sto[_x_sto.size() - _sampler.getNumberOfRows() + jj];
+          _prev_val_z[jj] = _z_sto[_x_sto.size() - _sampler.getNumberOfRows() + jj];
         }
       }
       // Track the sample index in the current Markov chain
@@ -219,10 +272,19 @@ AdaptiveMonteCarloDecision::execute()
       }
       // Get the corrsponding output values in the current step
       _output_required = (_pss->getUseAbsoluteValue())
-                             ? AdaptiveMonteCarloUtils::computeVectorABS(_output_value)
-                             : _output_value;
+                             ? AdaptiveMonteCarloUtils::computeVectorABS(_output_value[0])
+                             : _output_value[0];
       _communicator.allgather(_output_required);
+      _x_required = _x_value[0];
+      _communicator.allgather(_x_required);
+      _y_required = _y_value[0];
+      _communicator.allgather(_y_required);
+      _z_required = _z_value[0];
+      _communicator.allgather(_z_required);
       std::vector<Real> Tmp2 = _output_required;
+      std::vector<Real> Tmp2x = _x_required;
+      std::vector<Real> Tmp2y = _y_required;
+      std::vector<Real> Tmp2z = _z_required;
       // Check whether the outputs exceed the subset's intermediate failure threshold value
       for (dof_id_type ss = 0; ss < _sampler.getNumberOfRows(); ++ss)
       {
@@ -235,6 +297,9 @@ AdaptiveMonteCarloDecision::execute()
             _inputs_sto[i].push_back(_inputs[i][ss]);
           }
           _outputs_sto.push_back(Tmp2[ss]);
+          _x_sto.push_back(Tmp2x[ss]);
+          _y_sto.push_back(Tmp2y[ss]);
+          _z_sto.push_back(Tmp2z[ss]);
         }
         else // Otherwise, use the previously accepted input values
         {
@@ -245,10 +310,19 @@ AdaptiveMonteCarloDecision::execute()
             _inputs_sto[i].push_back(_inputs[i][ss]);
           }
           Tmp2[ss] = _prev_val_out[ss];
+          Tmp2x[ss] = _prev_val_x[ss];
+          Tmp2y[ss] = _prev_val_y[ss];
+          Tmp2z[ss] = _prev_val_z[ss];
           _outputs_sto.push_back(Tmp2[ss]);
+          _x_sto.push_back(Tmp2x[ss]);
+          _y_sto.push_back(Tmp2y[ss]);
+          _z_sto.push_back(Tmp2z[ss]);
         }
       }
       _output_required = Tmp2;
+      _x_required = Tmp2x;
+      _y_required = Tmp2y;
+      _z_required = Tmp2z;
     }
   }
   // Track the current step

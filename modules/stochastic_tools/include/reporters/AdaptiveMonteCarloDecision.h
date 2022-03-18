@@ -28,10 +28,28 @@ public:
 
 protected:
   /// Model output value from SubApp
-  const std::vector<Real> & _output_value;
+  const std::vector<std::vector<Real>> & _output_value;
 
   /// Modified value of model output by this reporter class
   std::vector<Real> & _output_required;
+
+  /// Model output value from SubApp
+  const std::vector<std::vector<Real>> & _x_value;
+
+  /// Modified value of model output by this reporter class
+  std::vector<Real> & _x_required;
+
+  /// Model output value from SubApp
+  const std::vector<std::vector<Real>> & _y_value;
+
+  /// Modified value of model output by this reporter class
+  std::vector<Real> & _y_required;
+
+  /// Model output value from SubApp
+  const std::vector<std::vector<Real>> & _z_value;
+
+  /// Modified value of model output by this reporter class
+  std::vector<Real> & _z_required;
 
   /// Model input data that is uncertain
   std::vector<std::vector<Real>> & _inputs;
@@ -57,6 +75,9 @@ private:
 
   /// Storage for previously accepted output value.
   std::vector<Real> _prev_val_out;
+  std::vector<Real> _prev_val_x;
+  std::vector<Real> _prev_val_y;
+  std::vector<Real> _prev_val_z;
 
   /// Aid in proposing the next sample inputs across several processors in parallel
   int _ind_sto;
@@ -72,6 +93,9 @@ private:
 
   /// Store the sorted output sample values
   std::vector<Real> _output_sorted;
+  std::vector<Real> _x_sorted;
+  std::vector<Real> _y_sorted;
+  std::vector<Real> _z_sorted;
 
   /// Store the sorted input samples according to their corresponding outputs
   std::vector<std::vector<Real>> _inputs_sorted;
@@ -81,6 +105,9 @@ private:
 
   /// Storage for previously accepted sample outputs across all the subsets
   std::vector<Real> _outputs_sto;
+  std::vector<Real> _x_sto;
+  std::vector<Real> _y_sto;
+  std::vector<Real> _z_sto;
 
   /// Track the current subset index
   unsigned int _subset;

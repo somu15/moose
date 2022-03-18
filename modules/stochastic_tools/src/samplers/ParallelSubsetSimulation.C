@@ -146,8 +146,8 @@ ParallelSubsetSimulation::computeSample(dof_id_type row_index, dof_id_type col_i
       // Get the accepted samples outputs across all the procs from the previous step
       std::vector<Real> Tmp1 = (_use_absolute_value)
                                    ? AdaptiveMonteCarloUtils::computeVectorABS(
-                                         getReporterValue<std::vector<Real>>("output_reporter"))
-                                   : getReporterValue<std::vector<Real>>("output_reporter");
+                                         getReporterValue<std::vector<std::vector<Real>>>("output_reporter")[0])
+                                   : getReporterValue<std::vector<std::vector<Real>>>("output_reporter")[0];
       _communicator.allgather(Tmp1);
       // Store these accepted samples outputs
       for (dof_id_type ss = 0; ss < n_processors(); ++ss)
@@ -179,8 +179,8 @@ ParallelSubsetSimulation::computeSample(dof_id_type row_index, dof_id_type col_i
       // Get the accepted samples outputs across all the procs from the previous step
       std::vector<Real> Tmp1 = (_use_absolute_value)
                                    ? AdaptiveMonteCarloUtils::computeVectorABS(
-                                         getReporterValue<std::vector<Real>>("output_reporter"))
-                                   : getReporterValue<std::vector<Real>>("output_reporter");
+                                         getReporterValue<std::vector<std::vector<Real>>>("output_reporter")[0])
+                                   : getReporterValue<std::vector<std::vector<Real>>>("output_reporter")[0];
       _communicator.allgather(Tmp1);
       // Store these accepted samples outputs
       for (dof_id_type ss = 0; ss < n_processors(); ++ss)
