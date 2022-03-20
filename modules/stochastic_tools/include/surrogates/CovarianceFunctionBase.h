@@ -55,6 +55,10 @@ public:
   virtual bool isTunable(std::string name) const;
 
   virtual void getTuningData(std::string name, unsigned int & size, Real & min, Real & max) const;
+  
+  virtual Real getSignalVariance() const;
+
+  virtual std::vector<Real> getLengthFactor() const;
 
 protected:
   /// lengh factor (\ell) for the kernel, in vector form for multiple parameters
