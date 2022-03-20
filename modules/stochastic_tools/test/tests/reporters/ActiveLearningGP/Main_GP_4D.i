@@ -77,7 +77,7 @@
   #   # execute_on = 'initial timestep_begin' #
   # []
   [conditional]
-    type =  ActiveLearningGP # AL_ADAM # 
+    type =  AL_ADAM # ActiveLearningGP #
     sampler = mc
     # output_value = constant/reporter_transfer:average:value
     parallel_type = ROOT
@@ -106,7 +106,7 @@
 
 [Executioner]
   type = Transient
-  num_steps = 50
+  num_steps = 150000
 []
 
 [Outputs]

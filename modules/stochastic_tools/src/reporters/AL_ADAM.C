@@ -469,13 +469,13 @@ AL_ADAM::needSample(const std::vector<Real> & row,
     // std::cout << Moose::stringify(result) << std::endl;
     Real U_val;
     if (_flag_sample == false)
-      U_val = result[1] / std::abs(result[0]); // std::abs(result[0]-0.0)/result[1]; //
+      U_val = std::abs(result[0]-816.16)/result[1]; // result[1] / std::abs(result[0]); //
     else
-      U_val = 0.0001; // 100; //
+      U_val = 100; // 0.0001; //
     // std::cout << "U function " << U_val << std::endl;
     if (_flag_sample == true)
       _flag_sample = false;
-    if (U_val < 0.025) // > 2.0
+    if (U_val > 2.0) //  < 0.025
     {
       // std::cout << "Here" << std::endl;
       val = result[0];
