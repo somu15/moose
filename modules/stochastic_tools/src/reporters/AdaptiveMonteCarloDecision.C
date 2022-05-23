@@ -23,6 +23,12 @@ AdaptiveMonteCarloDecision::validParams()
                              "sample in Adaptive Monte Carlo type of algorithms.");
   params.addRequiredParam<ReporterName>("output_value",
                                         "Value of the model output from the SubApp.");
+  params.addRequiredParam<ReporterName>("x_value",
+                                        "Value of the model x from the SubApp.");
+  params.addRequiredParam<ReporterName>("y_value",
+                                        "Value of the model y from the SubApp.");
+  params.addRequiredParam<ReporterName>("z_value",
+                                        "Value of the model z from the SubApp.");
   params.addParam<ReporterValueName>(
       "output_required",
       "output_required",
@@ -35,6 +41,9 @@ AdaptiveMonteCarloDecision::validParams()
 AdaptiveMonteCarloDecision::AdaptiveMonteCarloDecision(const InputParameters & parameters)
   : GeneralReporter(parameters),
     _output_value(getReporterValue<std::vector<Real>>("output_value", REPORTER_MODE_DISTRIBUTED)),
+    _x_value(getReporterValue<std::vector<std::vector<Real>>>("x_value", REPORTER_MODE_DISTRIBUTED)),
+    _y_value(getReporterValue<std::vector<std::vector<Real>>>("y_value", REPORTER_MODE_DISTRIBUTED)),
+    _z_value(getReporterValue<std::vector<std::vector<Real>>>("z_value", REPORTER_MODE_DISTRIBUTED)),
     _output_required(declareValue<std::vector<Real>>("output_required")),
     _inputs(declareValue<std::vector<std::vector<Real>>>("inputs")),
     _step(getCheckedPointerParam<FEProblemBase *>("_fe_problem_base")->timeStep()),
@@ -123,14 +132,20 @@ AdaptiveMonteCarloDecision::execute()
     const unsigned int offset = sub_ind * _sampler.getNumberOfRows();
     const unsigned int count_max = 1 / _pss->getSubsetProbability();
 
-    DenseMatrix<Real> data_in(_sampler.getNumberOfRows(), _sampler.getNumberOfCols());
-    for (dof_id_type ss = _sampler.getLocalRowBegin(); ss < _sampler.getLocalRowEnd(); ++ss)
-    {
-      const auto data = _sampler.getNextLocalRow();
-      for (unsigned int j = 0; j < _sampler.getNumberOfCols(); ++j)
-        data_in(ss, j) = data[j];
-    }
-    _local_comm.sum(data_in.get_values());
+    // DenseMatrix<Real> data_in(_sampler.getNumberOfRows(), _sampler.getNumberOfCols());
+    // for (dof_id_type ss = _sampler.getLocalRowBegin(); ss < _sampler.getLocalRowEnd(); ++ss)
+    // {
+    //   const auto data = _sampler.getNextLocalRow();
+    //   for (unsigned int j = 0; j < _sampler.getNumberOfCols(); ++j)
+    //     data_in(ss, j) = data[j];
+    // }
+    // _local_comm.sum(data_in.get_values());
+    _inputs[0] = _x_value[0];
+    _inputs[1] = _y_value[0];
+    _inputs[2] = _z_value[0];
+    _local_comm.allgather(_inputs[0]);
+    _local_comm.allgather(_inputs[1]);
+    _local_comm.allgather(_inputs[2]);
 
     // Get the accepted samples outputs across all the procs from the previous step
     _output_required = (_pss->getUseAbsoluteValue())
@@ -185,7 +200,8 @@ AdaptiveMonteCarloDecision::execute()
       const bool output_limit_reached = _output_required[ss] >= _output_limit;
       for (dof_id_type i = 0; i < _sampler.getNumberOfCols(); ++i)
       {
-        _inputs[i][ss] = output_limit_reached ? data_in(ss, i) : _prev_val[i][ss];
+        // _inputs[i][ss] = output_limit_reached ? data_in(ss, i) : _prev_val[i][ss];
+        _inputs[i][ss] = output_limit_reached ? _inputs[i][ss] : _prev_val[i][ss];
         _inputs_sto[i][ss + offset] = _inputs[i][ss];
       }
       if (!output_limit_reached)

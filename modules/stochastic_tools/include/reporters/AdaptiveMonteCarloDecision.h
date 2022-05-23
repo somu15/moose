@@ -30,6 +30,15 @@ protected:
   /// Model output value from SubApp
   const std::vector<Real> & _output_value;
 
+  /// Model x value from SubApp
+  const std::vector<std::vector<Real>> & _x_value;
+
+  /// Model y value from SubApp
+  const std::vector<std::vector<Real>> & _y_value;
+
+  /// Model z value from SubApp
+  const std::vector<std::vector<Real>> & _z_value;
+
   /// Modified value of model output by this reporter class
   std::vector<Real> & _output_required;
 
