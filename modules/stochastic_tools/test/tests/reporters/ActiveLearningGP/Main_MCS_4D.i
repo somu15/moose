@@ -22,29 +22,49 @@
   #   lower_bound = 270
   #   upper_bound = 330
   # []
+  # [k_dist]
+  #   type = TruncatedNormal
+  #   mean = 5
+  #   standard_deviation = 2
+  #   lower_bound = 0
+  # []
+  # [q_dist]
+  #   type = TruncatedNormal
+  #   mean = 10000
+  #   standard_deviation = 500
+  #   lower_bound = 0
+  # []
+  # [L_dist]
+  #   type = TruncatedNormal
+  #   mean = 0.03
+  #   standard_deviation = 0.01
+  #   lower_bound = 0
+  # []
+  # [Tinf_dist]
+  #   type = TruncatedNormal
+  #   mean = 300
+  #   standard_deviation = 10
+  #   lower_bound = 0
+  # []
   [k_dist]
-    type = TruncatedNormal
-    mean = 5
-    standard_deviation = 2
-    lower_bound = 0
+    type = Uniform
+    lower_bound = 5
+    upper_bound = 20
   []
   [q_dist]
-    type = TruncatedNormal
-    mean = 10000
-    standard_deviation = 500
-    lower_bound = 0
+    type = Uniform
+    lower_bound = 7000
+    upper_bound = 13000
   []
   [L_dist]
-    type = TruncatedNormal
-    mean = 0.03
-    standard_deviation = 0.01
-    lower_bound = 0
+    type = Uniform
+    lower_bound = 0.05
+    upper_bound = 0.15
   []
   [Tinf_dist]
-    type = TruncatedNormal
-    mean = 300
-    standard_deviation = 10
-    lower_bound = 0
+    type = Uniform
+    lower_bound = 250
+    upper_bound = 350
   []
 []
 

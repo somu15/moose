@@ -31,7 +31,7 @@ protected:
   /// Distribution names
   const std::vector<DistributionName> & _distribution_names;
 
-  const bool & _flag_sample;
+  const std::vector<bool> & _flag_sample;
 
 private:
   /// Track the current step of the main App
@@ -41,5 +41,5 @@ private:
   // int _check_step;
   //
   // /// Storage for previously accepted samples by the decision reporter system
-  std::vector<Real> _inputs_sto;
+  std::vector<std::vector<Real>> _inputs_sto;
 };

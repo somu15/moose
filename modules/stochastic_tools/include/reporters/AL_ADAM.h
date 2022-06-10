@@ -112,7 +112,9 @@ private:
 
   CovarianceFunctionBase * _covariance_function;
 
-  bool & _flag_sample;
+  std::vector<bool> & _flag_sample;
+
+  const int _N_train;
 
   bool _do_tuning;
 
@@ -166,7 +168,7 @@ private:
 
   // Real _output_prev;
 
-  bool _decision;
+  std::vector<bool> _decision;
 
   std::vector<Real> _len_sto;
 

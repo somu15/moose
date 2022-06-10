@@ -22,39 +22,59 @@
   #   lower_bound = 270
   #   upper_bound = 330
   # []
+  # [k_dist]
+  #   type = TruncatedNormal
+  #   mean = 5
+  #   standard_deviation = 2
+  #   lower_bound = 0
+  # []
+  # [q_dist]
+  #   type = TruncatedNormal
+  #   mean = 10000
+  #   standard_deviation = 500
+  #   lower_bound = 0
+  # []
+  # [L_dist]
+  #   type = TruncatedNormal
+  #   mean = 0.03
+  #   standard_deviation = 0.01
+  #   lower_bound = 0
+  # []
+  # [Tinf_dist]
+  #   type = TruncatedNormal
+  #   mean = 300
+  #   standard_deviation = 10
+  #   lower_bound = 0
+  # []
   [k_dist]
-    type = TruncatedNormal
-    mean = 5
-    standard_deviation = 2
-    lower_bound = 0
+    type = Uniform
+    lower_bound = 5
+    upper_bound = 20
   []
   [q_dist]
-    type = TruncatedNormal
-    mean = 10000
-    standard_deviation = 500
-    lower_bound = 0
+    type = Uniform
+    lower_bound = 7000
+    upper_bound = 13000
   []
   [L_dist]
-    type = TruncatedNormal
-    mean = 0.03
-    standard_deviation = 0.01
-    lower_bound = 0
+    type = Uniform
+    lower_bound = 0.05
+    upper_bound = 0.15
   []
   [Tinf_dist]
-    type = TruncatedNormal
-    mean = 300
-    standard_deviation = 10
-    lower_bound = 0
+    type = Uniform
+    lower_bound = 250
+    upper_bound = 350
   []
 []
 
 [Samplers]
   [mc]
     type = MCT
-    num_rows = 1
+    num_rows = 2 # 1
     distributions = 'k_dist q_dist L_dist Tinf_dist'
     flag_sample = 'conditional/flag_sample'
-    seed = 10
+    seed = 5
     execute_on = PRE_MULTIAPP_SETUP
   []
 []
@@ -115,6 +135,7 @@
     tuning_max = '1000 1000'
     show_tao = 'true'
     flag_sample = 'flag_sample'
+    N_train = 6
   []
 []
 
@@ -130,7 +151,7 @@
 
 [Executioner]
   type = Transient
-  num_steps = 20
+  num_steps = 37 # 25000
 []
 
 [Outputs]

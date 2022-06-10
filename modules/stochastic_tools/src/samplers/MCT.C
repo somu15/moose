@@ -30,7 +30,7 @@ MCT::MCT(const InputParameters & parameters)
   : Sampler(parameters),
     ReporterInterface(this),
     _distribution_names(getParam<std::vector<DistributionName>>("distributions")),
-    _flag_sample(getReporterValue<bool>("flag_sample")),
+    _flag_sample(getReporterValue<std::vector<bool>>("flag_sample")),
     _step(getCheckedPointerParam<FEProblemBase *>("_fe_problem_base")->timeStep())
 {
   for (const DistributionName & name : _distribution_names)
@@ -39,20 +39,23 @@ MCT::MCT(const InputParameters & parameters)
   setNumberOfRows(getParam<dof_id_type>("num_rows"));
   setNumberOfCols(_distributions.size());
   setNumberOfRandomSeeds(100000);
-  _inputs_sto.resize(_distributions.size());
+  _inputs_sto.resize(getParam<dof_id_type>("num_rows"));
+  for (unsigned int i = 0; i < _inputs_sto.size(); ++i)
+    _inputs_sto[i].resize(_distributions.size());
   // _check_step = 0;
 }
 
 Real
-MCT::computeSample(dof_id_type /*row_index*/, dof_id_type col_index)
+MCT::computeSample(dof_id_type row_index, dof_id_type col_index)
 {
   // const bool sample = _step > 1 && col_index == 0 && _check_step != _step;
   // _check_step = _step;
   // return _inputs_sto[col_index];
 
-  if (_flag_sample == false)
-    _inputs_sto[col_index] = _distributions[col_index]->quantile(getRand(_step));
-  return _inputs_sto[col_index];
+  if (_flag_sample[row_index] == false)
+    _inputs_sto[row_index][col_index] = _distributions[col_index]->quantile(getRand(_step));
+  
+  return _inputs_sto[row_index][col_index];
 
   // return _distributions[col_index]->quantile(getRand(_step));
 }
