@@ -86,6 +86,7 @@
     input_files = 'Sub4D.i' # 'Sub_new.i'
     mode = batch-reset
     should_run_reporter = conditional/need_sample
+    execute_on = TIMESTEP_END
   []
 []
 
@@ -135,6 +136,8 @@
     tuning_max = '1000 1000'
     show_tao = 'true'
     flag_sample = 'flag_sample'
+    inputs = 'inputs'
+    gp_std = 'gp_std'
     N_train = 6
   []
 []
@@ -151,7 +154,7 @@
 
 [Executioner]
   type = Transient
-  num_steps = 37 # 25000
+  num_steps = 51 # 23 # 37 # 25000
 []
 
 [Outputs]

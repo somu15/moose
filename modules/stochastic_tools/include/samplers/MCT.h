@@ -38,7 +38,7 @@ private:
   const int & _step;
 
   // /// Ensure that the MCMC algorithm proceeds in a sequential fashion
-  // int _check_step;
+  int _check_step;
   //
   // /// Storage for previously accepted samples by the decision reporter system
   std::vector<std::vector<Real>> _inputs_sto;

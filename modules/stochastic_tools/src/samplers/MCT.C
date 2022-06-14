@@ -42,20 +42,48 @@ MCT::MCT(const InputParameters & parameters)
   _inputs_sto.resize(getParam<dof_id_type>("num_rows"));
   for (unsigned int i = 0; i < _inputs_sto.size(); ++i)
     _inputs_sto[i].resize(_distributions.size());
-  // _check_step = 0;
+  _check_step = 0;
 }
 
 Real
 MCT::computeSample(dof_id_type row_index, dof_id_type col_index)
 {
   // const bool sample = _step > 1 && col_index == 0 && _check_step != _step;
+
+  // if (sample)
+  // {
+  //   if (_flag_sample[row_index] == false)
+  //   {
+  //     for (dof_id_type j = 0; j < _distributions.size(); ++j)
+  //       _inputs_sto[row_index][j] = _distributions[j]->quantile(getRand(_step));
+  //   }
+  //   return _inputs_sto[row_index][col_index];
+  // } else
+  // {
+  //   for (dof_id_type j = 0; j < _distributions.size(); ++j)
+  //       _inputs_sto[row_index][j] = _distributions[j]->quantile(getRand(_step));
+  //   return _inputs_sto[row_index][col_index];
+  // }
+  // std::cout << Moose::stringify(_inputs_sto[row_index]) << std::endl;
   // _check_step = _step;
-  // return _inputs_sto[col_index];
 
-  if (_flag_sample[row_index] == false)
-    _inputs_sto[row_index][col_index] = _distributions[col_index]->quantile(getRand(_step));
-  
+  if (col_index == 0 && _step > 0 && _check_step != _step)
+    {
+      for (dof_id_type i = 0; i < getParam<dof_id_type>("num_rows"); ++i)
+      {
+        if (_flag_sample[i] == false)
+        {
+          for (dof_id_type j = 0; j < _distributions.size(); ++j)
+            _inputs_sto[i][j] = _distributions[j]->quantile(getRand(_step));
+        }
+      }
+      // return _inputs_sto[row_index][col_index];
+    } else if (_step == 0)
+    {
+      for (dof_id_type j = 0; j < _distributions.size(); ++j)
+        _inputs_sto[row_index][j] = _distributions[j]->quantile(getRand(_step));
+    }
+  // std::cout << Moose::stringify(_inputs_sto[row_index]) << std::endl;
+  _check_step = _step;
   return _inputs_sto[row_index][col_index];
-
-  // return _distributions[col_index]->quantile(getRand(_step));
 }

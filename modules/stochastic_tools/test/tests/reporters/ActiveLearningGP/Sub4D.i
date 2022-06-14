@@ -2,7 +2,7 @@
   type = GeneratedMesh
   dim = 1
   nx = 100
-  xmax = 0.130477
+  xmax = 0.13061533868990033
   elem_type = EDGE3
 []
 
@@ -22,7 +22,7 @@
   [source]
     type = BodyForce
     variable = T
-    value = 12507.8
+    value = 12451.650665507455
   []
 []
 
@@ -30,7 +30,7 @@
   [conductivity]
     type = GenericConstantMaterial
     prop_names = k
-    prop_values = 17.0625
+    prop_values = 5.666647074589191
   []
 []
 
@@ -39,7 +39,7 @@
     type = DirichletBC
     variable = T
     boundary = right
-    value = 328.793
+    value = 332.770533464511
   []
 []
 

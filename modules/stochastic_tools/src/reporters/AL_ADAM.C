@@ -33,6 +33,8 @@ AL_ADAM::validParams()
   params.addRequiredParam<UserObjectName>("covariance_function", "Name of covariance function.");
   params.addParam<ReporterValueName>("flag_sample", "flag_sample", "Flag samples.");
   params.addRequiredParam<int>("N_train", "Number of training steps.");
+  params.addParam<ReporterValueName>("inputs", "inputs", "The inputs.");
+  params.addParam<ReporterValueName>("gp_std", "gp_std", "The GP standard deviation.");
   params.addParam<bool>(
       "standardize_params", true, "Standardize (center and scale) training parameters (x values)");
   params.addParam<bool>(
@@ -60,6 +62,8 @@ AL_ADAM::AL_ADAM(
       getCovarianceFunctionByName(getParam<UserObjectName>("covariance_function"))),
   _flag_sample(declareValue<std::vector<bool>>("flag_sample")),
   _N_train(getParam<int>("N_train")),
+  _inputs(declareValue<std::vector<std::vector<Real>>>("inputs")),
+  _gp_std(declareValue<std::vector<Real>>("gp_std")),
   _do_tuning(isParamValid("tune_parameters")),
   _tao_options(getParam<std::string>("tao_options")),
   _show_tao(getParam<bool>("show_tao")),
@@ -108,7 +112,11 @@ AL_ADAM::AL_ADAM(
     _flag_sample[i] = false;
     _decision[i] = true;
   }
-    
+  _inputs.resize(_sampler.getNumberOfRows());
+  for (unsigned int i = 0; i < _sampler.getNumberOfRows(); ++i)
+    _inputs[i].resize(_sampler.getNumberOfCols());
+  _gp_std.resize(_sampler.getNumberOfRows());
+  _inputs_prev.resize(_sampler.getNumberOfRows());
 }
 
 void
@@ -484,83 +492,73 @@ AL_ADAM::needSample(const std::vector<Real> & row,
                                               dof_id_type,
                                               Real & val)
 {
-  // int N = 1; // 13;
-  // std::cout << "Inputs" << Moose::stringify(row) << std::endl;
-  // std::cout << "Ouputs" << Moose::stringify(val) << std::endl;
-  // std::cout << "Ouputs" << _step << std::endl;
   if (_step <= _N_train)
   {
-    if (_step > 0)
+    if (_step > 2)
     {
       _outputs_sto.push_back(val);
     for (unsigned int k = 0; k < _inputs_sto.size(); ++k)
-      _inputs_sto[k].push_back(row[k]);
+      _inputs_sto[k].push_back(_inputs_prev[local_ind][k]); // _inputs_sto[k].push_back(row[k]);
     }
-    // _outputs_sto.push_back(val);
-    // for (unsigned int k = 0; k < _inputs_sto.size(); ++k)
-    //   _inputs_sto[k].push_back(row[k]);
-    // _decision = true;
     if (_step == _N_train)
     {
-      _decision[local_ind] = false;
-      if (local_ind == _sampler.getNumberOfRows() - 1)
+      if (local_ind == 0)
       {
         Train_ADAM(10000);
       }
-      // Train_ADAM(10000);
-      // std::vector<Real> result = Predict_ADAM(row);
-      // val = result[0];
+      // std::cout << "Inputs " << Moose::stringify(row) << std::endl;
+      std::vector<Real> result = Predict_ADAM(row);
+      val = result[0];
+      _gp_std[local_ind] = result[1];
+      Real U_val;
+      U_val = std::abs(result[0]-349.345)/result[1]; // result[1] / std::abs(result[0]); //
+      if (U_val > 2.0) // < 0.025 // 
+      {
+        val = result[0];
+        _decision[local_ind] = false;
+      } else
+      {
+        _decision[local_ind] = true;
+        _flag_sample[local_ind] = true;
+      }
+      // _decision[local_ind] = false;
     }
-
-  // } else if (_step == N)
-  // {
-  //   _outputs_sto.push_back(val);
-  //   for (unsigned int k = 0; k < _inputs_sto.size(); ++k)
-  //     _inputs_sto[k].push_back(row[k]);
-  //
-  //   // std::cout << "Inputs " << Moose::stringify(_inputs_sto) << std::endl;
-  //   // std::cout << "Ouputs " << Moose::stringify(_outputs_sto) << std::endl;
-  //   // std::cout << "local_ind " << local_ind << std::endl;
-  //   // std::cout << _sampler.getNumberOfRows() << std::endl;
-  //   if (local_ind == _sampler.getNumberOfRows() - 1)
-  //   {
-  //     Train_ADAM(10000);
-  //     std::vector<Real> result = Predict_ADAM(row);
-  //     _decision = false;
-  //     val = result[0];
-  //   }
+    // std::cout << "Ouputs " << Moose::stringify(_outputs_sto) << std::endl;
+    // std::cout << "Inputs 1 " << Moose::stringify(_inputs_sto[0]) << std::endl;
+    // std::cout << "Inputs 2 " << Moose::stringify(_inputs_sto[1]) << std::endl;
+    // std::cout << "Inputs 3 " << Moose::stringify(_inputs_sto[2]) << std::endl;
+    // std::cout << "Inputs 4 " << Moose::stringify(_inputs_sto[3]) << std::endl;
+    _inputs[local_ind] = row;
+    // _gp_std[local_ind] = 0.0;
   } else
   {
     if (_decision[local_ind] == true && _flag_sample[local_ind] == true)
     {
-      std::cout << "Here 1" << std::endl;
       _outputs_sto.push_back(val);
       for (unsigned int k = 0; k < _inputs_sto.size(); ++k)
-        _inputs_sto[k].push_back(row[k]);
+        _inputs_sto[k].push_back(_inputs_prev[local_ind][k]); // _inputs_sto[k].push_back(row[k]);
       // if (local_ind == _sampler.getNumberOfRows() - 1)
       // {
       //   Train_ADAM(10000);
       // }
-      std::cout << "Inputs" << Moose::stringify(_inputs_sto) << std::endl;
-      std::cout << "Ouputs" << Moose::stringify(_outputs_sto) << std::endl;
-      // if (local_ind == _sampler.getNumberOfRows() - 1)
+      std::cout << "Ouputs " << Moose::stringify(_outputs_sto) << std::endl;
+      std::cout << "Inputs 1 " << Moose::stringify(_inputs_sto[0]) << std::endl;
+      std::cout << "Inputs 2 " << Moose::stringify(_inputs_sto[1]) << std::endl;
+      std::cout << "Inputs 3 " << Moose::stringify(_inputs_sto[2]) << std::endl;
+      std::cout << "Inputs 4 " << Moose::stringify(_inputs_sto[3]) << std::endl;
       Train_ADAM(1000);
     }
-    // if (local_ind == _sampler.getNumberOfRows() - 1)
-    //   Train_ADAM(10000);
-    std::cout << "Row " << Moose::stringify(row) << std::endl;
-    std::cout << "local_ind " << local_ind << std::endl;
-    std::cout << "flag_sample " << _flag_sample[local_ind] << std::endl;
     std::vector<Real> result = Predict_ADAM(row);
-    std::cout << "Predictions " << Moose::stringify(result) << std::endl;
+    _gp_std[local_ind] = result[1];
     Real U_val;
-    if (_flag_sample[local_ind] == false)
-      U_val = std::abs(result[0]-349.345)/result[1]; // result[1] / std::abs(result[0]); //
-    else
-      U_val = 100; //0.0001; //
+    U_val = std::abs(result[0]-349.345)/result[1]; // result[1] / std::abs(result[0]); //
+    // if (_flag_sample[local_ind] == false)
+    //   U_val = std::abs(result[0]-349.345)/result[1]; // result[1] / std::abs(result[0]); //
+    // else
+    //   U_val = 100; //0.0001; //
     if (_flag_sample[local_ind] == true)
       _flag_sample[local_ind] = false;
-    if (U_val > 2.0) //  // < 0.025
+    if (U_val > 2.0) // < 0.025 // 
     {
       val = result[0];
       _decision[local_ind] = false;
@@ -569,7 +567,8 @@ AL_ADAM::needSample(const std::vector<Real> & row,
       _decision[local_ind] = true;
       _flag_sample[local_ind] = true;
     }
+    _inputs[local_ind] = row;
   }
-  _inputs_prev = row;
+  _inputs_prev[local_ind] = row;
   return _decision[local_ind];
 }

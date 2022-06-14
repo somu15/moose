@@ -116,6 +116,10 @@ private:
 
   const int _N_train;
 
+  std::vector<std::vector<Real>> & _inputs;
+
+  std::vector<Real> & _gp_std;
+
   bool _do_tuning;
 
   std::string _tao_options;
@@ -164,7 +168,7 @@ private:
   /// store the default value
   // Real _default_value;
 
-  std::vector<Real> _inputs_prev;
+  std::vector<std::vector<Real>> _inputs_prev;
 
   // Real _output_prev;
 
