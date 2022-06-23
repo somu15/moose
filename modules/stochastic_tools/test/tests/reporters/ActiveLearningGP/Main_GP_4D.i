@@ -56,11 +56,11 @@
     lower_bound = 7000
     upper_bound = 13000
   []
-  [L_dist]
-    type = Uniform
-    lower_bound = 0.05
-    upper_bound = 0.15
-  []
+  #[L_dist]
+  #  type = Uniform
+  #  lower_bound = 0.05
+  #  upper_bound = 0.15
+  #[]
   [Tinf_dist]
     type = Uniform
     lower_bound = 250
@@ -71,8 +71,8 @@
 [Samplers]
   [mc]
     type = MCT
-    num_rows = 2 # 1
-    distributions = 'k_dist q_dist L_dist Tinf_dist'
+    num_rows = 7 # 1
+    distributions = 'k_dist q_dist Tinf_dist' # L_dist 
     flag_sample = 'conditional/flag_sample'
     seed = 5
     execute_on = PRE_MULTIAPP_SETUP
@@ -90,23 +90,16 @@
   []
 []
 
-[Controls]
-  [cmdline]
-    type = MultiAppCommandLineControl
-    multi_app = sub
-    sampler = mc
-    param_names = 'Materials/conductivity/prop_values Kernels/source/value Mesh/xmax BCs/right/value'
-  []
-[]
-
 [Transfers]
-  # [param]
-  #   type = SamplerParameterTransfer
-  #   multi_app = sub
-  #   sampler = mc
-  #   parameters = 'Materials/conductivity/prop_values Kernels/source/value Mesh/xmax BCs/right/value'
-  #   to_control = 'stochastic'
-  # []
+  [sub]
+    type = SamplerParameterTransfer
+    to_multi_app = sub
+    sampler = mc
+    parameters = 'Materials/conductivity/prop_values Kernels/source/value BCs/right/value' # Mesh/xmax 
+    to_control = 'stochastic'
+    # execute_on = INITIAL
+    check_multiapp_execute_on = false
+  []
   [reporter_transfer]
     type = SamplerReporterTransfer
     from_reporter = 'avg/value'
@@ -137,8 +130,9 @@
     show_tao = 'true'
     flag_sample = 'flag_sample'
     inputs = 'inputs'
+    gp_mean = 'gp_mean'
     gp_std = 'gp_std'
-    N_train = 6
+    N_train = 4
   []
 []
 
@@ -148,13 +142,13 @@
     # p = 1.0
     signal_variance = 1.0                 #Use a signal variance of 1 in the kernel
     noise_variance = 1e-4                    #A small amount of noise can help with numerical stability
-    length_factor = '1.0 1.0 1.0 1.0'         #Select a length factor for each parameter (k and q)
+    length_factor = '1.0 1.0 1.0'         #Select a length factor for each parameter (k and q) 1.0
   []
 []
 
 [Executioner]
   type = Transient
-  num_steps = 51 # 23 # 37 # 25000
+  num_steps = 1000 # 243
 []
 
 [Outputs]

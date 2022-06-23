@@ -118,6 +118,8 @@ private:
 
   std::vector<std::vector<Real>> & _inputs;
 
+  std::vector<Real> & _gp_mean;
+
   std::vector<Real> & _gp_std;
 
   bool _do_tuning;

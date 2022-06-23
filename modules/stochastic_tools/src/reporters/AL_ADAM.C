@@ -34,6 +34,7 @@ AL_ADAM::validParams()
   params.addParam<ReporterValueName>("flag_sample", "flag_sample", "Flag samples.");
   params.addRequiredParam<int>("N_train", "Number of training steps.");
   params.addParam<ReporterValueName>("inputs", "inputs", "The inputs.");
+  params.addParam<ReporterValueName>("gp_mean", "gp_mean", "The GP mean prediction.");
   params.addParam<ReporterValueName>("gp_std", "gp_std", "The GP standard deviation.");
   params.addParam<bool>(
       "standardize_params", true, "Standardize (center and scale) training parameters (x values)");
@@ -63,6 +64,7 @@ AL_ADAM::AL_ADAM(
   _flag_sample(declareValue<std::vector<bool>>("flag_sample")),
   _N_train(getParam<int>("N_train")),
   _inputs(declareValue<std::vector<std::vector<Real>>>("inputs")),
+  _gp_mean(declareValue<std::vector<Real>>("gp_mean")),
   _gp_std(declareValue<std::vector<Real>>("gp_std")),
   _do_tuning(isParamValid("tune_parameters")),
   _tao_options(getParam<std::string>("tao_options")),
@@ -115,6 +117,7 @@ AL_ADAM::AL_ADAM(
   _inputs.resize(_sampler.getNumberOfRows());
   for (unsigned int i = 0; i < _sampler.getNumberOfRows(); ++i)
     _inputs[i].resize(_sampler.getNumberOfCols());
+  _gp_mean.resize(_sampler.getNumberOfRows());
   _gp_std.resize(_sampler.getNumberOfRows());
   _inputs_prev.resize(_sampler.getNumberOfRows());
 }
@@ -509,9 +512,10 @@ AL_ADAM::needSample(const std::vector<Real> & row,
       // std::cout << "Inputs " << Moose::stringify(row) << std::endl;
       std::vector<Real> result = Predict_ADAM(row);
       val = result[0];
-      _gp_std[local_ind] = result[1];
+      _gp_mean[local_ind] = result[0];
+      _gp_std[local_ind] = _flag_sample[local_ind] == true ? 0.0 : result[1]; // result[1];
       Real U_val;
-      U_val = std::abs(result[0]-349.345)/result[1]; // result[1] / std::abs(result[0]); //
+      U_val = std::abs(_gp_mean[local_ind]-349.345)/_gp_std[local_ind]; // result[1] / std::abs(result[0]); //
       if (U_val > 2.0) // < 0.025 // 
       {
         val = result[0];
@@ -545,17 +549,14 @@ AL_ADAM::needSample(const std::vector<Real> & row,
       std::cout << "Inputs 1 " << Moose::stringify(_inputs_sto[0]) << std::endl;
       std::cout << "Inputs 2 " << Moose::stringify(_inputs_sto[1]) << std::endl;
       std::cout << "Inputs 3 " << Moose::stringify(_inputs_sto[2]) << std::endl;
-      std::cout << "Inputs 4 " << Moose::stringify(_inputs_sto[3]) << std::endl;
+      // std::cout << "Inputs 4 " << Moose::stringify(_inputs_sto[3]) << std::endl;
       Train_ADAM(1000);
     }
     std::vector<Real> result = Predict_ADAM(row);
-    _gp_std[local_ind] = result[1];
+    _gp_mean[local_ind] = result[0];
+    _gp_std[local_ind] = _flag_sample[local_ind] == true ? 0.0 : result[1]; // result[1];
     Real U_val;
-    U_val = std::abs(result[0]-349.345)/result[1]; // result[1] / std::abs(result[0]); //
-    // if (_flag_sample[local_ind] == false)
-    //   U_val = std::abs(result[0]-349.345)/result[1]; // result[1] / std::abs(result[0]); //
-    // else
-    //   U_val = 100; //0.0001; //
+    U_val = std::abs(_gp_mean[local_ind]-349.345)/_gp_std[local_ind]; // result[1] / std::abs(result[0]); //
     if (_flag_sample[local_ind] == true)
       _flag_sample[local_ind] = false;
     if (U_val > 2.0) // < 0.025 // 
