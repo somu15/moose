@@ -182,9 +182,9 @@ SamplerFullSolveMultiApp::solveStepBatch(Real dt, Real target_time, bool auto_ad
       transfer->setCurrentRow(_row_data);
       transfer->executeToMultiapp();
     }
-    std::cout << "_row_data " << Moose::stringify(_row_data) << std::endl;
+    // std::cout << "_row_data " << Moose::stringify(_row_data) << std::endl;
     last_solve_converged = FullSolveMultiApp::solveStep(dt, target_time, auto_advance);
-    std::cout << "_row_data " << Moose::stringify(_row_data) << std::endl;
+    // std::cout << "_row_data " << Moose::stringify(_row_data) << std::endl;
 
     for (auto & transfer : from_transfers)
     {
