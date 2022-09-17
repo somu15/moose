@@ -22,6 +22,8 @@ public:
 
 protected:
 
+  // virtual void initialize() override;
+
   /**
    * This evaluates the inputted function to determine whether a multiapp solve is
    * necessary/allowed, otherwise it replaces the "transferred" quantity with a

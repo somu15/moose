@@ -88,7 +88,7 @@
     inputs = 'inputs'
     gp_mean = 'gp_mean'
     gp_std = 'gp_std'
-    n_train = 6
+    n_train = 7 # 6
     al_gp = GP_al_trainer
     # gp_evaluator = GP_avg
   []
@@ -128,12 +128,13 @@
 
 [Executioner]
   type = Transient
-  num_steps = 200 # 12 # 6 # 
+  num_steps = 2000 
 []
 
 [Outputs]
   # execute_on = timestep_end
   perf_graph = true
+  file_base = 'AL_4000_3proc_2row'
   [out]
     type = JSON
     execute_system_information_on = none
