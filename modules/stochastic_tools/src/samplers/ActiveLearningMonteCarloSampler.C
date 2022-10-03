@@ -55,28 +55,6 @@ ActiveLearningMonteCarloSampler::ActiveLearningMonteCarloSampler(const InputPara
   _allowed_gp_fails = getParam<dof_id_type>("num_rows");
 }
 
-// Real
-// ActiveLearningMonteCarloSampler::computeSample(dof_id_type row_index, dof_id_type col_index)
-// {
-//   if (col_index == 0 && _step > 0 && _check_step != _step)
-//     {
-//       for (dof_id_type i = 0; i < getParam<dof_id_type>("num_rows"); ++i)
-//       {
-//         if (_flag_sample[i] == false)
-//         {
-//           for (dof_id_type j = 0; j < _distributions.size(); ++j)
-//             _inputs_sto[i][j] = _distributions[j]->quantile(getRand(_step));
-//         }
-//       }
-//     } else if (_step == 0)
-//     {
-//       for (dof_id_type j = 0; j < _distributions.size(); ++j)
-//         _inputs_sto[row_index][j] = _distributions[j]->quantile(getRand(_step));
-//     }
-//   _check_step = _step;
-//   return _inputs_sto[row_index][col_index];
-// }
-
 Real
 ActiveLearningMonteCarloSampler::computeSample(dof_id_type row_index, dof_id_type col_index)
 {
@@ -105,5 +83,4 @@ ActiveLearningMonteCarloSampler::computeSample(dof_id_type row_index, dof_id_typ
   }
   else
     return _inputs_sto[row_index][col_index];
-  // return; //  _inputs_sto[row_index][col_index]
 }

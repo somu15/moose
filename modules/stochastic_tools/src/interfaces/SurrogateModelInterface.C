@@ -61,17 +61,3 @@ SurrogateModelInterface::getSurrogateTrainer(const std::string & name) const
 {
   return getSurrogateTrainerByName<SurrogateTrainerBase>(_smi_params.get<UserObjectName>(name));
 }
-
-template <>
-SurrogateTrainerBase &
-SurrogateModelInterface::getActiveLearningGPTrainerByName(const UserObjectName & name) const
-{
-  return _smi_feproblem.getUserObject<SurrogateTrainerBase>(name);
-}
-
-template <>
-SurrogateTrainerBase &
-SurrogateModelInterface::getActiveLearningGPTrainer(const std::string & name) const
-{
-  return getActiveLearningGPTrainerByName<SurrogateTrainerBase>(_smi_params.get<UserObjectName>(name));
-}

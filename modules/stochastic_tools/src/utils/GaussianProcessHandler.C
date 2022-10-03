@@ -23,6 +23,23 @@
 
 namespace StochasticTools
 {
+
+GaussianProcessHandler::GPOptimizerOptions::GPOptimizerOptions(
+    const MooseEnum & inp_opt_type,
+    const std::string & inp_tao_options,
+    const bool inp_show_optimization_details,
+    const unsigned int inp_iter_adam,
+    const unsigned int inp_batch_size,
+    const Real inp_learning_rate_adam)
+  : opt_type(inp_opt_type),
+    tao_options(inp_tao_options),
+    show_optimization_details(inp_show_optimization_details),
+    iter_adam(inp_iter_adam),
+    batch_size(inp_batch_size),
+    learning_rate_adam(inp_learning_rate_adam)
+{
+}
+
 GaussianProcessHandler::GaussianProcessHandler() : _tao_comm(MPI_COMM_SELF) {}
 
 void
@@ -45,27 +62,33 @@ GaussianProcessHandler::linkCovarianceFunction(CovarianceFunctionBase * covarian
 void
 GaussianProcessHandler::setupCovarianceMatrix(const RealEigenMatrix & training_params,
                                               const RealEigenMatrix & training_data,
-                                              MooseEnum opt_type,
-                                              std::string tao_options,
-                                              bool show_tao_adam,
-                                              unsigned int iter_adam,
-                                              const unsigned int & batch_size,
-                                              const Real & learning_rate_adam)
+                                              const GPOptimizerOptions & opts)
 {
-  if (batch_size > 0)
-    _K.resize(batch_size, batch_size);
-  else
-    _K.resize(training_params.rows(), training_params.rows());
-
-  // This already accounts for future addition of an Adam optimizer
-  if (opt_type == "tao")
+  unsigned int batch_size;
+  if (opts.batch_size > 0)
   {
-    if (tuneHyperParamsTAO(training_params, training_data, tao_options, show_tao_adam))
+    _K.resize(opts.batch_size, opts.batch_size);
+    batch_size = opts.batch_size;
+  }
+  else
+  {
+    _K.resize(training_params.rows(), training_params.rows());
+    batch_size = training_params.rows();
+  }
+
+  if (opts.opt_type == "tao")
+  {
+    if (tuneHyperParamsTAO(
+            training_params, training_data, opts.tao_options, opts.show_optimization_details))
       ::mooseError("PETSc/TAO error in hyperparameter tuning.");
   }
-  else if (opt_type == "adam")
-    tuneHyperParamsAdam(
-        training_params, training_data, iter_adam, batch_size, learning_rate_adam, show_tao_adam);
+  else if (opts.opt_type == "adam")
+    tuneHyperParamsAdam(training_params,
+                        training_data,
+                        opts.iter_adam,
+                        batch_size,
+                        opts.learning_rate_adam,
+                        opts.show_optimization_details);
 
   _K.resize(training_params.rows(), training_params.rows());
   _covariance_function->computeCovarianceMatrix(_K, training_params, training_params, true);
@@ -138,7 +161,7 @@ PetscErrorCode
 GaussianProcessHandler::tuneHyperParamsTAO(const RealEigenMatrix & training_params,
                                            const RealEigenMatrix & training_data,
                                            std::string tao_options,
-                                           bool show_tao_adam)
+                                           bool show_optimization_details)
 {
   PetscErrorCode ierr;
   Tao tao;
@@ -179,7 +202,7 @@ GaussianProcessHandler::tuneHyperParamsTAO(const RealEigenMatrix & training_para
   ierr = TaoSolve(tao);
   CHKERRQ(ierr);
   //
-  if (show_tao_adam)
+  if (show_optimization_details)
   {
     ierr = TaoView(tao, PETSC_VIEWER_STDOUT_WORLD);
     theta.print();
@@ -266,7 +289,7 @@ GaussianProcessHandler::tuneHyperParamsAdam(const RealEigenMatrix & training_par
                                             unsigned int iter,
                                             const unsigned int & batch_size,
                                             const Real & learning_rate,
-                                            const bool & show_tao_adam)
+                                            const bool & show_optimization_details)
 {
   libMesh::PetscVector<Number> theta(_tao_comm, _num_tunable);
   _batch_size = batch_size;
@@ -279,13 +302,9 @@ GaussianProcessHandler::tuneHyperParamsAdam(const RealEigenMatrix & training_par
   b1 = 0.9;
   b2 = 0.999;
   eps = 1e-7;
-  std::vector<Real> m0;
-  std::vector<Real> v0;
-  for (unsigned int ii = 0; ii < _num_tunable; ++ii)
-  {
-    m0.push_back(0.0);
-    v0.push_back(0.0);
-  }
+  std::vector<Real> m0(_num_tunable, 0.0);
+  std::vector<Real> v0(_num_tunable, 0.0);
+
   Real new_val;
   Real m_hat;
   Real v_hat;
@@ -297,7 +316,7 @@ GaussianProcessHandler::tuneHyperParamsAdam(const RealEigenMatrix & training_par
   std::iota(std::begin(v_sequence), std::end(v_sequence), 0);
   RealEigenMatrix inputs(_batch_size, training_params.cols());
   RealEigenMatrix outputs(_batch_size, 1);
-  if (show_tao_adam)
+  if (show_optimization_details)
     Moose::out << "OPTIMIZING GP HYPER-PARAMETERS USING Adam" << std::endl;
   for (unsigned int ss = 0; ss < iter; ++ss)
   {
@@ -314,7 +333,7 @@ GaussianProcessHandler::tuneHyperParamsAdam(const RealEigenMatrix & training_par
     }
 
     store_loss = getLossAdam(inputs, outputs);
-    if (show_tao_adam && ss == 0)
+    if (show_optimization_details && ss == 0)
       Moose::out << "INITIAL LOSS: " << store_loss << std::endl;
     grad1 = getGradientAdam(inputs);
     for (unsigned int ii = 0; ii < _num_tunable; ++ii)
@@ -331,7 +350,7 @@ GaussianProcessHandler::tuneHyperParamsAdam(const RealEigenMatrix & training_par
     petscVecToMap(_tuning_data, _hyperparam_map, _hyperparam_vec_map, theta);
     _covariance_function->loadHyperParamMap(_hyperparam_map, _hyperparam_vec_map);
   }
-  if (show_tao_adam)
+  if (show_optimization_details)
   {
     Moose::out << "OPTIMIZED GP HYPER-PARAMETERS:" << std::endl;
     theta.print();
@@ -375,9 +394,7 @@ GaussianProcessHandler::getGradientAdam(RealEigenMatrix & inputs)
         ++count;
       }
       else
-      {
         grad_vec[0] = grad1;
-      }
     }
   }
   return grad_vec;

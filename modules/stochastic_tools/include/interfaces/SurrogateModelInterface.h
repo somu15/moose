@@ -124,25 +124,3 @@ SurrogateModelInterface::getSurrogateTrainerByName(const UserObjectName & name) 
                "' for the desired type.");
   return *obj_ptr;
 }
-
-template <typename T>
-T &
-SurrogateModelInterface::getActiveLearningGPTrainer(const std::string & name) const
-{
-  return getActiveLearningGPTrainerByName<T>(_smi_params.get<UserObjectName>(name));
-}
-
-template <typename T>
-T &
-SurrogateModelInterface::getActiveLearningGPTrainerByName(const UserObjectName & name) const
-{
-  SurrogateTrainerBase * base_ptr =
-      &_smi_feproblem.getUserObject<SurrogateTrainerBase>(name, _smi_tid);
-  T * obj_ptr = dynamic_cast<T *>(base_ptr);
-  if (!obj_ptr)
-    mooseError("Failed to find a getActiveLearningGPTrainer object of type " + std::string(typeid(T).name()) +
-                   " with the name '",
-               name,
-               "' for the desired type.");
-  return *obj_ptr;
-}

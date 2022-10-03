@@ -34,11 +34,16 @@ ActiveLearningGaussianProcess::validParams()
   params.addParam<MooseEnum>(
       "tuning_algorithm", tuning_type, "Hyper parameter optimizaton algorithm");
   params.addParam<unsigned int>("iter_adam", 1000, "Tolerance value for Adam optimization");
-  params.addParam<unsigned int>("batch_size", "The batch size for Adam optimization");
+  params.addParam<unsigned int>("batch_size", 0, "The batch size for Adam optimization");
   params.addParam<Real>("learning_rate_adam", 0.001, "The learning rate for Adam optimization");
-  params.addParam<bool>("show_adam", "Switch to show Adam solver results");
+  params.addParam<std::string>(
+      "tao_options", "", "Command line options for PETSc/TAO hyperparameter optimization");
+  params.addParam<bool>(
+      "show_optimization_details", false, "Switch to show TAO or Adam solver results");
   params.addParam<std::vector<std::string>>("tune_parameters",
                                             "Select hyperparameters to be tuned");
+  params.addParam<std::vector<Real>>("tuning_min", "Minimum allowable tuning value");
+  params.addParam<std::vector<Real>>("tuning_max", "Maximum allowable tuning value");
   return params;
 }
 
@@ -50,10 +55,13 @@ ActiveLearningGaussianProcess::ActiveLearningGaussianProcess(const InputParamete
     _training_params(declareModelData<RealEigenMatrix>("_training_params")),
     _standardize_params(getParam<bool>("standardize_params")),
     _standardize_data(getParam<bool>("standardize_data")),
-    _tuning_algorithm(getParam<MooseEnum>("tuning_algorithm")),
-    _iter_adam(getParam<unsigned int>("iter_adam")),
-    _batch_size(isParamValid("batch_size") ? getParam<unsigned int>("batch_size") : 0),
-    _learning_rate_adam(getParam<Real>("learning_rate_adam"))
+    _optimization_opts(StochasticTools::GaussianProcessHandler::GPOptimizerOptions(
+        getParam<MooseEnum>("tuning_algorithm"),
+        getParam<std::string>("tao_options"),
+        getParam<bool>("show_optimization_details"),
+        getParam<unsigned int>("iter_adam"),
+        getParam<unsigned int>("batch_size"),
+        getParam<Real>("learning_rate_adam")))
 {
 
   // Error Checking
@@ -113,56 +121,49 @@ ActiveLearningGaussianProcess::reTrain(const std::vector<std::vector<Real>> & in
   else
     _gp_handler.dataStandardizer().set(0, 1, inputs.size());
 
-  _gp_handler.setupCovarianceMatrix(
-            _training_params,
-            _training_data,
-            _tuning_algorithm,
-            "",
-            true,
-            _iter_adam,
-            outputs.size(),
-            _learning_rate_adam);
+  // Setup the covariance
+  _gp_handler.setupCovarianceMatrix(_training_params, _training_data, _optimization_opts);
 }
 
-std::vector<Real> 
-ActiveLearningGaussianProcess::reEvaluate(const std::vector<Real> & x) const
-{
+// std::vector<Real> 
+// ActiveLearningGaussianProcess::reEvaluate(const std::vector<Real> & x) const
+// {
 
-  unsigned int _n_params = _training_params.cols();
-  unsigned int _num_tests = 1;
+//   unsigned int _n_params = _training_params.cols();
+//   unsigned int _num_tests = 1;
 
-  mooseAssert(x.size() == _n_params,
-              "Number of parameters provided for evaluation does not match number of parameters "
-              "used for training.");
+//   mooseAssert(x.size() == _n_params,
+//               "Number of parameters provided for evaluation does not match number of parameters "
+//               "used for training.");
 
-  RealEigenMatrix test_points(_num_tests, _n_params);
-  for (unsigned int ii = 0; ii < _n_params; ++ii)
-    test_points(0, ii) = x[ii];
+//   RealEigenMatrix test_points(_num_tests, _n_params);
+//   for (unsigned int ii = 0; ii < _n_params; ++ii)
+//     test_points(0, ii) = x[ii];
 
-  _gp_handler.getParamStandardizer().getStandardized(test_points);
+//   _gp_handler.getParamStandardizer().getStandardized(test_points);
 
-  RealEigenMatrix K_train_test(_training_params.rows(), test_points.rows());
-  _gp_handler.getCovarFunction().computeCovarianceMatrix(
-      K_train_test, _training_params, test_points, false);
-  RealEigenMatrix K_test(test_points.rows(), test_points.rows());
-  _gp_handler.getCovarFunction().computeCovarianceMatrix(K_test, test_points, test_points, true);
+//   RealEigenMatrix K_train_test(_training_params.rows(), test_points.rows());
+//   _gp_handler.getCovarFunction().computeCovarianceMatrix(
+//       K_train_test, _training_params, test_points, false);
+//   RealEigenMatrix K_test(test_points.rows(), test_points.rows());
+//   _gp_handler.getCovarFunction().computeCovarianceMatrix(K_test, test_points, test_points, true);
 
-  // Compute the predicted mean value (centered)
-  RealEigenMatrix pred_value = (K_train_test.transpose() * _gp_handler.getKResultsSolve());
-  // De-center/scale the value and store for return
-  _gp_handler.getDataStandardizer().getDestandardized(pred_value);
+//   // Compute the predicted mean value (centered)
+//   RealEigenMatrix pred_value = (K_train_test.transpose() * _gp_handler.getKResultsSolve());
+//   // De-center/scale the value and store for return
+//   _gp_handler.getDataStandardizer().getDestandardized(pred_value);
 
-  RealEigenMatrix pred_var =
-      K_test - (K_train_test.transpose() * _gp_handler.getKCholeskyDecomp().solve(K_train_test));
+//   RealEigenMatrix pred_var =
+//       K_test - (K_train_test.transpose() * _gp_handler.getKCholeskyDecomp().solve(K_train_test));
 
-  // Vairance computed, take sqrt for standard deviation, scale up by training data std and store
-  RealEigenMatrix std_dev_mat = pred_var.array().sqrt();
-  _gp_handler.getDataStandardizer().getDescaled(std_dev_mat);
+//   // Vairance computed, take sqrt for standard deviation, scale up by training data std and store
+//   RealEigenMatrix std_dev_mat = pred_var.array().sqrt();
+//   _gp_handler.getDataStandardizer().getDescaled(std_dev_mat);
 
-  std::vector<Real> results;
-  results.resize(2);
-  results[0] = pred_value(0, 0);
-  results[1] = std_dev_mat(0, 0);
+//   std::vector<Real> results;
+//   results.resize(2);
+//   results[0] = pred_value(0, 0);
+//   results[1] = std_dev_mat(0, 0);
 
-  return results;
-}
+//   return results;
+// }

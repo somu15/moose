@@ -21,8 +21,8 @@ ActiveLearningGPDecision::validParams()
   InputParameters params = ActiveLearningReporterTempl<Real>::validParams();
   params.addClassDescription("Evaluates parsed function to determine if sample needs to be "
                              "evaluated, otherwise data is set to a default value.");
-  params.addRequiredParam<UserObjectName>("al_gp",
-                                          "The name of the fluid properties object to query.");
+  params.addRequiredParam<UserObjectName>("al_gp", "Active learning GP trainer.");
+  params.addRequiredParam<UserObjectName>("gp_evaluator", "Evaluate the trained GP.");
   params.addRequiredParam<SamplerName>("sampler", "The sampler object.");
   params.addParam<ReporterValueName>("flag_sample", "flag_sample", "Flag samples.");
   params.addRequiredParam<int>("n_train", "Number of training steps.");
@@ -38,6 +38,8 @@ ActiveLearningGPDecision::ActiveLearningGPDecision(
   SurrogateModelInterface(this),
   _step(getCheckedPointerParam<FEProblemBase *>("_fe_problem_base")->timeStep()),
   _al_gp(&getUserObject<ActiveLearningGaussianProcess>("al_gp")),
+  // _al_gp(&getSurrogateTrainer<ActiveLearningGaussianProcess>("al_gp")),
+  // _gp_evaluator(&getSurrogateModel<GaussianProcess>("gp_evaluator")),
   _sampler(getSampler("sampler")),
   _flag_sample(declareValue<std::vector<bool>>("flag_sample")),
   _n_train(getParam<int>("n_train")),
@@ -214,6 +216,7 @@ ActiveLearningGPDecision::needSample(const std::vector<Real> & row,
                                               Real & val)
 {
   std::vector<Real> result;
+  result.resize(2);
   std::vector<Real> output1;
   std::vector<Real> gp_mean1;
   std::vector<Real> gp_std1;
@@ -249,7 +252,7 @@ ActiveLearningGPDecision::needSample(const std::vector<Real> & row,
       // std::cout << "Outputs " << Moose::stringify(_outputs_sto) << std::endl;
       if (local_ind == 0)
         _al_gp->reTrain(_inputs_sto, _outputs_sto);
-      result = _al_gp->reEvaluate(row);
+      result[0] = getSurrogateModel<GaussianProcess>("gp_evaluator").evaluate(row, result[1]); // _gp_evaluator->evaluate(row, result[1]);
       std::cout << Moose::stringify(result) << std::endl;
       val = result[0];
       // _gp_mean[local_ind] = result[0];
@@ -299,7 +302,7 @@ ActiveLearningGPDecision::needSample(const std::vector<Real> & row,
       _al_gp->reTrain(_inputs_sto, _outputs_sto);
       _track_gp_fails = 0;
     }
-    result = _al_gp->reEvaluate(row);
+    result[0] = getSurrogateModel<GaussianProcess>("gp_evaluator").evaluate(row, result[1]); // _gp_evaluator->evaluate(row, result[1]);
     std::cout << Moose::stringify(result) << std::endl;
     // _gp_mean[local_ind] = result[0];
     // _gp_std[local_ind] = _flag_sample[local_ind] == true ? 0.0 : result[1]; // result[1];
