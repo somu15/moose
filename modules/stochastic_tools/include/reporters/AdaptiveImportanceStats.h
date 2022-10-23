@@ -11,6 +11,7 @@
 
 #include "GeneralReporter.h"
 #include "AdaptiveImportanceSampler.h"
+#include "AdaptiveImportanceSamplerActiveLearning.h"
 
 /**
  * AdaptiveImportanceStats will help make sample accept/reject decisions in adaptive Monte Carlo
@@ -41,12 +42,21 @@ protected:
   /// Coefficient of variation of failure probability
   std::vector<Real> & _cov_pf;
 
+  /// Flag samples if the surrogate prediction was inadequate
+  const std::vector<bool> * _flag_sample;
+
 private:
   /// Track the current step of the main App
   const int & _step;
 
+  /// The sampler
+  Sampler & _sampler;
+
   /// Adaptive Importance Sampler
-  AdaptiveImportanceSampler & _ais;
+  const AdaptiveImportanceSampler * const _ais;
+
+  // Adaptive Importance Sampler with Active Learning
+  const AdaptiveImportanceSamplerActiveLearning * const _ais_al;
 
   /// Ensure that the MCMC algorithm proceeds in a sequential fashion
   int _check_step;
@@ -62,4 +72,19 @@ private:
 
   /// Storage for the standard deviation factor over the importance distribution
   Real _factor;
+  
+  /// Storage to whether or not to use an absolute value of the outputs
+  bool _abs_value;
+
+  /// Storage to for the user-specified output limit
+  Real _output_lim;
+
+  /// Storage to for the input values vector
+  std::vector<Real> _input1;
+
+  /// Storage to for the number of input parameters to the model
+  unsigned int _num_cols;
+
+  /// Storage to for the number of training samples for adaptive importance sampling
+  int _train_samples;
 };

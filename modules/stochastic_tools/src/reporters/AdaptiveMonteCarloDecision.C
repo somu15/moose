@@ -29,16 +29,18 @@ AdaptiveMonteCarloDecision::validParams()
       "Modified value of the model output from this reporter class.");
   params.addParam<ReporterValueName>("inputs", "inputs", "Uncertain inputs to the model.");
   params.addRequiredParam<SamplerName>("sampler", "The sampler object.");
+  params.addParam<UserObjectName>("gp_decision", "The GP decision reporter.");
   return params;
 }
 
 AdaptiveMonteCarloDecision::AdaptiveMonteCarloDecision(const InputParameters & parameters)
   : GeneralReporter(parameters),
-    _output_value(getReporterValue<std::vector<Real>>("output_value", REPORTER_MODE_DISTRIBUTED)),
+    _output_value(isParamValid("gp_decision") ? getReporterValue<std::vector<Real>>("output_value") : getReporterValue<std::vector<Real>>("output_value", REPORTER_MODE_DISTRIBUTED)),
     _output_required(declareValue<std::vector<Real>>("output_required")),
     _inputs(declareValue<std::vector<std::vector<Real>>>("inputs")),
     _step(getCheckedPointerParam<FEProblemBase *>("_fe_problem_base")->timeStep()),
     _sampler(getSampler("sampler")),
+    _gp_decision(isParamValid("gp_decision") ? &getUserObject<ActiveLearningGPDecision>("gp_decision") : nullptr),
     _ais(dynamic_cast<const AdaptiveImportanceSampler *>(&_sampler)),
     _pss(dynamic_cast<const ParallelSubsetSimulation *>(&_sampler)),
     _check_step(std::numeric_limits<int>::max())
@@ -90,7 +92,16 @@ AdaptiveMonteCarloDecision::execute()
   if (_ais)
   {
     const Real tmp = _ais->getUseAbsoluteValue() ? std::abs(_output_value[0]) : _output_value[0];
-    const bool output_limit_reached = tmp >= _output_limit;
+    bool output_limit_reached;
+    if (isParamValid("gp_decision"))
+    {
+      if (_step <= _gp_decision->getTrainingSamples())
+        output_limit_reached = 1;
+      else
+        output_limit_reached = tmp >= _output_limit;
+    }
+    else
+      output_limit_reached = tmp >= _output_limit;
     _output_required[0] = output_limit_reached ? 1.0 : 0.0;
     if (_step <= _ais->getNumSamplesTrain())
     {

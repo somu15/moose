@@ -83,6 +83,12 @@ ActiveLearningGPDecision::ActiveLearningGPDecision(const InputParameters & param
   }
 }
 
+const int &
+ActiveLearningGPDecision::getTrainingSamples() const
+{
+  return _n_train;
+}
+
 bool
 ActiveLearningGPDecision::learningFunction(const Real & gp_mean,
                                            const Real & gp_std,
@@ -139,6 +145,7 @@ ActiveLearningGPDecision::needSample(const std::vector<Real> & row,
         _outputs_sto.push_back(_output_comm[ss]);
         for (unsigned int k = 0; k < _sampler.getNumberOfCols(); ++k)
           _inputs_sto[k].push_back(_inputs_prev[ss][k]);
+        _gp_mean[ss] = _output_comm[ss];
       }
     }
     if (_step == _n_train) // Once training data is generated, train the GP

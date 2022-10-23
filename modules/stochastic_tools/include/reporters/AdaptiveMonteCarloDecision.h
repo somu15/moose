@@ -12,6 +12,7 @@
 #include "GeneralReporter.h"
 #include "AdaptiveImportanceSampler.h"
 #include "ParallelSubsetSimulation.h"
+#include "ActiveLearningGPDecision.h"
 
 /**
  * AdaptiveMonteCarloDecision will help make sample accept/reject decisions in adaptive Monte Carlo
@@ -42,6 +43,9 @@ private:
 
   /// The adaptive Monte Carlo sampler
   Sampler & _sampler;
+
+  /// The GP decision reporter
+  const ActiveLearningGPDecision * _gp_decision;
 
   /// Adaptive Importance Sampler
   const AdaptiveImportanceSampler * const _ais;

@@ -21,6 +21,9 @@ public:
   static InputParameters validParams();
   ActiveLearningGPDecision(const InputParameters & parameters);
 
+  /// Access the number of GP training samples
+  const int & getTrainingSamples() const;
+
 protected:
   /**
    * This evaluates the inputted function to determine whether a multiapp solve is

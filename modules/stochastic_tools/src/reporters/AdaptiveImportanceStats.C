@@ -29,69 +29,98 @@ AdaptiveImportanceStats::validParams()
   params.addParam<ReporterValueName>("pf", "pf", "Failure probability estimate.");
   params.addParam<ReporterValueName>(
       "cov_pf", "cov_pf", "Coefficient of variation of failure probability.");
+  params.addParam<ReporterName>("flag_sample",
+                                        "Flag samples if the surrogate prediction was inadequate.");
   params.addRequiredParam<SamplerName>("sampler", "The sampler object.");
   return params;
 }
 
 AdaptiveImportanceStats::AdaptiveImportanceStats(const InputParameters & parameters)
   : GeneralReporter(parameters),
-    _output_value(getReporterValue<std::vector<Real>>("output_value", REPORTER_MODE_DISTRIBUTED)),
+    _output_value(isParamValid("flag_sample") ? getReporterValue<std::vector<Real>>("output_value") : getReporterValue<std::vector<Real>>("output_value", REPORTER_MODE_DISTRIBUTED)),
     _mu_imp(declareValue<std::vector<Real>>("mu_imp")),
     _std_imp(declareValue<std::vector<Real>>("std_imp")),
     _pf(declareValue<std::vector<Real>>("pf")),
     _cov_pf(declareValue<std::vector<Real>>("cov_pf")),
+    _flag_sample(isParamValid("flag_sample") ? &getReporterValue<std::vector<bool>>("flag_sample") : nullptr),
     _step(getCheckedPointerParam<FEProblemBase *>("_fe_problem_base")->timeStep()),
-    _ais(getSampler<AdaptiveImportanceSampler>("sampler")),
+    _sampler(getSampler("sampler")),
+    _ais(dynamic_cast<const AdaptiveImportanceSampler *>(&_sampler)),
+    _ais_al(dynamic_cast<const AdaptiveImportanceSamplerActiveLearning *>(&_sampler)),
     _check_step(std::numeric_limits<int>::max())
 {
+  if (!_ais && !_ais_al)
+    paramError("sampler", "The selected sampler is not an adaptive importance sampler.");
+  
+  if (_ais && isParamValid("flag_sample"))
+    paramError("flag_sample", "flag_sample reporter should not be specified with the adaptive importance sampler.");
+
+  if (_ais_al && !isParamValid("flag_sample"))
+    paramError("flag_sample", "flag_sample reporter should be specified with the adaptive importance sampler with active learning.");
+
   // Initialize variables
-  const auto rows = _ais.getNumberOfRows();
+  const auto rows = isParamValid("flag_sample") ? _ais_al->getNumberOfRows() : _ais->getNumberOfRows();
   _mu_imp.resize(rows);
   _std_imp.resize(rows);
   _pf.resize(1);
   _cov_pf.resize(1);
   _pf_sum = 0.0;
   _var_sum = 0.0;
-  _distributions_store = _ais.getDistributionNames();
-  _factor = _ais.getStdFactor();
+  _distributions_store = isParamValid("flag_sample") ? _ais_al->getDistributionNames() : _ais->getDistributionNames();
+  _factor = isParamValid("flag_sample") ? _ais_al->getStdFactor() : _ais->getStdFactor();
+  _train_samples = isParamValid("flag_sample") ? _ais_al->getNumSamplesTrain() : _ais->getNumSamplesTrain();
+  _abs_value = isParamValid("flag_sample") ? _ais_al->getUseAbsoluteValue() : _ais->getUseAbsoluteValue();
+  _output_lim = isParamValid("flag_sample") ? _ais_al->getOutputLimit() : _ais->getOutputLimit();
+  _num_cols = isParamValid("flag_sample") ? _ais_al->getNumberOfCols() : _ais->getNumberOfCols();
 }
 
 void
 AdaptiveImportanceStats::execute()
 {
-  if (_ais.getNumberOfLocalRows() == 0 || _check_step == _step)
+  auto local_rows = isParamValid("flag_sample") ? _ais_al->getNumberOfLocalRows() : _ais->getNumberOfLocalRows();
+  if (local_rows == 0 || _check_step == _step)
   {
     _check_step = _step;
     return;
   }
 
+  bool using_gp = isParamValid("flag_sample") ? (*_flag_sample)[0] : false;
   // Compute AdaptiveImportanceSampler statistics at each sample during the evaluation phase only.
-  if (_step > _ais.getNumSamplesTrain())
+  if (_step > _train_samples && using_gp == false)
   {
     // Get the statistics of the importance distributions in the standard Normal space.
-    _mu_imp = _ais.getImportanceVectorMean();
-    _std_imp = _ais.getImportanceVectorStd();
+    if (!isParamValid("flag_sample"))
+    {
+      _mu_imp = _ais->getImportanceVectorMean();
+      _std_imp = _ais->getImportanceVectorStd();
+      _input1 = _sampler.getNextLocalRow();
+    }
+    else
+    {
+      _mu_imp = _ais_al->getImportanceVectorMean();
+      _std_imp = _ais_al->getImportanceVectorStd();
+      _input1 = _sampler.getNextLocalRow();
+    }
 
     // Get the failure probability estimate.
-    const Real tmp = _ais.getUseAbsoluteValue() ? std::abs(_output_value[0]) : _output_value[0];
-    const bool output_limit_reached = tmp >= _ais.getOutputLimit();
+    const Real tmp = _abs_value ? std::abs(_output_value[0]) : _output_value[0];
+    const bool output_limit_reached = tmp >= _output_lim;
     Real prod1 = output_limit_reached ? 1.0 : 0.0;
-    std::vector<Real> input1 = _ais.getNextLocalRow();
     Real input_tmp = 0.0;
-    for (dof_id_type ss = 0; ss < _ais.getNumberOfCols(); ++ss)
+    for (dof_id_type ss = 0; ss < _num_cols; ++ss)
     {
-      input_tmp = Normal::quantile(_distributions_store[ss]->cdf(input1[ss]), 0.0, 1.0);
+      input_tmp = Normal::quantile(_distributions_store[ss]->cdf(_input1[ss]), 0.0, 1.0);
       prod1 = prod1 * (Normal::pdf(input_tmp, 0.0, 1.0) /
                        Normal::pdf(input_tmp, _mu_imp[ss], _factor * _std_imp[ss]));
     }
     _pf_sum += prod1;
     _var_sum += Utility::pow<2>(prod1);
-    _pf[0] = _pf_sum / (_step - _ais.getNumSamplesTrain());
+    _pf[0] = _pf_sum / (_step - _train_samples);
 
     // Get coefficient of variation of failure probability.
     Real tmp_var =
-        std::sqrt(1.0 / (_step - _ais.getNumSamplesTrain()) *
-                  (_var_sum / (_step - _ais.getNumSamplesTrain()) - Utility::pow<2>(_pf[0])));
+        std::sqrt(1.0 / (_step - _train_samples) *
+                  (_var_sum / (_step - _train_samples) - Utility::pow<2>(_pf[0])));
     _cov_pf[0] = tmp_var / _pf[0];
   }
 }
