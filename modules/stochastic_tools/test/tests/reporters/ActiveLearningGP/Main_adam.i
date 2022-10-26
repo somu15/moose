@@ -22,7 +22,7 @@
 [Samplers]
   [mc]
     type = ActiveLearningMonteCarloSampler
-    num_batch = 1
+    num_batch = 4
     distributions = 'k_dist q_dist Tinf_dist'
     flag_sample = 'conditional/flag_sample'
     seed = 5
@@ -72,9 +72,9 @@
     n_train = 7
     al_gp = GP_al_trainer
     gp_evaluator = GP_eval
-    learning_function='Ufunction'
-    learning_function_parameter = 349.345
-    learning_function_threshold=2.0
+    learning_function='COV'
+    # learning_function_parameter = 349.345
+    learning_function_threshold=0.005
   []
 []
 
@@ -110,12 +110,12 @@
 
 [Executioner]
   type = Transient
-  num_steps = 20
+  num_steps = 17
 []
 
 [Outputs]
   # perf_graph = true
-  file_base = 'SingleProcSingleRow_Ufunction'
+  file_base = 'test1_cov'
   [out]
     type = JSON
     execute_system_information_on = none

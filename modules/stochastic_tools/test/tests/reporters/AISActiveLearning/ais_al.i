@@ -20,7 +20,7 @@
     distributions = 'mu1 mu2'
     proposal_std = '1.0 1.0'
     output_limit = 0.65
-    num_samples_train = 100
+    num_samples_train = 200
     std_factor = 0.9
     initial_values = '-0.103 1.239'
     inputs_reporter = 'adaptive_MC/inputs'
@@ -122,11 +122,11 @@
 
 [Executioner]
   type = Transient
-  num_steps = 110
+  num_steps = 1000
 []
 
 [Outputs]
-    file_base = 'aisal_class_test3'
+    file_base = 'fix_bug1'
   [out]
     type = JSON
     execute_system_information_on = NONE

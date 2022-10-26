@@ -66,48 +66,48 @@ AdaptiveImportanceSamplerActiveLearning::computeSample(dof_id_type /*row_index*/
   {
     if (_step <= _num_samples_train)
     {
-        /* This is the importance distribution training step. Markov Chains are set up
-        to sample from the importance region or the failure region using the Metropolis
-        algorithm. Given that the previous sample resulted in a model failure, the next
-        sample is proposed such that it is very likely to result in a model failure as well.
-        The `initial_values` and `proposal_std` parameters provided by the user affects the
-        formation of the importance distribution. */
-        if (sample)
-        {
+      /* This is the importance distribution training step. Markov Chains are set up
+      to sample from the importance region or the failure region using the Metropolis
+      algorithm. Given that the previous sample resulted in a model failure, the next
+      sample is proposed such that it is very likely to result in a model failure as well.
+      The `initial_values` and `proposal_std` parameters provided by the user affects the
+      formation of the importance distribution. */
+      if (sample)
+      {
         for (dof_id_type j = 0; j < _distributions.size(); ++j)
-            _prev_value[j] = Normal::quantile(_distributions[j]->cdf(_inputs[j][0]), 0.0, 1.0);
+          _prev_value[j] = Normal::quantile(_distributions[j]->cdf(_inputs[j][0]), 0.0, 1.0);
         Real acceptance_ratio = 0.0;
         for (dof_id_type i = 0; i < _distributions.size(); ++i)
-            acceptance_ratio += std::log(Normal::pdf(_prev_value[i], 0.0, 1.0)) -
-                                std::log(Normal::pdf(_inputs_sto[i].back(), 0.0, 1.0));
+          acceptance_ratio += std::log(Normal::pdf(_prev_value[i], 0.0, 1.0)) -
+                              std::log(Normal::pdf(_inputs_sto[i].back(), 0.0, 1.0));
         if (acceptance_ratio > std::log(getRand(_step)))
         {
-            for (dof_id_type i = 0; i < _distributions.size(); ++i)
+          for (dof_id_type i = 0; i < _distributions.size(); ++i)
             _inputs_sto[i].push_back(_prev_value[i]);
         }
         else
         {
-            for (dof_id_type i = 0; i < _distributions.size(); ++i)
+          for (dof_id_type i = 0; i < _distributions.size(); ++i)
             _inputs_sto[i].push_back(_inputs_sto[i].back());
         }
         for (dof_id_type i = 0; i < _distributions.size(); ++i)
-            _prev_value[i] = Normal::quantile(getRand(_step), _inputs_sto[i].back(), _proposal_std[i]);
-        }
+          _prev_value[i] = Normal::quantile(getRand(_step), _inputs_sto[i].back(), _proposal_std[i]);
+      }
     }
     else if (sample)
     {
-        /* This is the importance sampling step using the importance distribution created
-        in the previous step. Once the importance distribution is known, sampling from
-        it is similar to a regular Monte Carlo sampling. */
-        for (dof_id_type i = 0; i < _distributions.size(); ++i)
-        {
+      /* This is the importance sampling step using the importance distribution created
+      in the previous step. Once the importance distribution is known, sampling from
+      it is similar to a regular Monte Carlo sampling. */
+      for (dof_id_type i = 0; i < _distributions.size(); ++i)
+      {
         if (_step == _num_samples_train + 1)
         {
-            _mean_sto[i] = AdaptiveMonteCarloUtils::computeMean(_inputs_sto[i], 1);
-            _std_sto[i] = AdaptiveMonteCarloUtils::computeSTD(_inputs_sto[i], 1);
+          _mean_sto[i] = AdaptiveMonteCarloUtils::computeMean(_inputs_sto[i], 1);
+          _std_sto[i] = AdaptiveMonteCarloUtils::computeSTD(_inputs_sto[i], 1);
         }
         _prev_value[i] = (Normal::quantile(getRand(_step), _mean_sto[i], _std_factor * _std_sto[i]));
-        }
+      }
     }
   }
   _check_step = _step;

@@ -49,14 +49,14 @@ AdaptiveImportanceStats::AdaptiveImportanceStats(const InputParameters & paramet
     _ais_al(dynamic_cast<const AdaptiveImportanceSamplerActiveLearning *>(&_sampler)),
     _check_step(std::numeric_limits<int>::max())
 {
-  if (!_ais && !_ais_al)
-    paramError("sampler", "The selected sampler is not an adaptive importance sampler.");
+  // if (!_ais && !_ais_al)
+  //   paramError("sampler", "The selected sampler is not an adaptive importance sampler.");
   
-  if (_ais && isParamValid("flag_sample"))
-    paramError("flag_sample", "flag_sample reporter should not be specified with the adaptive importance sampler.");
+  // if (_ais && isParamValid("flag_sample"))
+  //   paramError("flag_sample", "flag_sample reporter should not be specified with the adaptive importance sampler.");
 
-  if (_ais_al && !isParamValid("flag_sample"))
-    paramError("flag_sample", "flag_sample reporter should be specified with the adaptive importance sampler with active learning.");
+  // if (_ais_al && !isParamValid("flag_sample"))
+  //   paramError("flag_sample", "flag_sample reporter should be specified with the adaptive importance sampler with active learning.");
 
   // Initialize variables
   const auto rows = isParamValid("flag_sample") ? _ais_al->getNumberOfRows() : _ais->getNumberOfRows();
