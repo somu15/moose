@@ -74,7 +74,7 @@
     gp_evaluator = GP_eval
     learning_function='COV'
     # learning_function_parameter = 349.345
-    learning_function_threshold=0.005
+    learning_function_threshold=0.005 # 2.0 # 
   []
 []
 
@@ -88,7 +88,7 @@
     tuning_algorithm = 'adam'
     iter_adam = 1000
     learning_rate_adam = 0.005
-    # show_optimization_details = true
+    show_optimization_details = true
   []
 []
 
@@ -110,12 +110,12 @@
 
 [Executioner]
   type = Transient
-  num_steps = 17
+  num_steps = 500
 []
 
 [Outputs]
   # perf_graph = true
-  file_base = 'test1_cov'
+  file_base = 'codechanges_test1'
   [out]
     type = JSON
     execute_system_information_on = none

@@ -26,7 +26,7 @@
     inputs_reporter = 'adaptive_MC/inputs'
     use_absolute_value = true
     flag_sample = 'conditional/flag_sample'
-    seed = 1012
+    seed = 9874
   []
 []
 
@@ -71,9 +71,9 @@
     n_train = 12
     al_gp = GP_al_trainer
     gp_evaluator = GP_eval
-    learning_function='COV' # 'Ufunction'
-    # learning_function_parameter = 0.65
-    learning_function_threshold=0.05
+    learning_function='Ufunction' # 'COV' # 
+    learning_function_parameter = 0.65
+    learning_function_threshold=2.0 # 0.05
   []
   [adaptive_MC]
     type = AdaptiveMonteCarloDecision
@@ -126,7 +126,7 @@
 []
 
 [Outputs]
-    file_base = 'fix_bug1'
+    file_base = 'codechanges_test'
   [out]
     type = JSON
     execute_system_information_on = NONE

@@ -115,13 +115,218 @@ ActiveLearningGPDecision::learningFunction(const Real & gp_mean,
   return result;
 }
 
+// Working version:
+
+// bool
+// ActiveLearningGPDecision::needSample(const std::vector<Real> & row,
+//                                      dof_id_type local_ind,
+//                                      dof_id_type,
+//                                      Real & val)
+// {
+//   _gp_sto.resize(2);
+//   _output_comm.resize(1);
+//   _gp_mean_comm.resize(1);
+//   _gp_std_comm.resize(1);
+//   DenseMatrix<Real> inputs_comm(_sampler.getNumberOfRows(), _sampler.getNumberOfCols());
+//   // Storing all the inputs and outputs (required for each time step of the mainApp)
+//   for (dof_id_type ss = _sampler.getLocalRowBegin(); ss < _sampler.getLocalRowEnd(); ++ss)
+//   {
+//     const auto data = _sampler.getNextLocalRow();
+//     for (unsigned int j = 0; j < _sampler.getNumberOfCols(); ++j)
+//       inputs_comm(ss, j) = data[j];
+//   }
+//   _output_comm[local_ind] = val;
+//   _local_comm.sum(inputs_comm.get_values());
+//   _local_comm.allgather(_output_comm);
+//   if (_step <= _n_train) // Wait until all the training data is generated
+//   {
+//     if (_step > 2)
+//     {
+//       for (dof_id_type ss = 0; ss < _sampler.getNumberOfRows(); ++ss)
+//       {
+//         _outputs_sto.push_back(_output_comm[ss]);
+//         for (unsigned int k = 0; k < _sampler.getNumberOfCols(); ++k)
+//           _inputs_sto[k].push_back(_inputs_prev[ss][k]);
+//       }
+//     }
+//     if (_step == _n_train) // Once training data is generated, train the GP
+//     {
+//       if (local_ind == 0)
+//         _al_gp->reTrain(_inputs_sto, _outputs_sto);
+
+//       // Setting up variables and making decisions
+//       // @{
+//       _gp_sto[0] = getSurrogateModel<GaussianProcess>("gp_evaluator").evaluate(row, _gp_sto[1]);
+//       val = _gp_sto[0];
+//       bool lf_indicator = learningFunction(_gp_mean[local_ind],
+//                                            _gp_std[local_ind],
+//                                            _learning_function,
+//                                            *_learning_function_parameter,
+//                                            _learning_function_threshold);
+//       if (lf_indicator)
+//       {
+//         val = _gp_sto[0];
+//         _decision[local_ind] = false;
+//       }
+//       else
+//       {
+//         ++_track_gp_fails;
+//         _flag_sample[local_ind] = true;
+//       }
+//       _gp_mean_comm[local_ind] = _gp_sto[0];
+//       _gp_std_comm[local_ind] = _flag_sample[0] == true ? 0.0 : _gp_sto[1];
+//       _local_comm.allgather(_gp_mean_comm);
+//       _local_comm.allgather(_gp_std_comm);
+//       for (dof_id_type ss = 0; ss < _sampler.getNumberOfRows(); ++ss)
+//       {
+//         for (unsigned int j = 0; j < _sampler.getNumberOfCols(); ++j)
+//           _inputs[ss][j] = inputs_comm(ss, j);
+//         _gp_mean[ss] = _gp_mean_comm[ss];
+//         _gp_std[ss] = _gp_std_comm[ss];
+//       }
+//       // @}
+//       // Finished setting up variables and making decisions
+//     }
+//     // Start tracking the GP failures until a user-specified batch size is met
+//     if (_track_gp_fails >= _allowed_gp_fails)
+//     {
+//       for (unsigned int i = 0; i < _flag_sample.size(); ++i)
+//         _decision[i] = true;
+//     }
+//   }
+//   else // Training data generation and GP training completed. Active learning starts.
+//   {
+//     bool retrain = _track_gp_fails >= _allowed_gp_fails;
+//     // If the number of GP fails greater than user-specified batch size, retrain GP
+//     if (retrain)
+//     {
+//       for (dof_id_type ss = 0; ss < _sampler.getNumberOfRows(); ++ss)
+//       {
+//         _outputs_sto.push_back(_output_comm[ss]);
+//         for (unsigned int k = 0; k < _sampler.getNumberOfCols(); ++k)
+//           _inputs_sto[k].push_back(_inputs_prev[ss][k]);
+//       }
+//       std::cout << "Outputs " << Moose::stringify(_outputs_sto) << std::endl;
+//       std::cout << "Inputs 1 " << Moose::stringify(_inputs_sto[0]) << std::endl;
+//       std::cout << "Inputs 2 " << Moose::stringify(_inputs_sto[1]) << std::endl;
+//       std::cout << "Inputs 3 " << Moose::stringify(_inputs_sto[2]) << std::endl;
+//       _al_gp->reTrain(_inputs_sto, _outputs_sto);
+//       _track_gp_fails = 0;
+//     }
+
+//     // Setting up variables and making decisions
+//     // @{
+//     _gp_sto[0] = getSurrogateModel<GaussianProcess>("gp_evaluator").evaluate(row, _gp_sto[1]);
+//     _gp_sto[1] = retrain ? 0.0 : _gp_sto[1];
+//     bool lf_indicator = learningFunction(_gp_sto[0],
+//                                          _gp_sto[1],
+//                                          _learning_function,
+//                                          *_learning_function_parameter,
+//                                          _learning_function_threshold);
+//     if (_flag_sample[local_ind] == true)
+//       _flag_sample[local_ind] = false;
+//     if (lf_indicator)
+//     {
+//       val = _gp_sto[0];
+//       _decision[local_ind] = false;
+//     }
+//     else
+//     {
+//       ++_track_gp_fails;
+//       _flag_sample[local_ind] = true;
+//     }
+//     _gp_mean_comm[local_ind] = _gp_sto[0];
+//     _gp_std_comm[local_ind] = _flag_sample[0] == true ? 0.0 : _gp_sto[1];
+//     _local_comm.allgather(_gp_mean_comm);
+//     _local_comm.allgather(_gp_std_comm);
+//     for (dof_id_type ss = 0; ss < _sampler.getNumberOfRows(); ++ss)
+//     {
+//       for (unsigned int j = 0; j < _sampler.getNumberOfCols(); ++j)
+//         _inputs[ss][j] = inputs_comm(ss, j);
+//       _gp_mean[ss] = _gp_mean_comm[ss];
+//       _gp_std[ss] = _gp_std_comm[ss];
+//     }
+//     // @}
+//     // Finished setting up variables and making decisions
+
+//     // Start re-tracking the GP failures until a user-specified batch size is met
+//     if (_track_gp_fails >= _allowed_gp_fails)
+//     {
+//       for (unsigned int i = 0; i < _flag_sample.size(); ++i)
+//         _decision[i] = true;
+//     }
+//   }
+//   // Storage of previous step inputs for usage in the next step
+//   for (dof_id_type ss = 0; ss < _sampler.getNumberOfRows(); ++ss)
+//   {
+//     for (unsigned int j = 0; j < _sampler.getNumberOfCols(); ++j)
+//       _inputs_prev[ss][j] = inputs_comm(ss, j);
+//   }
+//   return _decision[local_ind];
+// }
+
+void
+ActiveLearningGPDecision::setupData(const std::vector<Real> & output_comm,
+                                    const std::vector<std::vector<Real>> & inputs_prev)
+{
+  for (dof_id_type ss = 0; ss < _sampler.getNumberOfRows(); ++ss)
+  {
+    _outputs_sto.push_back(output_comm[ss]);
+    for (unsigned int k = 0; k < _sampler.getNumberOfCols(); ++k)
+      _inputs_sto[k].push_back(inputs_prev[ss][k]);
+  }
+}
+
+Real
+ActiveLearningGPDecision::facilitateDecision(const std::vector<Real> & row,
+                                             dof_id_type local_ind,
+                                             Real & val,
+                                             const bool & retrain)
+{
+  _gp_sto[0] = getSurrogateModel<GaussianProcess>("gp_evaluator").evaluate(row, _gp_sto[1]);
+  _gp_sto[1] = retrain ? 0.0 : _gp_sto[1];
+  bool lf_indicator = learningFunction(_gp_sto[0],
+                                       _gp_sto[1],
+                                       _learning_function,
+                                       *_learning_function_parameter,
+                                       _learning_function_threshold);
+  if (_flag_sample[local_ind] == true)
+    _flag_sample[local_ind] = false;
+  if (lf_indicator)
+  {
+    val = _gp_sto[0];
+    _decision[local_ind] = false;
+  }
+  else
+  {
+    ++_track_gp_fails;
+    _flag_sample[local_ind] = true;
+  }
+  _gp_mean_comm[local_ind] = _gp_sto[0];
+  _gp_std_comm[local_ind] = _flag_sample[0] == true ? 0.0 : _gp_sto[1];
+  return val;
+}
+
+void
+ActiveLearningGPDecision::transmitOutput(const DenseMatrix<Real> & inputs_comm,
+                                         const std::vector<Real> & gp_mean_comm,
+                                         const std::vector<Real> & gp_std_comm)
+{
+  for (dof_id_type ss = 0; ss < _sampler.getNumberOfRows(); ++ss)
+  {
+    for (unsigned int j = 0; j < _sampler.getNumberOfCols(); ++j)
+      _inputs[ss][j] = inputs_comm(ss, j);
+    _gp_mean[ss] = gp_mean_comm[ss];
+    _gp_std[ss] = gp_std_comm[ss];
+  }
+}
+
 bool
 ActiveLearningGPDecision::needSample(const std::vector<Real> & row,
                                      dof_id_type local_ind,
                                      dof_id_type,
                                      Real & val)
 {
-  std::cout << "Row " << Moose::stringify(row) << std::endl;
   _gp_sto.resize(2);
   _output_comm.resize(1);
   _gp_mean_comm.resize(1);
@@ -140,52 +345,16 @@ ActiveLearningGPDecision::needSample(const std::vector<Real> & row,
   if (_step <= _n_train) // Wait until all the training data is generated
   {
     if (_step > 2)
-    {
-      for (dof_id_type ss = 0; ss < _sampler.getNumberOfRows(); ++ss)
-      {
-        _outputs_sto.push_back(_output_comm[ss]);
-        for (unsigned int k = 0; k < _sampler.getNumberOfCols(); ++k)
-          _inputs_sto[k].push_back(_inputs_prev[ss][k]);
-        _gp_mean[ss] = _output_comm[ss];
-      }
-    }
+      setupData(_output_comm, _inputs_prev);
     if (_step == _n_train) // Once training data is generated, train the GP
     {
       if (local_ind == 0)
         _al_gp->reTrain(_inputs_sto, _outputs_sto);
-
       // Setting up variables and making decisions
-      // @{
-      _gp_sto[0] = getSurrogateModel<GaussianProcess>("gp_evaluator").evaluate(row, _gp_sto[1]);
-      val = _gp_sto[0];
-      bool lf_indicator = learningFunction(_gp_sto[0],
-                                           _gp_sto[1],
-                                           _learning_function,
-                                           *_learning_function_parameter,
-                                           _learning_function_threshold);
-      if (lf_indicator)
-      {
-        val = _gp_sto[0];
-        _decision[local_ind] = false;
-      }
-      else
-      {
-        ++_track_gp_fails;
-        _flag_sample[local_ind] = true;
-      }
-      _gp_mean_comm[local_ind] = _gp_sto[0];
-      _gp_std_comm[local_ind] = _flag_sample[0] == true ? 0.0 : _gp_sto[1];
+      val = facilitateDecision(row, local_ind, val, true);
       _local_comm.allgather(_gp_mean_comm);
       _local_comm.allgather(_gp_std_comm);
-      for (dof_id_type ss = 0; ss < _sampler.getNumberOfRows(); ++ss)
-      {
-        for (unsigned int j = 0; j < _sampler.getNumberOfCols(); ++j)
-          _inputs[ss][j] = inputs_comm(ss, j);
-        _gp_mean[ss] = _gp_mean_comm[ss];
-        _gp_std[ss] = _gp_std_comm[ss];
-      }
-      // @}
-      // Finished setting up variables and making decisions
+      transmitOutput(inputs_comm, _gp_mean_comm, _gp_std_comm);
     }
     // Start tracking the GP failures until a user-specified batch size is met
     if (_track_gp_fails >= _allowed_gp_fails)
@@ -200,56 +369,15 @@ ActiveLearningGPDecision::needSample(const std::vector<Real> & row,
     // If the number of GP fails greater than user-specified batch size, retrain GP
     if (retrain)
     {
-      for (dof_id_type ss = 0; ss < _sampler.getNumberOfRows(); ++ss)
-      {
-        _outputs_sto.push_back(_output_comm[ss]);
-        for (unsigned int k = 0; k < _sampler.getNumberOfCols(); ++k)
-          _inputs_sto[k].push_back(_inputs_prev[ss][k]);
-      }
-      // std::cout << "Outputs " << Moose::stringify(_outputs_sto) << std::endl;
-      // std::cout << "Inputs 1" << Moose::stringify(_inputs_sto[0]) << std::endl;
-      // std::cout << "Inputs 2" << Moose::stringify(_inputs_sto[1]) << std::endl;
+      setupData(_output_comm, _inputs_prev);
       _al_gp->reTrain(_inputs_sto, _outputs_sto);
       _track_gp_fails = 0;
     }
-
     // Setting up variables and making decisions
-    // @{
-    _gp_sto[0] = getSurrogateModel<GaussianProcess>("gp_evaluator").evaluate(row, _gp_sto[1]);
-    _gp_sto[1] = retrain ? 0.0 : _gp_sto[1];
-    bool lf_indicator = learningFunction(_gp_sto[0],
-                                         _gp_sto[1],
-                                         _learning_function,
-                                         *_learning_function_parameter,
-                                         _learning_function_threshold);
-    std::cout << "_gp_mean " << _gp_sto[0] << std::endl;
-    std::cout << "_gp_std " << _gp_sto[1] << std::endl;
-    if (_flag_sample[local_ind] == true)
-      _flag_sample[local_ind] = false;
-    if (lf_indicator)
-    {
-      val = _gp_sto[0];
-      _decision[local_ind] = false;
-    }
-    else
-    {
-      ++_track_gp_fails;
-      _flag_sample[local_ind] = true;
-    }
-    _gp_mean_comm[local_ind] = _gp_sto[0];
-    _gp_std_comm[local_ind] = _flag_sample[0] == true ? 0.0 : _gp_sto[1];
+    val = facilitateDecision(row, local_ind, val, retrain);
     _local_comm.allgather(_gp_mean_comm);
     _local_comm.allgather(_gp_std_comm);
-    for (dof_id_type ss = 0; ss < _sampler.getNumberOfRows(); ++ss)
-    {
-      for (unsigned int j = 0; j < _sampler.getNumberOfCols(); ++j)
-        _inputs[ss][j] = inputs_comm(ss, j);
-      _gp_mean[ss] = _gp_mean_comm[ss];
-      _gp_std[ss] = _gp_std_comm[ss];
-    }
-    // @}
-    // Finished setting up variables and making decisions
-
+    transmitOutput(inputs_comm, _gp_mean_comm, _gp_std_comm);
     // Start re-tracking the GP failures until a user-specified batch size is met
     if (_track_gp_fails >= _allowed_gp_fails)
     {

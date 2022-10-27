@@ -25,7 +25,7 @@
     initial_values = '-0.103 1.239'
     inputs_reporter = 'adaptive_MC/inputs'
     use_absolute_value = true
-    seed = 1012
+    seed = 2547
   []
 []
 
@@ -77,7 +77,7 @@
 []
 
 [Outputs]
-  file_base = 'fix_bug1_ref'
+  file_base = 'run3_ref'
   [out]
     type = JSON
     execute_system_information_on = NONE
