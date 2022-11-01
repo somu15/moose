@@ -1362,6 +1362,7 @@ Parser::extractParams(const std::string & prefix, InputParameters & p)
         setscalar(MooseFunctorName, string);
         setscalar(MaterialName, string);
         setscalar(DistributionName, string);
+        setscalar(LikelihoodName, string);
         setscalar(SamplerName, string);
         setscalar(TagName, string);
         setscalar(MeshGeneratorName, string);
@@ -1427,6 +1428,7 @@ Parser::extractParams(const std::string & prefix, InputParameters & p)
         setvector(MooseFunctorName, string);
         setvector(MaterialName, string);
         setvector(DistributionName, string);
+        setvector(LikelihoodName, string);
         setvector(SamplerName, string);
         setvector(TagName, string);
         setvector(VariableName, VariableName);
@@ -1456,7 +1458,7 @@ Parser::extractParams(const std::string & prefix, InputParameters & p)
         setvectorvector(uint64_t);
 #endif
 
-        setvectorvector(SubdomainID);
+        < < < < < < < HEAD setvectorvector(SubdomainID);
         setvectorvector(BoundaryID);
         setvectorvector(Point);
         setvectorvector(string);
@@ -1483,6 +1485,36 @@ Parser::extractParams(const std::string & prefix, InputParameters & p)
         setvectorvector(DistributionName);
         setvectorvector(SamplerName);
         setvectorvector(TagName);
+=======
+        setvectorvector(SubdomainID);
+        setvectorvector(BoundaryID);
+        setvectorvector(Point);
+        setvectorvector(string);
+        setvectorvector(FileName);
+        setvectorvector(FileNameNoExtension);
+        setvectorvector(MeshFileName);
+        setvectorvector(SubdomainName);
+        setvectorvector(BoundaryName);
+        setvectorvector(VariableName);
+        setvectorvector(NonlinearVariableName);
+        setvectorvector(AuxVariableName);
+        setvectorvector(FunctionName);
+        setvectorvector(UserObjectName);
+        setvectorvector(IndicatorName);
+        setvectorvector(MarkerName);
+        setvectorvector(MultiAppName);
+        setvectorvector(PostprocessorName);
+        setvectorvector(VectorPostprocessorName);
+        setvectorvector(MarkerName);
+        setvectorvector(OutputName);
+        setvectorvector(MaterialPropertyName);
+        setvectorvector(MooseFunctorName);
+        setvectorvector(MaterialName);
+        setvectorvector(DistributionName);
+        setvectorvector(LikelihoodName);
+        setvectorvector(SamplerName);
+        setvectorvector(TagName);
+>>>>>>> 4ebe9f2a2f (tests #22548)
 
         // Triple indexed types
         setvectorvectorvector(Real);
@@ -1496,7 +1528,7 @@ Parser::extractParams(const std::string & prefix, InputParameters & p)
         setvectorvectorvector(uint64_t);
 #endif
 
-        setvectorvectorvector(SubdomainID);
+        < < < < < < < HEAD setvectorvectorvector(SubdomainID);
         setvectorvectorvector(BoundaryID);
         setvectorvectorvector(string);
         setvectorvectorvector(FileName);
@@ -1525,6 +1557,38 @@ Parser::extractParams(const std::string & prefix, InputParameters & p)
         {
           mooseError("unsupported type '", par->type(), "' for input parameter '", full_name, "'");
         }
+=======
+        setvectorvectorvector(SubdomainID);
+        setvectorvectorvector(BoundaryID);
+        setvectorvectorvector(string);
+        setvectorvectorvector(FileName);
+        setvectorvectorvector(FileNameNoExtension);
+        setvectorvectorvector(MeshFileName);
+        setvectorvectorvector(SubdomainName);
+        setvectorvectorvector(BoundaryName);
+        setvectorvectorvector(VariableName);
+        setvectorvectorvector(NonlinearVariableName);
+        setvectorvectorvector(AuxVariableName);
+        setvectorvectorvector(FunctionName);
+        setvectorvectorvector(UserObjectName);
+        setvectorvectorvector(IndicatorName);
+        setvectorvectorvector(MarkerName);
+        setvectorvectorvector(MultiAppName);
+        setvectorvectorvector(PostprocessorName);
+        setvectorvectorvector(VectorPostprocessorName);
+        setvectorvectorvector(MarkerName);
+        setvectorvectorvector(OutputName);
+        setvectorvectorvector(MaterialPropertyName);
+        setvectorvectorvector(MooseFunctorName);
+        setvectorvectorvector(MaterialName);
+        setvectorvectorvector(DistributionName);
+        setvectorvectorvector(LikelihoodName);
+        setvectorvectorvector(SamplerName);
+        else
+        {
+          mooseError("unsupported type '", par->type(), "' for input parameter '", full_name, "'");
+        }
+>>>>>>> 4ebe9f2a2f (tests #22548)
 
 #undef setscalarValueType
 #undef setscalar
