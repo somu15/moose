@@ -42,9 +42,6 @@ protected:
   /// Coefficient of variation of failure probability
   std::vector<Real> & _cov_pf;
 
-  /// Flag samples if the surrogate prediction was inadequate
-  const std::vector<bool> * _flag_sample;
-
 private:
   /// Track the current step of the main App
   const int & _step;
@@ -55,11 +52,11 @@ private:
   /// Adaptive Importance Sampler
   const AdaptiveImportanceSampler * const _ais;
 
-  // Adaptive Importance Sampler with Active Learning
-  const AdaptiveImportanceSamplerActiveLearning * const _ais_al;
-
   /// Ensure that the MCMC algorithm proceeds in a sequential fashion
   int _check_step;
+
+  /// Flag samples if the surrogate prediction was inadequate
+  const std::vector<bool> * _flag_sample;
 
   /// Storage for the sequential sum of pf
   Real _pf_sum;

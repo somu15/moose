@@ -332,10 +332,10 @@ GaussianProcessHandler::tuneHyperParamsAdam(const RealEigenMatrix & training_par
       outputs(ii, 0) = training_data(v_sequence[ii], 0);
     }
 
-    store_loss = getLossAdam(inputs, outputs);
-    if (show_optimization_details && ss == 0)
-      Moose::out << "INITIAL LOSS: " << store_loss << std::endl;
-    grad1 = getGradientAdam(inputs);
+    // store_loss = getLossAdam(inputs, outputs);
+    // if (show_optimization_details && ss == 0)
+    //   Moose::out << "INITIAL LOSS: " << store_loss << std::endl;
+    grad1 = getGradientAdam(inputs, outputs);
     for (unsigned int ii = 0; ii < _num_tunable; ++ii)
     {
       m0[ii] = b1 * m0[ii] + (1 - b1) * grad1[ii];
@@ -354,7 +354,7 @@ GaussianProcessHandler::tuneHyperParamsAdam(const RealEigenMatrix & training_par
   {
     Moose::out << "OPTIMIZED GP HYPER-PARAMETERS:" << std::endl;
     theta.print();
-    Moose::out << "FINAL LOSS: " << store_loss << std::endl;
+    // Moose::out << "FINAL LOSS: " << store_loss << std::endl;
   }
 }
 
@@ -372,8 +372,10 @@ GaussianProcessHandler::getLossAdam(RealEigenMatrix & inputs, RealEigenMatrix & 
 }
 
 std::vector<Real>
-GaussianProcessHandler::getGradientAdam(RealEigenMatrix & inputs)
+GaussianProcessHandler::getGradientAdam(RealEigenMatrix & inputs, RealEigenMatrix & outputs)
 {
+  _covariance_function->computeCovarianceMatrix(_K, inputs, inputs, true);
+  setupStoredMatrices(outputs);
   RealEigenMatrix dKdhp(_batch_size, _batch_size);
   RealEigenMatrix alpha = _K_results_solve * _K_results_solve.transpose();
   std::vector<Real> grad_vec;

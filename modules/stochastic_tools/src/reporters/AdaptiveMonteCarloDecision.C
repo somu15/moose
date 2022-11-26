@@ -93,8 +93,10 @@ AdaptiveMonteCarloDecision::execute()
   {
     const Real tmp = _ais->getUseAbsoluteValue() ? std::abs(_output_value[0]) : _output_value[0];
     bool output_limit_reached;
+    bool restart_gp = 0;
     if (isParamValid("gp_decision"))
     {
+      restart_gp = _step == (_gp_decision->getTrainingSamples());
       if (_step <= _gp_decision->getTrainingSamples())
         output_limit_reached = 1;
       else
@@ -102,26 +104,42 @@ AdaptiveMonteCarloDecision::execute()
     }
     else
       output_limit_reached = tmp >= _output_limit;
-    _output_required[0] = output_limit_reached ? 1.0 : 0.0;
-    if (_step <= _ais->getNumSamplesTrain())
+
+    if (restart_gp)
     {
-      /* This is the training phase of the Adaptive Importance Sampling algorithm.
-         Here, it is decided whether or not to accept a proposed sample by the
-         AdaptiveImportanceSampler.C sampler depending upon the model output_value. */
-      _inputs = output_limit_reached
-                    ? StochasticTools::reshapeVector(_sampler.getNextLocalRow(), 1, true)
-                    : _prev_val;
-      if (output_limit_reached)
-        _prev_val = _inputs;
-      _prev_val_out = _output_required;
+      std::cout << "Here *** " << std::endl;
+      std::vector<Real> tmp1 = _ais->getInitialValues();
+      for (dof_id_type j = 0; j < tmp1.size(); ++j)
+        _inputs[j][0] = tmp1[j];
+      _prev_val = _inputs;
+      _prev_val_out[0] = 1.0;
+      output_limit_reached = 1.0;
     }
-    else
+
+    _output_required[0] = output_limit_reached ? 1.0 : 0.0;
+
+    if (!restart_gp)
     {
-      /* This is the sampling phase of the Adaptive Importance Sampling algorithm.
-         Here, all proposed samples by the AdaptiveImportanceSampler.C sampler are accepted since
-         the importance distribution traning phase is finished. */
-      _inputs = StochasticTools::reshapeVector(_sampler.getNextLocalRow(), 1, true);
-      _prev_val_out[0] = tmp;
+      if (_step <= _ais->getNumSamplesTrain())
+      {
+        /* This is the training phase of the Adaptive Importance Sampling algorithm.
+          Here, it is decided whether or not to accept a proposed sample by the
+          AdaptiveImportanceSampler.C sampler depending upon the model output_value. */
+        _inputs = output_limit_reached
+                      ? StochasticTools::reshapeVector(_sampler.getNextLocalRow(), 1, true)
+                      : _prev_val;
+        if (output_limit_reached)
+          _prev_val = _inputs;
+        _prev_val_out = _output_required;
+      }
+      else
+      {
+        /* This is the sampling phase of the Adaptive Importance Sampling algorithm.
+          Here, all proposed samples by the AdaptiveImportanceSampler.C sampler are accepted since
+          the importance distribution traning phase is finished. */
+        _inputs = StochasticTools::reshapeVector(_sampler.getNextLocalRow(), 1, true);
+        _prev_val_out[0] = tmp;
+      }
     }
   }
   else if (_pss)

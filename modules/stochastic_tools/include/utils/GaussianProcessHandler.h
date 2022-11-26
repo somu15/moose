@@ -159,7 +159,7 @@ public:
   Real getLossAdam(RealEigenMatrix & inputs, RealEigenMatrix & outputs);
 
   // Computes Gradient of the loss function for Adam usage
-  std::vector<Real> getGradientAdam(RealEigenMatrix & inputs);
+  std::vector<Real> getGradientAdam(RealEigenMatrix & inputs, RealEigenMatrix & outputs);
 
   /// Function used to convert the hyperparameter maps in this object to
   /// Petsc vectors

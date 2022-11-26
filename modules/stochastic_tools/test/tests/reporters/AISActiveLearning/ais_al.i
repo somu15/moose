@@ -20,7 +20,8 @@
     distributions = 'mu1 mu2'
     proposal_std = '1.0 1.0'
     output_limit = 0.65
-    num_samples_train = 200
+    num_samples_train = 600
+    num_importance_sampling_steps = 400
     std_factor = 0.9
     initial_values = '-0.103 1.239'
     inputs_reporter = 'adaptive_MC/inputs'
@@ -86,7 +87,7 @@
     type = AdaptiveImportanceStats
     output_value = conditional/gp_mean # constant/reporter_transfer:average:value
     sampler = sample
-    flag_sample = 'conditional/flag_sample'
+    using_gp = true
   []
 []
 
@@ -122,7 +123,7 @@
 
 [Executioner]
   type = Transient
-  num_steps = 1000
+  # num_steps = 1000
 []
 
 [Outputs]

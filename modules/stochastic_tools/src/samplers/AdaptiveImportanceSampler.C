@@ -45,6 +45,8 @@ AdaptiveImportanceSampler::validParams()
       "num_random_seeds",
       100000,
       "Initialize a certain number of random seeds. Change from the default only if you have to.");
+  params.addParam<ReporterName>("flag_sample",
+                                "Flag samples if the surrogate prediction was inadequate.");
   return params;
 }
 
@@ -60,6 +62,7 @@ AdaptiveImportanceSampler::AdaptiveImportanceSampler(const InputParameters & par
     _use_absolute_value(getParam<bool>("use_absolute_value")),
     _num_random_seeds(getParam<unsigned int>("num_random_seeds")),
     _is_sampling_completed(false),
+    _flag_sample(isParamValid("flag_sample") ? &getReporterValue<std::vector<bool>>("flag_sample") : nullptr),
     _step(getCheckedPointerParam<FEProblemBase *>("_fe_problem_base")->timeStep()),
     _inputs(getReporterValue<std::vector<std::vector<Real>>>("inputs_reporter"))
 {
@@ -82,14 +85,17 @@ AdaptiveImportanceSampler::AdaptiveImportanceSampler(const InputParameters & par
      of the variable, at the last step, is equal to the number of samples the user desires.*/
   _inputs_sto.resize(_distributions.size());
 
-  // Mapping all the input distributions to a standard normal space
-  for (unsigned int i = 0; i < _distributions.size(); ++i)
-    _inputs_sto[i].push_back(Normal::quantile(_distributions[i]->cdf(_initial_values[i]), 0, 1));
-
   /* `prev_value` is a member variable for tracking the previously accepted samples in the
      MCMC algorithm and proposing the next sample.*/
   _prev_value.resize(_distributions.size());
 
+  // Mapping all the input distributions to a standard normal space
+  for (unsigned int i = 0; i < _distributions.size(); ++i)
+  {
+    _inputs_sto[i].push_back(Normal::quantile(_distributions[i]->cdf(_initial_values[i]), 0, 1));
+    _prev_value[i] = Normal::quantile(_distributions[i]->cdf(_initial_values[i]), 0, 1);
+  }
+  
   // `check_step` is a member variable for ensuring that the MCMC algorithm proceeds in a sequential
   // fashion.
   _check_step = 0;
@@ -111,55 +117,59 @@ AdaptiveImportanceSampler::computeSample(dof_id_type /*row_index*/, dof_id_type 
   if (sample && _is_sampling_completed)
     mooseError("Internal bug: the adaptive sampling is supposed to be completed but another sample "
                "has been requested.");
-
-  if (_step <= _num_samples_train)
+  
+  const bool gp_flag = _flag_sample ? (*_flag_sample)[0] : 0;
+  if (!gp_flag)
   {
-    /* This is the importance distribution training step. Markov Chains are set up
-       to sample from the importance region or the failure region using the Metropolis
-       algorithm. Given that the previous sample resulted in a model failure, the next
-       sample is proposed such that it is very likely to result in a model failure as well.
-       The `initial_values` and `proposal_std` parameters provided by the user affects the
-       formation of the importance distribution. */
-    if (sample)
+    if (_step <= _num_samples_train)
     {
-      for (dof_id_type j = 0; j < _distributions.size(); ++j)
-        _prev_value[j] = Normal::quantile(_distributions[j]->cdf(_inputs[j][0]), 0.0, 1.0);
-      Real acceptance_ratio = 0.0;
-      for (dof_id_type i = 0; i < _distributions.size(); ++i)
-        acceptance_ratio += std::log(Normal::pdf(_prev_value[i], 0.0, 1.0)) -
-                            std::log(Normal::pdf(_inputs_sto[i].back(), 0.0, 1.0));
-      if (acceptance_ratio > std::log(getRand(_step)))
+      /* This is the importance distribution training step. Markov Chains are set up
+        to sample from the importance region or the failure region using the Metropolis
+        algorithm. Given that the previous sample resulted in a model failure, the next
+        sample is proposed such that it is very likely to result in a model failure as well.
+        The `initial_values` and `proposal_std` parameters provided by the user affects the
+        formation of the importance distribution. */
+      if (sample)
       {
+        for (dof_id_type j = 0; j < _distributions.size(); ++j)
+          _prev_value[j] = Normal::quantile(_distributions[j]->cdf(_inputs[j][0]), 0.0, 1.0);
+        Real acceptance_ratio = 0.0;
         for (dof_id_type i = 0; i < _distributions.size(); ++i)
-          _inputs_sto[i].push_back(_prev_value[i]);
-      }
-      else
-      {
+          acceptance_ratio += std::log(Normal::pdf(_prev_value[i], 0.0, 1.0)) -
+                              std::log(Normal::pdf(_inputs_sto[i].back(), 0.0, 1.0));
+        if (acceptance_ratio > std::log(getRand(_step)))
+        {
+          for (dof_id_type i = 0; i < _distributions.size(); ++i)
+            _inputs_sto[i].push_back(_prev_value[i]);
+        }
+        else
+        {
+          for (dof_id_type i = 0; i < _distributions.size(); ++i)
+            _inputs_sto[i].push_back(_inputs_sto[i].back());
+        }
         for (dof_id_type i = 0; i < _distributions.size(); ++i)
-          _inputs_sto[i].push_back(_inputs_sto[i].back());
+          _prev_value[i] = Normal::quantile(getRand(_step), _inputs_sto[i].back(), _proposal_std[i]);
       }
-      for (dof_id_type i = 0; i < _distributions.size(); ++i)
-        _prev_value[i] = Normal::quantile(getRand(_step), _inputs_sto[i].back(), _proposal_std[i]);
     }
-  }
-  else if (sample)
-  {
-    /* This is the importance sampling step using the importance distribution created
-       in the previous step. Once the importance distribution is known, sampling from
-       it is similar to a regular Monte Carlo sampling. */
-    for (dof_id_type i = 0; i < _distributions.size(); ++i)
+    else if (sample)
     {
-      if (_step == _num_samples_train + 1)
+      /* This is the importance sampling step using the importance distribution created
+        in the previous step. Once the importance distribution is known, sampling from
+        it is similar to a regular Monte Carlo sampling. */
+      for (dof_id_type i = 0; i < _distributions.size(); ++i)
       {
-        _mean_sto[i] = AdaptiveMonteCarloUtils::computeMean(_inputs_sto[i], 1);
-        _std_sto[i] = AdaptiveMonteCarloUtils::computeSTD(_inputs_sto[i], 1);
+        if (_step == _num_samples_train + 1)
+        {
+          _mean_sto[i] = AdaptiveMonteCarloUtils::computeMean(_inputs_sto[i], 1);
+          _std_sto[i] = AdaptiveMonteCarloUtils::computeSTD(_inputs_sto[i], 1);
+        }
+        _prev_value[i] = (Normal::quantile(getRand(_step), _mean_sto[i], _std_factor * _std_sto[i]));
       }
-      _prev_value[i] = (Normal::quantile(getRand(_step), _mean_sto[i], _std_factor * _std_sto[i]));
-    }
 
-    // check if we have performed all the importance sampling steps
-    if (_step >= _num_samples_train + _num_importance_sampling_steps)
-      _is_sampling_completed = true;
+      // check if we have performed all the importance sampling steps
+      if (_step >= _num_samples_train + _num_importance_sampling_steps)
+        _is_sampling_completed = true;
+    }
   }
 
   _check_step = _step;
