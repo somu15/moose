@@ -2,15 +2,25 @@
 []
 
 [Distributions]
+  #[left]
+  #  type = Normal
+  #  mean = 0.0
+  #  standard_deviation = 1.0
+  #[]
+  #[right]
+  #  type = Normal
+  #  mean = 0.0
+  #  standard_deviation = 1.0
+  #[]
   [left]
-    type = Normal
-    mean = 0.0 # 0.15 #
-    standard_deviation = 1.0 # 0.15 #
+    type = Uniform
+    lower_bound = -3.0
+    upper_bound = 3.0
   []
   [right]
-    type = Normal
-    mean = 0.0 # -1.5 #
-    standard_deviation = 1.0 # 0.15 #
+    type = Uniform
+    lower_bound = -3.0
+    upper_bound = 3.0
   []
 []
 
@@ -28,8 +38,11 @@
     type = PMCMCBase
     prior_distributions = 'left right'
     seed_inputs = 'mcmc_reporter/seed_inputs'
-    proposal_std = 'mcmc_reporter/proposal_std'
+    proposal_std = 'mcmc_reporter/proposal_std' # This is just a placeholder for now
     num_parallel_proposals = 10
+    std_prop = '0.2 0.2'
+    # lb = '-3.0 -3.0' # if needed
+    # ub = '3.0 3.0' # if needed
     initial_values = '0.05 0.05'
     file_name = 'confg.csv'
     execute_on = PRE_MULTIAPP_SETUP
@@ -46,13 +59,6 @@
 []
 
 [Transfers]
-  # [param]
-  #   type = SamplerParameterTransfer
-  #   to_multi_app = sub
-  #   sampler = sample
-  #   parameters = 'BCs/left/value BCs/right/value Mesh/xmax'
-  #   to_control = 'stochastic'
-  # []
   [reporter_transfer]
     type = SamplerReporterTransfer
     from_reporter = 'average/value'
@@ -74,7 +80,6 @@
 [Reporters]
   [constant]
     type = StochasticReporter
-    # execute_on = 'FINAL'
   []
   [mcmc_reporter]
     type = PMCMCDecision
@@ -84,17 +89,16 @@
     sampler = sample
     likelihoods = 'gaussian'
     prior_distributions = 'left right'
-    # execute_on = 'FINAL'
   []
 []
 
 [Executioner]
   type = Transient
-  num_steps = 300
+  num_steps = 1000
 []
 
 [Outputs]
-  file_base = 'test_mcmc'
+  file_base = 'test_mcmc_02'
   [out]
     type = JSON
     execute_system_information_on = NONE
