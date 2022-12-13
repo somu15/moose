@@ -195,20 +195,33 @@ ParallelMarkovChainMonteCarloBase::sampleSetUp(const SampleMode /*mode*/)
       _new_samples[_num_parallel_proposals * _confg_values.size() + i] = tmp;
     }
   }
-  // for (unsigned int i = 0; i < ((_num_parallel_proposals + 1) * _confg_values.size()); ++i)
-  //   std::cout << Moose::stringify(_new_samples[i]) << std::endl;
+  for (unsigned int i = 0; i < ((_num_parallel_proposals + 1) * _confg_values.size()); ++i)
+    std::cout << Moose::stringify(_new_samples[i]) << std::endl;
 }
 
 Real
 ParallelMarkovChainMonteCarloBase::computeSample(dof_id_type row_index, dof_id_type col_index)
 {
 
+  std::vector<Real> init;
+  // init = {1e-9, 1e4, 1e-9, 1e4, 1e-9, 1e4, 643};
+  init = {-20.723, 11.0, -20.723, 11.0, -20.723, 11.0, 643};
+
   // std::cout << Moose::stringify(_new_samples[row_index]) << std::endl;  
 // std::cout << "Here *****" << std::endl;
 
   if (_step == 0)
-    return 1.0;
+  {
+    if (col_index < 6)
+      return std::exp(init[col_index]);
+    else
+      return (init[col_index]);
+  }
   else
-    return _new_samples[row_index][col_index];
-
+  {
+    if (col_index < 6)
+      return std::exp(_new_samples[row_index][col_index]);
+    else
+      return (_new_samples[row_index][col_index]);
+  }
 }
