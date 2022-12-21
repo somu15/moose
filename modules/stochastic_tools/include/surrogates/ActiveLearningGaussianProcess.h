@@ -61,5 +61,5 @@ private:
   bool _standardize_data;
 
   /// Struct holding parameters necessary for parameter tuning
-  const StochasticTools::GaussianProcessHandler::GPOptimizerOptions _optimization_opts;
+  StochasticTools::GaussianProcessHandler::GPOptimizerOptions _optimization_opts; // const
 };

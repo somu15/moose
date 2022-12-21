@@ -10,10 +10,18 @@
 #include "ActiveLearningGPDecision.h"
 #include "Sampler.h"
 #include "AdaptiveMonteCarloUtils.h"
+#include "Normal.h"
 
 #include <math.h>
 
 registerMooseObject("StochasticToolsApp", ActiveLearningGPDecision);
+
+/**
+ * The learning or acquisition function definitions
+ * Ufunction: The U-function from Echard et al. (2011) for failure probability estimation
+ * COV: The coefficient of variation computed as GP_std / abs(GP_mean)
+ * MPI: The maximum probability of improvement function proposed by Kushner (1964)
+ */
 
 InputParameters
 ActiveLearningGPDecision::validParams()
@@ -22,7 +30,7 @@ ActiveLearningGPDecision::validParams()
   params.addClassDescription(
       "Evaluates a GP surrogate model, determines its prediction quality, "
       "launches full model if GP prediction is inadequate, and retrains GP.");
-  MooseEnum learning_function("Ufunction COV");
+  MooseEnum learning_function("Ufunction COV MPI");
   params.addRequiredParam<MooseEnum>(
       "learning_function", learning_function, "The learning function for active learning.");
   params.addRequiredParam<Real>("learning_function_threshold", "The learning function threshold.");
@@ -33,8 +41,8 @@ ActiveLearningGPDecision::validParams()
   params.addParam<ReporterValueName>("flag_sample", "flag_sample", "Flag samples.");
   params.addRequiredParam<int>("n_train", "Number of training steps.");
   params.addParam<ReporterValueName>("inputs", "inputs", "The inputs.");
-  params.addParam<ReporterValueName>("gp_mean", "gp_mean", "The GP mean prediction.");
-  params.addParam<ReporterValueName>("gp_std", "gp_std", "The GP standard deviation.");
+  params.addParam<ReporterValueName>("predictive_mean", "predictive_mean", "The mean prediction.");
+  params.addParam<ReporterValueName>("predictive_std", "predictive_std", "The standard deviation around the mean prediction.");
   return params;
 }
 
@@ -53,8 +61,8 @@ ActiveLearningGPDecision::ActiveLearningGPDecision(const InputParameters & param
     _flag_sample(declareValue<std::vector<bool>>("flag_sample")),
     _n_train(getParam<int>("n_train")),
     _inputs(declareValue<std::vector<std::vector<Real>>>("inputs")),
-    _gp_mean(declareValue<std::vector<Real>>("gp_mean")),
-    _gp_std(declareValue<std::vector<Real>>("gp_std"))
+    _gp_mean(declareValue<std::vector<Real>>("predictive_mean")),
+    _gp_std(declareValue<std::vector<Real>>("predictive_std"))
 {
   _inputs_batch.resize(_sampler.getNumberOfCols());
   _flag_sample.resize(_sampler.getNumberOfRows(), false);
@@ -85,6 +93,8 @@ ActiveLearningGPDecision::learningFunction(const Real & gp_mean,
     return (std::abs(gp_mean - parameter) / gp_std) > threshold;
   else if (function_name == "COV")
     return (gp_std / std::abs(gp_mean)) < threshold;
+  else if (function_name == "MPI")
+    return Normal::cdf(gp_mean / gp_std, 0.0, 1.0) < threshold;
   else
     mooseError("Invalid learning function ", std::string(function_name));
   return false;
@@ -106,15 +116,36 @@ void
 ActiveLearningGPDecision::facilitateDecision(const std::vector<Real> & row,
                                              dof_id_type local_ind,
                                              Real & val,
-                                             const bool & retrain)
+                                             const bool & retrain,
+                                             const Real * lf_val,
+                                             const std::vector<Real> & train_out)
 {
   _gp_sto[0] = _gp_eval.evaluate(row, _gp_sto[1]);
   _gp_sto[1] = retrain ? 0.0 : _gp_sto[1];
-  const bool lf_indicator = learningFunction(_gp_sto[0],
-                                             _gp_sto[1],
-                                             _learning_function,
-                                             *_learning_function_parameter,
-                                             _learning_function_threshold);
+  bool lf_indicator;
+  if (lf_val)
+  {
+    if (_learning_function == "COV")
+      lf_indicator = learningFunction(_gp_sto[0], _gp_sto[1], _learning_function, *_learning_function_parameter, _learning_function_threshold);
+    else if (_learning_function == "MPI")
+    {
+      Real max_out = AdaptiveMonteCarloUtils::computeMax(train_out);
+      lf_indicator = learningFunction(_gp_sto[0] - max_out,
+                                      _gp_sto[1],
+                                      _learning_function,
+                                      *_learning_function_parameter,
+                                      _learning_function_threshold);
+    }
+    else
+      lf_indicator = learningFunction(*lf_val + _gp_sto[0], _gp_sto[1], _learning_function, *_learning_function_parameter, _learning_function_threshold);
+    _gp_mean_parallel[local_ind] = *lf_val + _gp_sto[0];
+  }
+  else
+  {
+    lf_indicator = learningFunction(_gp_sto[0], _gp_sto[1], _learning_function, *_learning_function_parameter, _learning_function_threshold);
+    _gp_mean_parallel[local_ind] = _gp_sto[0];
+  }
+  
   _flag_sample[local_ind] = false;
   if (lf_indicator)
   {
@@ -126,7 +157,6 @@ ActiveLearningGPDecision::facilitateDecision(const std::vector<Real> & row,
     ++_track_gp_fails;
     _flag_sample[local_ind] = true;
   }
-  _gp_mean_parallel[local_ind] = _gp_sto[0];
   _gp_std_parallel[local_ind] = _flag_sample[local_ind] == true ? 0.0 : _gp_sto[1];
 }
 
@@ -172,7 +202,7 @@ ActiveLearningGPDecision::needSample(const std::vector<Real> & row,
       if (local_ind == 0)
         _al_gp.reTrain(_inputs_batch, _outputs_batch);
       // Setting up variables and making decisions
-      facilitateDecision(row, local_ind, val, true);
+      facilitateDecision(row, local_ind, val, true, nullptr, _outputs_batch);
       _local_comm.allgather(_gp_mean_parallel);
       _local_comm.allgather(_gp_std_parallel);
       transferOutput(inputs_parallel, _gp_mean_parallel, _gp_std_parallel);
@@ -195,7 +225,7 @@ ActiveLearningGPDecision::needSample(const std::vector<Real> & row,
       _track_gp_fails = 0;
     }
     // Setting up variables and making decisions
-    facilitateDecision(row, local_ind, val, retrain);
+    facilitateDecision(row, local_ind, val, retrain, nullptr, _outputs_batch);
     _local_comm.allgather(_gp_mean_parallel);
     _local_comm.allgather(_gp_std_parallel);
     transferOutput(inputs_parallel, _gp_mean_parallel, _gp_std_parallel);

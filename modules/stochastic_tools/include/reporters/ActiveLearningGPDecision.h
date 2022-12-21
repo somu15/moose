@@ -32,7 +32,6 @@ protected:
                           dof_id_type global_ind,
                           Real & val) override;
 
-private:
   /**
    * This evaluates the active learning acquisition function and returns bool
    * that indicates whether a full model evaluation is required or not.
@@ -56,7 +55,9 @@ private:
   void facilitateDecision(const std::vector<Real> & row,
                           dof_id_type local_ind,
                           Real & val,
-                          const bool & retrain);
+                          const bool & retrain,
+                          const Real * lf_val,
+                          const std::vector<Real> & train_out);
 
   /**
    * This transmits GP outputs to file.
@@ -67,7 +68,7 @@ private:
 
   /// Track the current step of the main App
   const int & _step;
-
+  
   /// The learning function for active learning
   const MooseEnum & _learning_function;
 
@@ -133,4 +134,7 @@ private:
 
   /// Facilitate allGather of GP prediction standard deviations
   std::vector<Real> _gp_std_parallel;
+
+private:
+
 };

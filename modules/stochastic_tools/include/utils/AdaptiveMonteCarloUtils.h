@@ -72,10 +72,24 @@ std::vector<Real> sortOutput(const std::vector<Real> & outputs,
 Real computeMin(const std::vector<Real> & data);
 
 /**
+ * return the maximum value in a vector.
+ *
+ * @param the data vector
+ */
+Real computeMax(const std::vector<Real> & data);
+
+/**
  * return the absolute values in a vector.
  *
  * @param the data vector
  */
 std::vector<Real> computeVectorABS(const std::vector<Real> & data);
+
+/**
+ * return the element-wise difference between two vectors.
+ * @param the vector 1
+ * @param the vector 2
+ */
+std::vector<Real> vectorDifference(const std::vector<Real> & vec1, const std::vector<Real> & vec2);
 
 } // namespace AdaptiveMonteCarloUtils

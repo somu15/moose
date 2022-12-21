@@ -82,8 +82,8 @@ ActiveLearningGaussianProcess::reTrain(const std::vector<std::vector<Real>> & in
 {
 
   // Addtional error check for each re-train call of the GP surrogate
-  if (outputs.size() < _optimization_opts.batch_size)
-    paramError("batch_size", "Batch size cannot be greater than the training data set size.");
+  // if (outputs.size() < _optimization_opts.batch_size)
+  //   paramError("batch_size", "Batch size cannot be greater than the training data set size.");
 
   RealEigenMatrix _training_data;
   _training_params.setZero(outputs.size(), inputs.size());

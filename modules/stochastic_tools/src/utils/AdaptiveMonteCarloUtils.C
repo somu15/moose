@@ -82,6 +82,12 @@ computeMin(const std::vector<Real> & data)
   return *std::min_element(data.begin(), data.end());
 }
 
+Real
+computeMax(const std::vector<Real> & data)
+{
+  return *std::max_element(data.begin(), data.end());
+}
+
 std::vector<Real>
 computeVectorABS(const std::vector<Real> & data)
 {
@@ -89,6 +95,14 @@ computeVectorABS(const std::vector<Real> & data)
   for (unsigned int i = 0; i < data.size(); ++i)
     data_abs[i] = std::abs(data[i]);
   return data_abs;
+}
+
+std::vector<Real>
+vectorDifference(const std::vector<Real> & vec1, const std::vector<Real> & vec2)
+{
+  std::vector<Real> result;
+  std::transform(vec1.begin(), vec1.end(), vec2.begin(), std::back_inserter(result), std::minus<Real>());
+  return result;
 }
 
 } // namespace AdaptiveMonteCarloUtils
