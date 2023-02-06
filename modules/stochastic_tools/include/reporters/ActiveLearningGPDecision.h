@@ -38,8 +38,7 @@ protected:
                           dof_id_type local_ind,
                           dof_id_type global_ind,
                           Real & val) override;
-
-private:
+  
   /**
    * This evaluates the active learning acquisition function and returns bool
    * that indicates whether the GP model failed.
@@ -107,4 +106,7 @@ private:
   std::vector<std::vector<Real>> _inputs_batch;
   /// Store all the outputs used for training
   std::vector<Real> _outputs_batch;
+
+private:
+
 };
