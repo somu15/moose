@@ -26,42 +26,22 @@ public:
   /**
    * Return the number of configuration parameters.
    */
-  dof_id_type getNumberOfConfigParams() const;
-
-  /**
-   * Return the step-size for Affine Invariant sampler.
-   */
-  std::vector<Real> getAffineStepSize() const;
+  dof_id_type getNumberOfConfigParams() const{ return  _confg_values.size(); }
 
   /**
    * Return the number of parallel proposals.
    */
-  dof_id_type getNumParallelProposals() const;
+  dof_id_type getNumParallelProposals() const{ return _num_parallel_proposals; }
 
 protected:
   virtual void sampleSetUp(const Sampler::SampleMode mode) override;
   virtual Real computeSample(dof_id_type row_index, dof_id_type col_index) override;
 
-  /// Reporter value the seed input values for proposing the next set of samples
-  const std::vector<Real> & _seed_inputs;
-
-  /// Reporter value for the proposal stds
-  const std::vector<Real> & _proposal_std;
-
   /// Number of parallel proposals to be made and subApps to be executed
   const unsigned int & _num_parallel_proposals;
 
-  /// Storage for the likelihood object to be utilized
-  // const Likelihood & _likelihood;
-
-  /// Initial values of the input params to get the MCMC scheme started
-  const std::vector<Real> & _initial_values;
-
   /// Storage for prior distribution objects to be utilized
   std::vector<const Distribution *> _priors;
-
-  /// Standard deviations for making the next proposal
-  const std::vector<Real> & _std_prop;
 
   /// Lower bounds for making the next proposal
   const std::vector<Real> * _lb;
@@ -75,17 +55,21 @@ protected:
   /// Ensure that the MCMC algorithm proceeds in a sequential fashion
   int _check_step;
 
+  /// Vectors of new proposed samples
+  std::vector<std::vector<Real>> _new_samples;
+
+private:
+  /**
+   * Generates combinations of the new samples with the experimental configurations
+   */
+  void combineWithConfg();
+
   /// Initialize a certain number of random seeds. Change from the default only if you have to.
   const unsigned int & _num_random_seeds;
 
   /// Configuration values
   std::vector<Real> _confg_values;
 
-  /// Initialize a certain number of random seeds. Change from the default only if you have to.
-  std::vector<std::vector<Real>> _new_samples;
-
-  std::vector<Real> _step_size_sto;
-
-private:
-
+  /// Vectors of new proposed samples combined with the experimental configuration values
+  std::vector<std::vector<Real>> _new_samples_confg;
 };
