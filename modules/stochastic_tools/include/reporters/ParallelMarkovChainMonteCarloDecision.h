@@ -30,8 +30,8 @@ public:
   /**
    * Compute the transition probability vector
    */
-  // void computeTransitionVector(std::vector<Real> & tv, std::vector<const Distribution *> priors, std::vector<const Likelihood *> likelihoods, const DenseMatrix<Real> & inputs, const std::vector<Real> & outputs, const dof_id_type & num_confg); //  const = 0
-  void computeTransitionVector(std::vector<Real> & tv, std::vector<const Distribution *> priors, std::vector<const Likelihood *> likelihoods, const DenseMatrix<Real> & inputs, const std::vector<Real> & outputs, const dof_id_type & num_confg, const DenseMatrix<Real> & prev_inputs, const std::vector<Real> & prev_outputs); //  const = 0
+  void computeTransitionVector(std::vector<Real> & tv, std::vector<const Distribution *> priors, std::vector<const Likelihood *> likelihoods, const DenseMatrix<Real> & inputs, const std::vector<Real> & outputs, const dof_id_type & num_confg); //  const = 0
+  // void computeTransitionVector(std::vector<Real> & tv, std::vector<const Distribution *> priors, std::vector<const Likelihood *> likelihoods, const DenseMatrix<Real> & inputs, const std::vector<Real> & outputs, const dof_id_type & num_confg, const DenseMatrix<Real> & prev_inputs, const std::vector<Real> & prev_outputs); //  const = 0
   // virtual 
 
   /**
