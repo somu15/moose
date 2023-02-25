@@ -51,7 +51,7 @@ ParallelMarkovChainMonteCarloBase::ParallelMarkovChainMonteCarloBase(const Input
   // Filling the `priors` vector with the user-provided distributions.
   for (const DistributionName & name : getParam<std::vector<DistributionName>>("prior_distributions"))
     _priors.push_back(&getDistributionByName(name));
-  
+
   // Read the experimental configurations from a csv file
   MooseUtils::DelimitedFileReader reader(getParam<FileName>("file_name"));
   reader.read();
@@ -69,7 +69,8 @@ ParallelMarkovChainMonteCarloBase::ParallelMarkovChainMonteCarloBase(const Input
   // Resizing the new samples vector of vectors
   _new_samples.resize(_num_parallel_proposals, std::vector<Real>(_priors.size(), 0.0));
   _new_samples_confg.resize(_num_parallel_proposals * _confg_values.size(), std::vector<Real>(_priors.size() + 1, 0.0));
-  
+  _rnd_vec.resize(_num_parallel_proposals);
+
   setNumberOfRandomSeeds(_num_random_seeds);
 
   _check_step = 0;
@@ -82,7 +83,7 @@ ParallelMarkovChainMonteCarloBase::ParallelMarkovChainMonteCarloBase(const Input
   bool size_check = _lb ? ((*_lb).size() != (*_ub).size()) : 0;
   if (size_check)
     mooseError("Lower and upper bounds should be of the same size.");
-  
+
   // Check whether both the priors and bounds are of the same size
   if ((*_lb).size() != _priors.size())
     mooseError("The bounds and priors should be of the same size.");
@@ -96,13 +97,31 @@ ParallelMarkovChainMonteCarloBase::sampleSetUp(const SampleMode /*mode*/)
   _check_step = _step;
 
   unsigned int seed_value = _step > 0 ? (_step - 1) : 0;
-  
+
   // Filling the new_samples vector of vectors with new proposal samples
   for (unsigned int j = 0; j < _num_parallel_proposals; ++j)
   {
     for (unsigned int i = 0; i < _priors.size(); ++i)
       _new_samples[j][i] = _priors[i]->quantile(getRand(seed_value));
+    _rnd_vec[j] = getRand(seed_value);
   }
+}
+
+void
+ParallelMarkovChainMonteCarloBase::randomIndex(const unsigned int & ub, const unsigned int & exclude, const unsigned int & seed, unsigned int & req_index)
+{
+  req_index = exclude;
+  while (req_index == exclude)
+    req_index = getRandl(seed, 0, ub);
+}
+
+void
+ParallelMarkovChainMonteCarloBase::randomIndex2(const unsigned int & ub, const unsigned int & exclude, const unsigned int & seed, unsigned int & req_index1, unsigned int & req_index2)
+{
+  randomIndex(ub, exclude, seed, req_index1);
+  req_index2 = req_index1;
+  while (req_index1 == req_index2)
+    randomIndex(ub, exclude, seed, req_index2);
 }
 
 void
