@@ -37,6 +37,12 @@ protected:
   virtual void sampleSetUp(const Sampler::SampleMode mode) override;
   virtual Real computeSample(dof_id_type row_index, dof_id_type col_index) override;
 
+  /// Sample a random index excluding a specified index
+  void randomIndex(const unsigned int & ub, const unsigned int & exclude, const unsigned int & seed, unsigned int & req_index);
+
+  /// Sample two random indices without repitition excluding a specified index
+  void randomIndex2(const unsigned int & ub, const unsigned int & exclude, const unsigned int & seed, unsigned int & req_index1, unsigned int & req_index2);
+
   /// Number of parallel proposals to be made and subApps to be executed
   const unsigned int & _num_parallel_proposals;
 

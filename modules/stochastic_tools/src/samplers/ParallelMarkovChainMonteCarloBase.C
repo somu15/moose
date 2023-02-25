@@ -106,6 +106,23 @@ ParallelMarkovChainMonteCarloBase::sampleSetUp(const SampleMode /*mode*/)
 }
 
 void
+ParallelMarkovChainMonteCarloBase::randomIndex(const unsigned int & ub, const unsigned int & exclude, const unsigned int & seed, unsigned int & req_index)
+{  
+  req_index = exclude;
+  while (req_index == exclude)
+    req_index = getRandl(seed, 0, ub);
+}
+
+void
+ParallelMarkovChainMonteCarloBase::randomIndex2(const unsigned int & ub, const unsigned int & exclude, const unsigned int & seed, unsigned int & req_index1, unsigned int & req_index2)
+{ 
+  randomIndex(ub, exclude, seed, req_index1); 
+  req_index2 = req_index1;
+  while (req_index1 == req_index2)
+    randomIndex(ub, exclude, seed, req_index2);
+}
+
+void
 ParallelMarkovChainMonteCarloBase::combineWithConfg()
 {
   unsigned int index1 = 0;
