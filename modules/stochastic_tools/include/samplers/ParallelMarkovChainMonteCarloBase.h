@@ -33,8 +33,19 @@ public:
    */
   dof_id_type getNumParallelProposals() const{ return _num_parallel_proposals; }
 
+  /**
+   * Return the random numbers to facilitate decision making in reporters
+   */
+  std::vector<Real> getRandomNumbers() const { return _rnd_vec; }
+
+  /**
+   * Return the step after which decision making can begin
+   */
+  virtual int decisionStep() const { return 1; }
+
 protected:
   virtual void sampleSetUp(const Sampler::SampleMode mode) override;
+
   virtual Real computeSample(dof_id_type row_index, dof_id_type col_index) override;
 
   /// Sample a random index excluding a specified index
@@ -63,6 +74,9 @@ protected:
 
   /// Vectors of new proposed samples
   std::vector<std::vector<Real>> _new_samples;
+
+  /// Vector of random numbers for decision making
+  std::vector<Real> _rnd_vec;
 
 private:
   /**

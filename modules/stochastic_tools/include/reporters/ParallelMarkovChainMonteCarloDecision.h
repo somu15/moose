@@ -137,53 +137,32 @@ protected:
   /**
    * Compute the transition probability vector
    */
-  virtual void computeTransitionVector(std::vector<Real> & tv) {}
-  // void computeTransitionVector(std::vector<Real> & tv,
-  //                              std::vector<const Distribution *> priors,
-  //                              std::vector<const Likelihood *> likelihoods,
-  //                              const DenseMatrix<Real> & inputs,
-  //                              const std::vector<Real> & outputs,
-  //                              const dof_id_type & num_confg); //  const = 0
+  virtual void computeTransitionVector(std::vector<Real> & tv);
 
   /**
    * Resample inputs given the transition vector
    */
-  virtual void resample(std::vector<Real> & req_inputs, std::vector<Real> & tv) {}
-  // void resample(const DenseMatrix<Real> & given_inputs,
-  //               const std::vector<Real> & weights,
-  //               std::vector<Real> & req_inputs,
-  //               const dof_id_type & num_confg); //  const = 0
+  virtual void nextSamples(std::vector<Real> & req_inputs,
+                           DenseMatrix<Real> & inputs_matrix,
+                           const std::vector<Real> & tv,
+                           const unsigned int & parallel_index);
 
-  /// Reporter value of the seed input values for proposing the next set of samples
-  std::vector<Real> & _seed_inputs;
+  /**
+   * Compute the next set of seeds to facilitate proposals
+   */
+  virtual void nextSeeds() {}
 
   /// Model output value from SubApp
   const std::vector<Real> & _output_value;
 
+  /// Transfer the right outputs to the file
+  std::vector<Real> & _outputs;
+
   /// Model input data that is uncertain
   std::vector<std::vector<Real>> & _inputs;
 
-  /// Model input data that is uncertain
-  std::vector<Real> & _outputs;
-
-  /// TPM
+  /// Transition probability matrix
   std::vector<Real> & _tpm;
-
-  /// Proposal STD
-  std::vector<Real> & _proposal_std;
-
-private:
-  /// Track the current step of the main App
-  const int & _step;
-
-  /// The adaptive Monte Carlo sampler
-  Sampler & _sampler;
-
-  /// Adaptive Importance Sampler
-  const ParallelMarkovChainMonteCarloBase * const _pmcmc;
-
-  /// Ensure that the MCMC algorithm proceeds in a sequential fashion
-  int _check_step;
 
   /// Storage for the likelihood objects to be utilized
   std::vector<const Likelihood *> _likelihoods;
@@ -191,16 +170,31 @@ private:
   /// Storage for prior distribution objects to be utilized
   std::vector<const Distribution *> _priors;
 
-  /// Communicator that was split based on samples that have rows
-  libMesh::Parallel::Communicator _local_comm;
+  /// The MCMC sampler
+  Sampler & _sampler;
 
-  /// Facilitate allGather of outputs
-  std::vector<Real> _output_comm;
+  /// Adaptive Importance Sampler
+  const ParallelMarkovChainMonteCarloBase * const _pmcmc;
+
+  /// Storage for the previous likelihood
+  Real _likelihood_prev;
+
+  /// Storage for the number of parallel proposals
+  dof_id_type _props;
+
+  /// Storage for the random numbers for decision making
+  std::vector<Real> _rnd_vec;
 
   /// Storage for previous inputs
   DenseMatrix<Real> _data_prev;
 
-  std::vector<Real> _output_prev;
+  /// Storage for previous outputs
+  std::vector<Real> _outputs_prev;
 
-  std::vector<std::vector<Real>> _inputs_sto;
+private:
+  /// Track the current step of the main App
+  const int & _step;
+
+  /// Communicator that was split based on samples that have rows
+  libMesh::Parallel::Communicator _local_comm;
 };
