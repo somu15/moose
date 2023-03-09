@@ -433,15 +433,26 @@ ParallelMarkovChainMonteCarloDecision::execute()
   _local_comm.sum(data_in.get_values());
   _outputs_required = _output_value;
   _local_comm.allgather(_outputs_required);
+
+  // if (_step > _pmcmc->decisionStep())
+  // {
+  //   computeTransitionVector(_tpm, data_in);
+  //   std::vector<Real> req_inputs(_sampler.getNumberOfCols() - 1);
+  //   for (unsigned int i = 0; i < _pmcmc->getNumParallelProposals(); ++i)
+  //   {
+  //     nextSamples(req_inputs, data_in, _tpm, i);
+  //     _inputs[i] = req_inputs;
+  //   }
+  // }
   if (_step > _pmcmc->decisionStep())
-  {
     computeTransitionVector(_tpm, data_in);
-    std::vector<Real> req_inputs(_sampler.getNumberOfCols() - 1);
-    for (unsigned int i = 0; i < _pmcmc->getNumParallelProposals(); ++i)
-    {
-      nextSamples(req_inputs, data_in, _tpm, i);
-      _inputs[i] = req_inputs;
-    }
+  else
+    _tpm.assign(_props, 1.0);
+  std::vector<Real> req_inputs(_sampler.getNumberOfCols() - 1);
+  for (unsigned int i = 0; i < _pmcmc->getNumParallelProposals(); ++i)
+  {
+    nextSamples(req_inputs, data_in, _tpm, i);
+    _inputs[i] = req_inputs;
   }
   // Store data from previous step
   _data_prev = data_in;

@@ -24,7 +24,7 @@ public:
 protected:
   virtual void sampleSetUp(const Sampler::SampleMode mode) override;
 
-  virtual int decisionStep() const override { return 3; }
+  virtual int decisionStep() const override { return 1; }
 
 private:
   /// Compute the differential evolution from the current state

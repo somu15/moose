@@ -87,12 +87,14 @@ AffineInvariantDifferentialEvolutionSampler::sampleSetUp(const SampleMode /*mode
     randomIndex2(_num_parallel_proposals, j, seed_value, index_req1, index_req2);
     for (unsigned int i = 0; i < _priors.size(); ++i)
     {
-      computeDifferential(_previous_state[index_req1][i],
-                          _previous_state[index_req2][i],
+      computeDifferential(std::log(_previous_state[index_req1][i]),
+                          std::log(_previous_state[index_req2][i]),
                           getRand(seed_value),
                           diff);
-      _new_samples[j][i] = (_step > decisionStep()) ? (_previous_state[j][i] + diff)
+      _new_samples[j][i] = (_step > decisionStep()) ? std::exp(std::log(_previous_state[j][i]) + diff)
                                                     : _priors[i]->quantile(getRand(seed_value));
+      // std::cout << "_previous_state[j][i]: " << _previous_state[j][i] << std::endl;
+      // std::cout << "diff: " << std::log(_previous_state[j][i]) + diff << std::endl;
       if (_lb)
         indicator = (_new_samples[j][i] < (*_lb)[i] || _new_samples[j][i] > (*_ub)[i]) ? 1 : indicator;
     }
