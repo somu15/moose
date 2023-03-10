@@ -315,9 +315,6 @@
 #include "ParallelMarkovChainMonteCarloDecision.h"
 #include "Sampler.h"
 #include "DenseMatrix.h"
-// #include "AdaptiveMonteCarloUtils.h"
-// #include "StochasticToolsUtils.h"
-// #include "MooseRandom.h"
 
 registerMooseObjectAliased("StochasticToolsApp", ParallelMarkovChainMonteCarloDecision, "PMCMCDecision");
 
@@ -434,17 +431,6 @@ ParallelMarkovChainMonteCarloDecision::execute()
   _outputs_required = _output_value;
   _local_comm.allgather(_outputs_required);
   // _local_comm.gather(0, _outputs_required);
-
-  // if (_step > _pmcmc->decisionStep())
-  // {
-  //   computeTransitionVector(_tpm, data_in);
-  //   std::vector<Real> req_inputs(_sampler.getNumberOfCols() - 1);
-  //   for (unsigned int i = 0; i < _pmcmc->getNumParallelProposals(); ++i)
-  //   {
-  //     nextSamples(req_inputs, data_in, _tpm, i);
-  //     _inputs[i] = req_inputs;
-  //   }
-  // }
   if (_step > _pmcmc->decisionStep())
     computeTransitionVector(_tpm, data_in);
   else
