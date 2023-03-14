@@ -24,7 +24,6 @@ public:
 protected:
   virtual void proposeSamples(const unsigned int seed_value) override;
 
-private:
   /// Compute the differential evolution from the current state
   void computeDifferential(const Real & state1,
                            const Real & state2,
