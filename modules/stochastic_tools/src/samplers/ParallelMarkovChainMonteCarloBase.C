@@ -111,9 +111,6 @@ ParallelMarkovChainMonteCarloBase::sampleSetUp(const SampleMode /*mode*/)
   // Filling the new_samples vector of vectors with new proposal samples
   proposeSamples(seed_value);
 
-  // Combine the proposed samples with experimental configurations
-  combineWithConfg();
-
   // Draw random numbers to facilitate decision making later on
   for (unsigned int j = 0; j < _num_parallel_proposals; ++j)
     _rnd_vec[j] = getRand(seed_value);
@@ -161,5 +158,8 @@ ParallelMarkovChainMonteCarloBase::getRandomNumbers() const
 Real
 ParallelMarkovChainMonteCarloBase::computeSample(dof_id_type row_index, dof_id_type col_index)
 {
+  // Combine the proposed samples with experimental configurations
+  combineWithConfg();
+
   return _new_samples_confg[row_index][col_index];
 }
