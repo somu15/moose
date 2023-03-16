@@ -1360,6 +1360,7 @@ Parser::extractParams(const std::string & prefix, InputParameters & p)
         setscalar(MooseFunctorName, string);
         setscalar(MaterialName, string);
         setscalar(DistributionName, string);
+        setscalar(LikelihoodName, string);
         setscalar(SamplerName, string);
         setscalar(TagName, string);
         setscalar(MeshGeneratorName, string);
@@ -1425,6 +1426,7 @@ Parser::extractParams(const std::string & prefix, InputParameters & p)
         setvector(MooseFunctorName, string);
         setvector(MaterialName, string);
         setvector(DistributionName, string);
+        setvector(LikelihoodName, string);
         setvector(SamplerName, string);
         setvector(TagName, string);
         setvector(VariableName, VariableName);
@@ -1479,6 +1481,7 @@ Parser::extractParams(const std::string & prefix, InputParameters & p)
         setvectorvector(MooseFunctorName);
         setvectorvector(MaterialName);
         setvectorvector(DistributionName);
+        setvectorvector(LikelihoodName);
         setvectorvector(SamplerName);
         setvectorvector(TagName);
 
@@ -1518,6 +1521,7 @@ Parser::extractParams(const std::string & prefix, InputParameters & p)
         setvectorvectorvector(MooseFunctorName);
         setvectorvectorvector(MaterialName);
         setvectorvectorvector(DistributionName);
+        setvectorvectorvector(LikelihoodName);
         setvectorvectorvector(SamplerName);
         else
         {
