@@ -2,38 +2,39 @@
 []
 
 [Distributions]
-  [k1]
+  [left]
     type = Normal
-    mean = 8.0
-    standard_deviation = 4.0 # 0.15 #
+    mean = 0.0
+    standard_deviation = 1.0
   []
-  [q1]
+  [right]
     type = Normal
-    mean = 1000.0 # -1.5 #
-    standard_deviation = 200.0 # 0.15 #
+    mean = 0.0
+    standard_deviation = 1.0
   []
 []
 
 [Likelihoods]
   [gaussian]
     type = Gaussian
-    noise = 0.05
+    noise = 'noise_specified/noise_specified'
     file_name = 'exp_0_05.csv'
-    log_likelihood=true
+    log_likelihood = true
   []
 []
 
 [Samplers]
   [sample]
-    type = PMCMCBase
+    type = IndependentGaussianMH
     prior_distributions = 'left right'
-    seed_inputs = 'mcmc_reporter/seed_inputs'
-    proposal_std = 'mcmc_reporter/proposal_std'
-    num_parallel_proposals = 1
-    initial_values = '0.05 0.05'
+    # previous_state = 'mcmc_reporter/inputs'
+    num_parallel_proposals = 5
     file_name = 'confg.csv'
     execute_on = PRE_MULTIAPP_SETUP
     seed = 2547
+    std_prop = '0.05 0.05'
+    initial_values = '0.1 0.1'
+    seed_inputs = 'mcmc_reporter/seed_input'
   []
 []
 
@@ -46,13 +47,6 @@
 []
 
 [Transfers]
-  # [param]
-  #   type = SamplerParameterTransfer
-  #   to_multi_app = sub
-  #   sampler = sample
-  #   parameters = 'BCs/left/value BCs/right/value Mesh/xmax'
-  #   to_control = 'stochastic'
-  # []
   [reporter_transfer]
     type = SamplerReporterTransfer
     from_reporter = 'average/value'
@@ -74,27 +68,27 @@
 [Reporters]
   [constant]
     type = StochasticReporter
-    # execute_on = 'FINAL'
+  []
+  [noise_specified]
+    type = ConstantReporter
+    real_names = 'noise_specified'
+    real_values = '0.05'
   []
   [mcmc_reporter]
-    type = PMCMCDecision
-    seed_inputs = 'seed_inputs'
+    type = IndependentMHDecision
     output_value = constant/reporter_transfer:average:value
-    inputs = 'inputs'
     sampler = sample
     likelihoods = 'gaussian'
-    prior_distributions = 'left right'
-    # execute_on = 'FINAL'
   []
 []
 
 [Executioner]
   type = Transient
-  num_steps = 1000
+  num_steps = 5
 []
 
 [Outputs]
-  file_base = 'test_mcmc'
+  file_base = 'imh_5prop'
   [out]
     type = JSON
     execute_system_information_on = NONE

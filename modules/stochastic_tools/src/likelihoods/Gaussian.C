@@ -8,8 +8,7 @@
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
 #include "Gaussian.h"
-#include "math.h"
-#include "libmesh/utility.h"
+#include "Normal.h"
 #include "DelimitedFileReader.h"
 
 registerMooseObject("StochasticToolsApp", Gaussian);
@@ -21,8 +20,10 @@ Gaussian::validParams()
   params.addClassDescription(
       "Gaussian likelihood function evaluating the model goodness against experiments.");
   params.addParam<bool>("log_likelihood", true, "Compute log-likelihood or likelihood.");
-  params.addRequiredParam<Real>("noise",
-                                "Experimental noise plus model deviations against experiments.");
+  params.addRequiredParam<ReporterName>(
+      "noise", "Experimental noise plus model deviations against experiments.");
+  // params.addRequiredParam<Real>("noise",
+  //                               "Experimental noise plus model deviations against experiments.");
   params.addParam<FileName>("file_name", "Name of the CSV file with experimental values.");
   params.addParam<std::string>(
       "file_column_name", "Name of column in CSV file to use, by default first column is used.");
@@ -35,7 +36,7 @@ Gaussian::Gaussian(const InputParameters & parameters)
   : Likelihood(parameters),
     ReporterInterface(this),
     _log_likelihood(getParam<bool>("log_likelihood")),
-    _noise(getParam<Real>("noise"))
+    _noise(getReporterValue<Real>("noise"))
 {
   if (isParamValid("exp_values") && isParamValid("file_name"))
     paramError("exp_values", "exp_values and file_name both cannot be set at the same time.");
@@ -62,9 +63,14 @@ Gaussian::function(const std::vector<Real> & exp,
                    const bool & log_likelihood)
 {
   Real result = 0.0;
+  Real val1;
   for (unsigned i = 0; i < exp.size(); ++i)
-    result += std::log(1.0 / (noise * std::sqrt(2.0 * M_PI))) -
-              0.5 * Utility::pow<2>((exp[i] - model[i]) / noise);
+  {
+    val1 = Normal::pdf(exp[i], model[i], noise);
+    // val1 = (val1 <= 0.0) ? -1e7 : std::log(val1);
+    val1 = std::log(val1);
+    result += val1;
+  }
   if (!log_likelihood)
     result = std::exp(result);
   return result;

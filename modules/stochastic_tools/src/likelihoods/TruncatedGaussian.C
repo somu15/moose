@@ -8,9 +8,6 @@
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
 #include "TruncatedGaussian.h"
-#include "math.h"
-#include "libmesh/utility.h"
-#include "DelimitedFileReader.h"
 #include "TruncatedNormal.h"
 
 registerMooseObject("StochasticToolsApp", TruncatedGaussian);
@@ -18,57 +15,28 @@ registerMooseObject("StochasticToolsApp", TruncatedGaussian);
 InputParameters
 TruncatedGaussian::validParams()
 {
-  InputParameters params = Likelihood::validParams();
+  InputParameters params = Gaussian::validParams();
   params.addClassDescription(
       "TruncatedGaussian likelihood function evaluating the model goodness against experiments.");
-  params.addParam<bool>("log_likelihood", true, "Compute log-likelihood or likelihood.");
-  params.addRequiredParam<Real>("noise",
-                                "Experimental noise plus model deviations against experiments.");
-  params.addRequiredParam<Real>("lb",
-                                "Lower bound for the quantity of interest.");
-  params.addRequiredParam<Real>("ub",
-                                "Upper bound for the quantity of interest.");
-  params.addParam<FileName>("file_name", "Name of the CSV file with experimental values.");
-  params.addParam<std::string>(
-      "file_column_name", "Name of column in CSV file to use, by default first column is used.");
-  params.addParam<std::vector<Real>>(
-      "exp_values", "User-specified experimental values when CSV file is not provided.");
+  params.addRequiredParam<Real>("lb", "Lower bound for the quantity of interest.");
+  params.addRequiredParam<Real>("ub", "Upper bound for the quantity of interest.");
   return params;
 }
 
 TruncatedGaussian::TruncatedGaussian(const InputParameters & parameters)
-  : Likelihood(parameters),
-    ReporterInterface(this),
-    _log_likelihood(getParam<bool>("log_likelihood")),
-    _noise(getParam<Real>("noise")),
-    _lb(getParam<Real>("lb")),
-    _ub(getParam<Real>("ub"))
+  : Gaussian(parameters), _lb(getParam<Real>("lb")), _ub(getParam<Real>("ub"))
 {
-  if (isParamValid("exp_values") && isParamValid("file_name"))
-    paramError("exp_values", "exp_values and file_name both cannot be set at the same time.");
-  else if (isParamValid("file_name"))
-  {
-    MooseUtils::DelimitedFileReader reader(getParam<FileName>("file_name"));
-    reader.read();
-    if (isParamValid("file_column_name"))
-      _exp_values = reader.getData(getParam<std::string>("file_column_name"));
-    else
-      _exp_values = reader.getData(0);
-  }
-  else if (isParamValid("exp_values"))
-    _exp_values = getParam<std::vector<Real>>("exp_values");
-  else
-    mooseError("Either 'exp_values' or 'file_name' parameters must be specified to represent "
-               "experimental data.");
+  if (!(_lb < _ub))
+    mooseError("The specified lower bound should be less than the upper bound.");
 }
 
 Real
 TruncatedGaussian::function(const std::vector<Real> & exp,
-                   const std::vector<Real> & model,
-                   const Real & noise,
-                   const Real & lb,
-                   const Real & ub,
-                   const bool & log_likelihood)
+                            const std::vector<Real> & model,
+                            const Real & noise,
+                            const Real & lb,
+                            const Real & ub,
+                            const bool & log_likelihood)
 {
   Real result = 0.0;
   for (unsigned i = 0; i < exp.size(); ++i)

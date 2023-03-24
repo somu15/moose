@@ -2,16 +2,6 @@
 []
 
 [Distributions]
-  # [left]
-  #   type = Uniform
-  #   lower_bound = -3.0
-  #   upper_bound = 3.0
-  # []
-  # [right]
-  #   type = Uniform
-  #   lower_bound = -3.0
-  #   upper_bound = 3.0
-  # []
   [left]
     type = Normal
     mean = 0.0
@@ -27,24 +17,23 @@
 [Likelihoods]
   [gaussian]
     type = Gaussian
-    noise = 0.05
+    noise = 'noise_specified/noise_specified'
     file_name = 'exp_0_05.csv'
-    log_likelihood=true
+    log_likelihood = true
   []
 []
 
 [Samplers]
   [sample]
-    type = AffineInvariantDES # AffineInvariantStretchSampler #
+    type = AffineInvariantStretchSampler
     prior_distributions = 'left right'
-    previous_state = 'mcmc_reporter/inputs'
-    num_parallel_proposals = 10
-    # tuning_option = Braak2006_scaled
-    # lb = '-3.0 -3.0' # if needed
-    # ub = '3.0 3.0' # if needed
+    num_parallel_proposals = 5
     file_name = 'confg.csv'
     execute_on = PRE_MULTIAPP_SETUP
     seed = 2547
+    initial_values = '0.1 0.1'
+    previous_state = 'mcmc_reporter/inputs'
+    previous_state_var = 'mcmc_reporter/variance'
   []
 []
 
@@ -79,22 +68,26 @@
   [constant]
     type = StochasticReporter
   []
+  [noise_specified]
+    type = ConstantReporter
+    real_names = 'noise_specified'
+    real_values = '0.05'
+  []
   [mcmc_reporter]
-    type = AffineInvariantDifferentialDecision #
+    type = AffineInvariantStretchDecision
     output_value = constant/reporter_transfer:average:value
     sampler = sample
     likelihoods = 'gaussian'
-    prior_distributions = 'left right'
   []
 []
 
 [Executioner]
   type = Transient
-  num_steps = 200 # 500
+  num_steps = 5
 []
 
 [Outputs]
-  file_base = 'test_mcmc_affine'
+  file_base = 'ss_5prop'
   [out]
     type = JSON
     execute_system_information_on = NONE
