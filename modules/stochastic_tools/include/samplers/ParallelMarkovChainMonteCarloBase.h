@@ -16,7 +16,9 @@
 /**
  * A base class used to perform Parallel Markov Chain Monte Carlo (MCMC) sampling
  */
-class ParallelMarkovChainMonteCarloBase : public Sampler, public ReporterInterface, public LikelihoodInterface
+class ParallelMarkovChainMonteCarloBase : public Sampler,
+                                          public ReporterInterface,
+                                          public LikelihoodInterface
 {
 public:
   static InputParameters validParams();
@@ -26,12 +28,12 @@ public:
   /**
    * Return the number of configuration parameters.
    */
-  dof_id_type getNumberOfConfigParams() const{ return  _confg_values.size(); }
+  dof_id_type getNumberOfConfigParams() const { return _confg_values.size(); }
 
   /**
    * Return the number of parallel proposals.
    */
-  dof_id_type getNumParallelProposals() const{ return _num_parallel_proposals; }
+  dof_id_type getNumParallelProposals() const { return _num_parallel_proposals; }
 
   /**
    * Return the random numbers to facilitate decision making in reporters
@@ -54,10 +56,17 @@ protected:
   virtual Real computeSample(dof_id_type row_index, dof_id_type col_index) override;
 
   /// Sample a random index excluding a specified index
-  void randomIndex(const unsigned int & ub, const unsigned int & exclude, const unsigned int & seed, unsigned int & req_index);
+  void randomIndex(const unsigned int & ub,
+                   const unsigned int & exclude,
+                   const unsigned int & seed,
+                   unsigned int & req_index);
 
   /// Sample two random indices without repitition excluding a specified index
-  void randomIndex2(const unsigned int & ub, const unsigned int & exclude, const unsigned int & seed, unsigned int & req_index1, unsigned int & req_index2);
+  void randomIndex2(const unsigned int & ub,
+                    const unsigned int & exclude,
+                    const unsigned int & seed,
+                    unsigned int & req_index1,
+                    unsigned int & req_index2);
 
   /// Number of parallel proposals to be made and subApps to be executed
   const unsigned int & _num_parallel_proposals;

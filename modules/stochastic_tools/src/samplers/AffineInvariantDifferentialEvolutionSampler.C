@@ -11,7 +11,9 @@
 #include "Normal.h"
 #include "Uniform.h"
 
-registerMooseObjectAliased("StochasticToolsApp", AffineInvariantDifferentialEvolutionSampler, "AffineInvariantDES");
+registerMooseObjectAliased("StochasticToolsApp",
+                           AffineInvariantDifferentialEvolutionSampler,
+                           "AffineInvariantDES");
 
 /*
  Tuning options for the internal parameters
@@ -31,20 +33,24 @@ AffineInvariantDifferentialEvolutionSampler::validParams()
   params.addRequiredParam<ReporterName>(
       "previous_state", "Reporter value with the previous state of all the walkers.");
   MooseEnum tuning_option("Braak2006_static Braak2006_scaled", "Braak2006_static");
-  params.addParam<MooseEnum>("tuning_option", tuning_option, "The tuning option for internal parameters.");
+  params.addParam<MooseEnum>(
+      "tuning_option", tuning_option, "The tuning option for internal parameters.");
   return params;
 }
 
-AffineInvariantDifferentialEvolutionSampler::AffineInvariantDifferentialEvolutionSampler(const InputParameters & parameters)
+AffineInvariantDifferentialEvolutionSampler::AffineInvariantDifferentialEvolutionSampler(
+    const InputParameters & parameters)
   : ParallelMarkovChainMonteCarloBase(parameters),
     _previous_state(getReporterValue<std::vector<std::vector<Real>>>("previous_state")),
     _tuning_option(getParam<MooseEnum>("tuning_option"))
 {
   if (_num_parallel_proposals < 5)
-    mooseError("At least five parallel proposals should be used for the Differential Evolution Sampler.");
+    mooseError(
+        "At least five parallel proposals should be used for the Differential Evolution Sampler.");
 
   if (_num_parallel_proposals < _priors.size())
-    mooseWarning("It is recommended that the parallel proposals be greater than or equal to the inferred parameters.");
+    mooseWarning("It is recommended that the parallel proposals be greater than or equal to the "
+                 "inferred parameters.");
 }
 
 void
@@ -102,7 +108,8 @@ AffineInvariantDifferentialEvolutionSampler::proposeSamples(const unsigned int s
       _new_samples[j][i] = (_step > decisionStep()) ? (_previous_state[j][i] + diff)
                                                     : _priors[i]->quantile(getRand(seed_value));
       if (_lb)
-        indicator = (_new_samples[j][i] < (*_lb)[i] || _new_samples[j][i] > (*_ub)[i]) ? 1 : indicator;
+        indicator =
+            (_new_samples[j][i] < (*_lb)[i] || _new_samples[j][i] > (*_ub)[i]) ? 1 : indicator;
     }
     j = (!indicator) ? ++j : j;
   }

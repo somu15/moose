@@ -9,13 +9,12 @@
 
 #pragma once
 
-#include "Likelihood.h"
-#include "ReporterInterface.h"
+#include "Gaussian.h"
 
 /**
  * A class used to generate a truncated Gaussian likelihood of observing model predictions
  */
-class TruncatedGaussian : public Likelihood, public ReporterInterface
+class TruncatedGaussian : public Gaussian
 {
 public:
   static InputParameters validParams();
@@ -31,19 +30,10 @@ public:
                        const Real & ub,
                        const bool & log_likelihood);
 
-protected:
-  /// return log-likelihood or likelihood
-  const bool & _log_likelihood;
-
-  /// Noise value
-  const Real & _noise;
-
+private:
   /// Lower bound
   const Real & _lb;
 
   /// Upper bound
   const Real & _ub;
-
-  /// Experimental data values
-  std::vector<Real> _exp_values;
 };
