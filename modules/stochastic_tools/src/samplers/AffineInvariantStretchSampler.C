@@ -16,8 +16,8 @@ AffineInvariantStretchSampler::validParams()
 {
   InputParameters params = ParallelMarkovChainMonteCarloBase::validParams();
   params.addClassDescription("Perform Affine Invariant Ensemble MCMC with stretch sampler.");
-  params.addRequiredParam<ReporterName>("previous_state",
-                                "Reporter value with the previous state of all the walkers.");
+  params.addRequiredParam<ReporterName>(
+      "previous_state", "Reporter value with the previous state of all the walkers.");
   params.addParam<Real>("step_size", 2.0, "Step size for each of the walkers.");
   return params;
 }
@@ -31,7 +31,8 @@ AffineInvariantStretchSampler::AffineInvariantStretchSampler(const InputParamete
     mooseError("At least three parallel proposals should be used for the Stretch Sampler.");
 
   if (_num_parallel_proposals < _priors.size())
-    mooseWarning("It is recommended that the parallel proposals be greater than or equal to the inferred parameters.");
+    mooseWarning("It is recommended that the parallel proposals be greater than or equal to the "
+                 "inferred parameters.");
 
   // Assign the correct size to the step size vector
   _affine_step.resize(_num_parallel_proposals);
@@ -56,7 +57,8 @@ AffineInvariantStretchSampler::proposeSamples(const unsigned int seed_value)
                  _affine_step[j] * (_previous_state[j][i] - _previous_state[index_req][i]))
               : _priors[i]->quantile(getRand(seed_value));
       if (_lb)
-        indicator = (_new_samples[j][i] < (*_lb)[i] || _new_samples[j][i] > (*_ub)[i]) ? 1 : indicator;
+        indicator =
+            (_new_samples[j][i] < (*_lb)[i] || _new_samples[j][i] > (*_ub)[i]) ? 1 : indicator;
     }
     j = (!indicator) ? ++j : j;
   }

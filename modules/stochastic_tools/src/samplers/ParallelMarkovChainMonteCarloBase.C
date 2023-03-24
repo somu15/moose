@@ -20,11 +20,11 @@ ParallelMarkovChainMonteCarloBase::validParams()
   InputParameters params = Sampler::validParams();
   params.addClassDescription("Parallel Markov chain Monte Carlo base.");
   params.addRequiredParam<std::vector<DistributionName>>(
-      "prior_distributions",
-      "The prior distributions of the parameters to be calibrated.");
-  params.addRequiredParam<unsigned int>("num_parallel_proposals",
-                                        "Number of proposals to made and corresponding subApps executed in "
-                                        "parallel.");
+      "prior_distributions", "The prior distributions of the parameters to be calibrated.");
+  params.addRequiredParam<unsigned int>(
+      "num_parallel_proposals",
+      "Number of proposals to made and corresponding subApps executed in "
+      "parallel.");
   params.addRequiredParam<FileName>("file_name", "Name of the CSV file with configuration values.");
   params.addParam<std::string>(
       "file_column_name", "Name of column in CSV file to use, by default first column is used.");
@@ -37,7 +37,8 @@ ParallelMarkovChainMonteCarloBase::validParams()
   return params;
 }
 
-ParallelMarkovChainMonteCarloBase::ParallelMarkovChainMonteCarloBase(const InputParameters & parameters)
+ParallelMarkovChainMonteCarloBase::ParallelMarkovChainMonteCarloBase(
+    const InputParameters & parameters)
   : Sampler(parameters),
     ReporterInterface(this),
     LikelihoodInterface(this),
@@ -49,7 +50,8 @@ ParallelMarkovChainMonteCarloBase::ParallelMarkovChainMonteCarloBase(const Input
     _num_random_seeds(getParam<unsigned int>("num_random_seeds"))
 {
   // Filling the `priors` vector with the user-provided distributions.
-  for (const DistributionName & name : getParam<std::vector<DistributionName>>("prior_distributions"))
+  for (const DistributionName & name :
+       getParam<std::vector<DistributionName>>("prior_distributions"))
     _priors.push_back(&getDistributionByName(name));
 
   // Read the experimental configurations from a csv file
@@ -68,7 +70,8 @@ ParallelMarkovChainMonteCarloBase::ParallelMarkovChainMonteCarloBase(const Input
 
   // Resizing the new samples vector of vectors
   _new_samples.resize(_num_parallel_proposals, std::vector<Real>(_priors.size(), 0.0));
-  _new_samples_confg.resize(_num_parallel_proposals * _confg_values.size(), std::vector<Real>(_priors.size() + 1, 0.0));
+  _new_samples_confg.resize(_num_parallel_proposals * _confg_values.size(),
+                            std::vector<Real>(_priors.size() + 1, 0.0));
   _rnd_vec.resize(_num_parallel_proposals);
 
   setNumberOfRandomSeeds(_num_random_seeds);
@@ -117,7 +120,10 @@ ParallelMarkovChainMonteCarloBase::sampleSetUp(const SampleMode /*mode*/)
 }
 
 void
-ParallelMarkovChainMonteCarloBase::randomIndex(const unsigned int & ub, const unsigned int & exclude, const unsigned int & seed, unsigned int & req_index)
+ParallelMarkovChainMonteCarloBase::randomIndex(const unsigned int & ub,
+                                               const unsigned int & exclude,
+                                               const unsigned int & seed,
+                                               unsigned int & req_index)
 {
   req_index = exclude;
   while (req_index == exclude)
@@ -125,7 +131,11 @@ ParallelMarkovChainMonteCarloBase::randomIndex(const unsigned int & ub, const un
 }
 
 void
-ParallelMarkovChainMonteCarloBase::randomIndex2(const unsigned int & ub, const unsigned int & exclude, const unsigned int & seed, unsigned int & req_index1, unsigned int & req_index2)
+ParallelMarkovChainMonteCarloBase::randomIndex2(const unsigned int & ub,
+                                                const unsigned int & exclude,
+                                                const unsigned int & seed,
+                                                unsigned int & req_index1,
+                                                unsigned int & req_index2)
 {
   randomIndex(ub, exclude, seed, req_index1);
   req_index2 = req_index1;

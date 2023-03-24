@@ -11,7 +11,9 @@
 #include "Normal.h"
 #include "TruncatedNormal.h"
 
-registerMooseObjectAliased("StochasticToolsApp", IndependentGaussianMetropolisHastings, "IndependentGaussianMH");
+registerMooseObjectAliased("StochasticToolsApp",
+                           IndependentGaussianMetropolisHastings,
+                           "IndependentGaussianMH");
 
 InputParameters
 IndependentGaussianMetropolisHastings::validParams()
@@ -20,12 +22,15 @@ IndependentGaussianMetropolisHastings::validParams()
   params.addClassDescription("Perform M-H MCMC sampling with independent Gaussian propoposals.");
   params.addRequiredParam<ReporterName>("seed_inputs",
                                         "Reporter with seed inputs values for the next proposals.");
-  params.addRequiredParam<std::vector<Real>>("std_prop", "Standard deviations for making the next proposal.");
-  params.addRequiredParam<std::vector<Real>>("initial_values", "The starting values of the inputs to be calibrated.");
+  params.addRequiredParam<std::vector<Real>>("std_prop",
+                                             "Standard deviations for making the next proposal.");
+  params.addRequiredParam<std::vector<Real>>("initial_values",
+                                             "The starting values of the inputs to be calibrated.");
   return params;
 }
 
-IndependentGaussianMetropolisHastings::IndependentGaussianMetropolisHastings(const InputParameters & parameters)
+IndependentGaussianMetropolisHastings::IndependentGaussianMetropolisHastings(
+    const InputParameters & parameters)
   : ParallelMarkovChainMonteCarloBase(parameters),
     _seed_inputs(getReporterValue<std::vector<Real>>("seed_inputs")),
     _std_prop(getParam<std::vector<Real>>("std_prop")),
@@ -47,7 +52,8 @@ IndependentGaussianMetropolisHastings::proposeSamples(const unsigned int seed_va
     for (unsigned int i = 0; i < _priors.size(); ++i)
     {
       if (_lb)
-        _new_samples[j][i] = TruncatedNormal::quantile(getRand(seed_value), old_sample[i], _std_prop[i], (*_lb)[i], (*_ub)[i]);
+        _new_samples[j][i] = TruncatedNormal::quantile(
+            getRand(seed_value), old_sample[i], _std_prop[i], (*_lb)[i], (*_ub)[i]);
       else
         _new_samples[j][i] = Normal::quantile(getRand(seed_value), old_sample[i], _std_prop[i]);
     }

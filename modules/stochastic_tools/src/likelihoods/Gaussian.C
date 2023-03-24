@@ -8,8 +8,6 @@
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
 #include "Gaussian.h"
-#include "math.h"
-#include "libmesh/utility.h"
 #include "DelimitedFileReader.h"
 
 registerMooseObject("StochasticToolsApp", Gaussian);
