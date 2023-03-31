@@ -28,6 +28,11 @@ public:
   /**
    * Return the number of configuration parameters.
    */
+  dof_id_type getNumberOfConfigValues() const { return _confg_values[0].size(); }
+
+  /**
+   * Return the number of configuration parameters.
+   */
   dof_id_type getNumberOfConfigParams() const { return _confg_values.size(); }
 
   /**
@@ -102,7 +107,7 @@ private:
   const unsigned int & _num_random_seeds;
 
   /// Configuration values
-  std::vector<Real> _confg_values;
+  std::vector<std::vector<Real>> _confg_values;
 
   /// Vectors of new proposed samples combined with the experimental configuration values
   std::vector<std::vector<Real>> _new_samples_confg;

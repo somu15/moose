@@ -69,12 +69,13 @@ ParallelMarkovChainMonteCarloDecision::ParallelMarkovChainMonteCarloDecision(
 
   // Fetching the sampler characteristics
   _props = _pmcmc->getNumParallelProposals();
-  _num_confg = _pmcmc->getNumberOfConfigParams();
+  _num_confg_values = _pmcmc->getNumberOfConfigValues();
+  _num_confg_params = _pmcmc->getNumberOfConfigParams();
 
   // Resizing the data arrays to transmit to the output file
   _inputs.resize(_props);
   for (unsigned int i = 0; i < _props; ++i)
-    _inputs[i].resize(_sampler.getNumberOfCols() - 1);
+    _inputs[i].resize(_sampler.getNumberOfCols() - _num_confg_params);
   _outputs_required.resize(_sampler.getNumberOfRows());
   _tpm.resize(_props);
 }
@@ -83,15 +84,15 @@ void
 ParallelMarkovChainMonteCarloDecision::computeEvidence(std::vector<Real> & evidence,
                                                        DenseMatrix<Real> & inputs_matrix)
 {
-  std::vector<Real> out1(_num_confg);
-  std::vector<Real> out2(_num_confg);
+  std::vector<Real> out1(_num_confg_values);
+  std::vector<Real> out2(_num_confg_values);
   for (unsigned int i = 0; i < evidence.size(); ++i)
   {
     evidence[i] = 0.0;
     for (unsigned int j = 0; j < _priors.size(); ++j)
       evidence[i] += (std::log(_priors[j]->pdf(inputs_matrix(i, j))) -
                       std::log(_priors[j]->pdf(_data_prev(i, j))));
-    for (unsigned int j = 0; j < _num_confg; ++j)
+    for (unsigned int j = 0; j < _num_confg_values; ++j)
     {
       out1[j] = _outputs_required[j * _props + i];
       out2[j] = _outputs_prev[j * _props + i];
@@ -116,17 +117,17 @@ ParallelMarkovChainMonteCarloDecision::nextSamples(std::vector<Real> & req_input
 {
   if (tv[parallel_index] >= _rnd_vec[parallel_index])
   {
-    for (unsigned int k = 0; k < _sampler.getNumberOfCols() - 1; ++k)
+    for (unsigned int k = 0; k < _sampler.getNumberOfCols() - _num_confg_params; ++k)
       req_inputs[k] = inputs_matrix(parallel_index, k);
   }
   else
   {
-    for (unsigned int k = 0; k < _sampler.getNumberOfCols() - 1; ++k)
+    for (unsigned int k = 0; k < _sampler.getNumberOfCols() - _num_confg_params; ++k)
     {
       req_inputs[k] = _data_prev(parallel_index, k);
       inputs_matrix(parallel_index, k) = _data_prev(parallel_index, k);
     }
-    for (unsigned int k = 0; k < _num_confg; ++k)
+    for (unsigned int k = 0; k < _num_confg_values; ++k)
       _outputs_required[k * _props + parallel_index] = _outputs_prev[k * _props + parallel_index];
   }
 }
@@ -163,7 +164,7 @@ ParallelMarkovChainMonteCarloDecision::execute()
     _tpm.assign(_props, 1.0);
 
   // Accept/reject the proposed samples and assign the correct outputs
-  std::vector<Real> req_inputs(_sampler.getNumberOfCols() - 1);
+  std::vector<Real> req_inputs(_sampler.getNumberOfCols() - _num_confg_params);
   for (unsigned int i = 0; i < _props; ++i)
   {
     nextSamples(req_inputs, data_in, _tpm, i);
