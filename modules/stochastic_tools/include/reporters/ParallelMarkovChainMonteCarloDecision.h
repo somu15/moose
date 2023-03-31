@@ -85,8 +85,11 @@ protected:
   /// Storage for the random numbers for decision making
   const std::vector<Real> & _rnd_vec;
 
-  /// Storage for the number of experimental configurations
-  dof_id_type _num_confg;
+  /// Storage for the number of experimental configuration values
+  dof_id_type _num_confg_values;
+
+  /// Storage for the number of experimental configuration parameters
+  dof_id_type _num_confg_params;
 
   /// Storage for previous inputs
   DenseMatrix<Real> _data_prev;

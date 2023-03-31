@@ -28,6 +28,8 @@ ParallelMarkovChainMonteCarloBase::validParams()
   params.addRequiredParam<FileName>("file_name", "Name of the CSV file with configuration values.");
   params.addParam<std::string>(
       "file_column_name", "Name of column in CSV file to use, by default first column is used.");
+  params.addParam<unsigned int>(
+      "num_columns", "Number of columns to be used in the CSV file with the configuration values.");
   params.addParam<std::vector<Real>>("lb", "Lower bounds for making the next proposal.");
   params.addParam<std::vector<Real>>("ub", "Upper bounds for making the next proposal.");
   params.addParam<unsigned int>(
@@ -57,21 +59,28 @@ ParallelMarkovChainMonteCarloBase::ParallelMarkovChainMonteCarloBase(
   // Read the experimental configurations from a csv file
   MooseUtils::DelimitedFileReader reader(getParam<FileName>("file_name"));
   reader.read();
+  _confg_values.resize(1);
   if (isParamValid("file_column_name"))
-    _confg_values = reader.getData(getParam<std::string>("file_column_name"));
+    _confg_values[0] = reader.getData(getParam<std::string>("file_column_name"));
+  else if (isParamValid("num_columns"))
+  {
+    _confg_values.resize(getParam<unsigned int>("num_columns"));
+    for (unsigned int i = 0; i < _confg_values.size(); ++i)
+      _confg_values[i] = reader.getData(i);
+  }
   else
-    _confg_values = reader.getData(0);
+    _confg_values[0] = reader.getData(0);
 
   // Setting the number of sampler rows to be equal to the number of parallel proposals
-  setNumberOfRows(_num_parallel_proposals * _confg_values.size());
+  setNumberOfRows(_num_parallel_proposals * _confg_values[0].size());
 
   // Setting the number of columns in the sampler matrix (equal to the number of distributions).
-  setNumberOfCols(_priors.size() + 1);
+  setNumberOfCols(_priors.size() + _confg_values.size());
 
   // Resizing the new samples vector of vectors
   _new_samples.resize(_num_parallel_proposals, std::vector<Real>(_priors.size(), 0.0));
-  _new_samples_confg.resize(_num_parallel_proposals * _confg_values.size(),
-                            std::vector<Real>(_priors.size() + 1, 0.0));
+  _new_samples_confg.resize(_num_parallel_proposals * _confg_values[0].size(),
+                            std::vector<Real>(_priors.size() + _confg_values.size(), 0.0));
   _rnd_vec.resize(_num_parallel_proposals);
 
   setNumberOfRandomSeeds(_num_random_seeds);
@@ -149,12 +158,13 @@ ParallelMarkovChainMonteCarloBase::combineWithConfg()
   unsigned int index1;
   int index2 = -1;
   std::vector<Real> tmp;
-  for (unsigned int i = 0; i < _num_parallel_proposals * _confg_values.size(); ++i)
+  for (unsigned int i = 0; i < _num_parallel_proposals * _confg_values[0].size(); ++i)
   {
     index1 = i % _num_parallel_proposals;
     index2 = (index1 == 0) ? ++index2 : index2;
     tmp = _new_samples[index1];
-    tmp.push_back(_confg_values[index2]);
+    for (unsigned int j = 0; j < _confg_values.size(); ++j)
+      tmp.push_back(_confg_values[j][index2]);
     _new_samples_confg[i] = tmp;
   }
 }
@@ -168,6 +178,13 @@ ParallelMarkovChainMonteCarloBase::getRandomNumbers() const
 Real
 ParallelMarkovChainMonteCarloBase::computeSample(dof_id_type row_index, dof_id_type col_index)
 {
+  std::vector<Real> initial{0.3919, 1.31e-19, -87.7, 2.0391e-25, -90.5, 7.78e-37};
+  if (_step < 1)
+  {
+    for (unsigned int i = 0; i < _num_parallel_proposals; ++i)
+      _new_samples[i] = initial;
+  }
+
   // Combine the proposed samples with experimental configurations
   combineWithConfg();
 
