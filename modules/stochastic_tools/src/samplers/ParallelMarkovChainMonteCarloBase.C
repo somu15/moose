@@ -178,12 +178,12 @@ ParallelMarkovChainMonteCarloBase::getRandomNumbers() const
 Real
 ParallelMarkovChainMonteCarloBase::computeSample(dof_id_type row_index, dof_id_type col_index)
 {
-  std::vector<Real> initial{0.3919, 1.31e-19, -87.7, 2.0391e-25, -90.5, 7.78e-37};
-  if (_step < 1)
-  {
-    for (unsigned int i = 0; i < _num_parallel_proposals; ++i)
-      _new_samples[i] = initial;
-  }
+  // std::vector<Real> initial{0.3919, 1.31e-19, -87.7, 2.0391e-25, -90.5, 7.78e-37};
+  // if (_step < 1)
+  // {
+  //   for (unsigned int i = 0; i < _num_parallel_proposals; ++i)
+  //     _new_samples[i] = initial;
+  // }
 
   // Combine the proposed samples with experimental configurations
   combineWithConfg();
