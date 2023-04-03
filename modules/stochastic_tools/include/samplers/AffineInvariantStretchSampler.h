@@ -21,15 +21,15 @@ public:
 
   AffineInvariantStretchSampler(const InputParameters & parameters);
 
+  virtual int decisionStep() const override { return 5; }
+
   /**
    * Return the vector of step size for decision making
    */
-  std::vector<Real> getAffineStepSize() const { return _affine_step; }
+  const std::vector<Real> & getAffineStepSize() const;
 
 protected:
   virtual void proposeSamples(const unsigned int seed_value) override;
-
-  // virtual int decisionStep() const override { return 1; }
 
 private:
   /// The step size for the stretch sampler

@@ -63,3 +63,9 @@ AffineInvariantStretchSampler::proposeSamples(const unsigned int seed_value)
     j = (!indicator) ? ++j : j;
   }
 }
+
+const std::vector<Real> &
+AffineInvariantStretchSampler::getAffineStepSize() const
+{
+  return _affine_step;
+}

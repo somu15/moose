@@ -64,6 +64,7 @@ ifeq ($(NAVIER_STOKES),yes)
         FLUID_PROPERTIES            := yes
         HEAT_CONDUCTION             := yes
         RDG                         := yes
+        STOCHASTIC_TOOLS            := yes
 endif
 
 ifeq ($(SOLID_PROPERTIES),yes)
