@@ -29,6 +29,9 @@ ParallelMarkovChainMonteCarloDecision::validParams()
       "Modified value of the model output from this reporter class.");
   params.addParam<ReporterValueName>("inputs", "inputs", "Uncertain inputs to the model.");
   params.addParam<ReporterValueName>("tpm", "tpm", "The transition probability matrix.");
+  params.addParam<ReporterValueName>("variance", "variance", "Model variance term.");
+  params.addParam<ReporterValueName>(
+      "noise", "noise", "Model noise term to pass to Likelihoods object.");
   params.addRequiredParam<SamplerName>("sampler", "The sampler object.");
   params.addRequiredParam<std::vector<LikelihoodName>>("likelihoods", "Names of the likelihoods.");
   params.addRequiredParam<std::vector<DistributionName>>(
@@ -44,9 +47,13 @@ ParallelMarkovChainMonteCarloDecision::ParallelMarkovChainMonteCarloDecision(
     _outputs_required(declareValue<std::vector<Real>>("outputs_required")),
     _inputs(declareValue<std::vector<std::vector<Real>>>("inputs")),
     _tpm(declareValue<std::vector<Real>>("tpm")),
+    _variance(declareValue<std::vector<Real>>("variance")),
+    _noise(declareValue<Real>("noise")),
     _sampler(getSampler("sampler")),
     _pmcmc(dynamic_cast<const ParallelMarkovChainMonteCarloBase *>(&_sampler)),
     _rnd_vec(_pmcmc->getRandomNumbers()),
+    _new_var_samples(_pmcmc->getVarSamples()),
+    _var_prior(_pmcmc->getVarPrior()),
     _step(getCheckedPointerParam<FEProblemBase *>("_fe_problem_base")->timeStep()),
     _check_step(std::numeric_limits<int>::max())
 {
@@ -78,6 +85,7 @@ ParallelMarkovChainMonteCarloDecision::ParallelMarkovChainMonteCarloDecision(
     _inputs[i].resize(_sampler.getNumberOfCols() - _num_confg_params);
   _outputs_required.resize(_sampler.getNumberOfRows());
   _tpm.resize(_props);
+  _variance.resize(_props);
 }
 
 void
@@ -96,6 +104,12 @@ ParallelMarkovChainMonteCarloDecision::computeEvidence(std::vector<Real> & evide
     {
       out1[j] = _outputs_required[j * _props + i];
       out2[j] = _outputs_prev[j * _props + i];
+    }
+    if (_var_prior)
+    {
+      evidence[i] += (std::log(_var_prior->pdf(_new_var_samples[i])) -
+                      std::log(_var_prior->pdf(_var_prev[i])));
+      _noise = std::sqrt(_variance[i]);
     }
     for (unsigned int j = 0; j < _likelihoods.size(); ++j)
       evidence[i] += (_likelihoods[j]->function(out1) - _likelihoods[j]->function(out2));
@@ -119,6 +133,7 @@ ParallelMarkovChainMonteCarloDecision::nextSamples(std::vector<Real> & req_input
   {
     for (unsigned int k = 0; k < _sampler.getNumberOfCols() - _num_confg_params; ++k)
       req_inputs[k] = inputs_matrix(parallel_index, k);
+    _variance[parallel_index] = _new_var_samples[parallel_index];
   }
   else
   {
@@ -127,6 +142,8 @@ ParallelMarkovChainMonteCarloDecision::nextSamples(std::vector<Real> & req_input
       req_inputs[k] = _data_prev(parallel_index, k);
       inputs_matrix(parallel_index, k) = _data_prev(parallel_index, k);
     }
+    if (_var_prior)
+      _variance[parallel_index] = _var_prev[parallel_index];
     for (unsigned int k = 0; k < _num_confg_values; ++k)
       _outputs_required[k * _props + parallel_index] = _outputs_prev[k * _props + parallel_index];
   }
@@ -174,6 +191,7 @@ ParallelMarkovChainMonteCarloDecision::execute()
   // Store data from previous step
   _data_prev = data_in;
   _outputs_prev = _outputs_required;
+  _var_prev = _variance;
 
   // Compute the next seeds to facilitate proposals (not always required)
   nextSeeds();

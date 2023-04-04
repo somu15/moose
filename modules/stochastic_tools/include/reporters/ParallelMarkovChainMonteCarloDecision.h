@@ -64,6 +64,12 @@ protected:
   /// Transition probability matrix
   std::vector<Real> & _tpm;
 
+  /// Model variance term
+  std::vector<Real> & _variance;
+
+  /// Model noise term to pass to Likelihoods object
+  Real & _noise;
+
   /// Storage for the likelihood objects to be utilized
   std::vector<const Likelihood *> _likelihoods;
 
@@ -85,6 +91,12 @@ protected:
   /// Storage for the random numbers for decision making
   const std::vector<Real> & _rnd_vec;
 
+  /// Storage for new proposed variance samples
+  const std::vector<Real> & _new_var_samples;
+
+  /// Storage for the prior over the variance
+  const Distribution * _var_prior;
+
   /// Storage for the number of experimental configuration values
   dof_id_type _num_confg_values;
 
@@ -93,6 +105,9 @@ protected:
 
   /// Storage for previous inputs
   DenseMatrix<Real> _data_prev;
+
+  /// Storage for previous variances
+  std::vector<Real> _var_prev;
 
   /// Storage for previous outputs
   std::vector<Real> _outputs_prev;

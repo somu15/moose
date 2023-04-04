@@ -46,6 +46,16 @@ public:
   const std::vector<Real> & getRandomNumbers() const;
 
   /**
+   * Return the proposed variance samples to facilitate decision making in reporters
+   */
+  const std::vector<Real> & getVarSamples() const;
+
+  /**
+   * Return the prior over variance to facilitate decision making in reporters
+   */
+  const Distribution * getVarPrior() const;
+
+  /**
    * Return the step after which decision making can begin
    */
   virtual int decisionStep() const { return 1; }
@@ -53,6 +63,9 @@ public:
 protected:
   // Fill in the _new_samples vector of vectors (happens within sampleSetUp)
   virtual void proposeSamples(const unsigned int seed_value);
+
+  // Fill in the _new_var_samples vector (happens within sampleSetUp)
+  virtual void proposeVarSamples(const unsigned int seed_value);
 
   // See Sampler.h for description
   virtual void sampleSetUp(const Sampler::SampleMode mode) override;
@@ -79,6 +92,9 @@ protected:
   /// Storage for prior distribution objects to be utilized
   std::vector<const Distribution *> _priors;
 
+  /// Storage for prior distribution object of the variance to be utilized
+  const Distribution * _var_prior;
+
   /// Lower bounds for making the next proposal
   const std::vector<Real> * _lb;
 
@@ -93,6 +109,9 @@ protected:
 
   /// Vectors of new proposed samples
   std::vector<std::vector<Real>> _new_samples;
+
+  /// Vector of new proposed variance samples
+  std::vector<Real> _new_var_samples;
 
   /// Vector of random numbers for decision making
   std::vector<Real> _rnd_vec;

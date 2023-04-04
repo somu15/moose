@@ -21,6 +21,8 @@ ParallelMarkovChainMonteCarloBase::validParams()
   params.addClassDescription("Parallel Markov chain Monte Carlo base.");
   params.addRequiredParam<std::vector<DistributionName>>(
       "prior_distributions", "The prior distributions of the parameters to be calibrated.");
+  params.addParam<DistributionName>(
+      "prior_variance", "The prior distribution of the variance parameter to be calibrated.");
   params.addRequiredParam<unsigned int>(
       "num_parallel_proposals",
       "Number of proposals to made and corresponding subApps executed in "
@@ -56,6 +58,12 @@ ParallelMarkovChainMonteCarloBase::ParallelMarkovChainMonteCarloBase(
        getParam<std::vector<DistributionName>>("prior_distributions"))
     _priors.push_back(&getDistributionByName(name));
 
+  // Filling the `var_prior` object with the user-provided distribution for the variance.
+  if (isParamValid("prior_variance"))
+    _var_prior = &getDistributionByName("prior_variance");
+  else
+    _var_prior = nullptr;
+
   // Read the experimental configurations from a csv file
   MooseUtils::DelimitedFileReader reader(getParam<FileName>("file_name"));
   reader.read();
@@ -77,11 +85,12 @@ ParallelMarkovChainMonteCarloBase::ParallelMarkovChainMonteCarloBase(
   // Setting the number of columns in the sampler matrix (equal to the number of distributions).
   setNumberOfCols(_priors.size() + _confg_values.size());
 
-  // Resizing the new samples vector of vectors
+  // Resizing the vectors and vector of vectors
   _new_samples.resize(_num_parallel_proposals, std::vector<Real>(_priors.size(), 0.0));
   _new_samples_confg.resize(_num_parallel_proposals * _confg_values[0].size(),
                             std::vector<Real>(_priors.size() + _confg_values.size(), 0.0));
-  _rnd_vec.resize(_num_parallel_proposals);
+  _rnd_vec.resize(_num_parallel_proposals); // + 1
+  _new_var_samples.assign(_num_parallel_proposals, 0.0);
 
   setNumberOfRandomSeeds(_num_random_seeds);
 
@@ -112,6 +121,13 @@ ParallelMarkovChainMonteCarloBase::proposeSamples(const unsigned int seed_value)
 }
 
 void
+ParallelMarkovChainMonteCarloBase::proposeVarSamples(const unsigned int seed_value)
+{
+  for (unsigned int j = 0; j < _num_parallel_proposals; ++j)
+    _new_var_samples[j] = _var_prior->quantile(getRand(seed_value));
+}
+
+void
 ParallelMarkovChainMonteCarloBase::sampleSetUp(const SampleMode /*mode*/)
 {
   if (_step < 1 || _check_step == _step)
@@ -126,6 +142,13 @@ ParallelMarkovChainMonteCarloBase::sampleSetUp(const SampleMode /*mode*/)
   // Draw random numbers to facilitate decision making later on
   for (unsigned int j = 0; j < _num_parallel_proposals; ++j)
     _rnd_vec[j] = getRand(seed_value);
+
+  // Filling the new_var_samples vector with new proposal samples of the variance
+  if (_var_prior)
+  {
+    proposeVarSamples(seed_value);
+    // _rnd_vec[_num_parallel_proposals] = getRand(seed_value);
+  }
 }
 
 void
@@ -175,15 +198,27 @@ ParallelMarkovChainMonteCarloBase::getRandomNumbers() const
   return _rnd_vec;
 }
 
+const std::vector<Real> &
+ParallelMarkovChainMonteCarloBase::getVarSamples() const
+{
+  return _new_var_samples;
+}
+
+const Distribution *
+ParallelMarkovChainMonteCarloBase::getVarPrior() const
+{
+  return _var_prior;
+}
+
 Real
 ParallelMarkovChainMonteCarloBase::computeSample(dof_id_type row_index, dof_id_type col_index)
 {
-  // std::vector<Real> initial{0.3919, 1.31e-19, -87.7, 2.0391e-25, -90.5, 7.78e-37};
-  // if (_step < 1)
-  // {
-  //   for (unsigned int i = 0; i < _num_parallel_proposals; ++i)
-  //     _new_samples[i] = initial;
-  // }
+  std::vector<Real> initial{0.01};
+  if (_step < 1)
+  {
+    for (unsigned int i = 0; i < _num_parallel_proposals; ++i)
+      _new_samples[i] = initial;
+  }
 
   // Combine the proposed samples with experimental configurations
   combineWithConfg();
