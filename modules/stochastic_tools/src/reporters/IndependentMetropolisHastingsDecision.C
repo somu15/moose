@@ -73,7 +73,6 @@ IndependentMetropolisHastingsDecision::nextSamples(std::vector<Real> & req_input
                                                    const std::vector<Real> & /*tv*/,
                                                    const unsigned int & parallel_index)
 {
-  std::cout << "Here 1 ******" << std::endl;
   unsigned int index =
       AdaptiveMonteCarloUtils::weightedResample(_tpm_modified, _rnd_vec[parallel_index]);
   if (index < _props)
