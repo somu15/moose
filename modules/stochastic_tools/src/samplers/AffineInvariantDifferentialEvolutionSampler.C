@@ -94,7 +94,6 @@ AffineInvariantDifferentialEvolutionSampler::proposeSamples(const unsigned int s
   Real diff;
   while (j < _num_parallel_proposals)
   {
-    std::cout << "Here 1" << std::endl;
     indicator = 0;
     randomIndex2(_num_parallel_proposals, j, seed_value, index_req1, index_req2);
     for (unsigned int i = 0; i < _priors.size(); ++i)
@@ -123,7 +122,6 @@ AffineInvariantDifferentialEvolutionSampler::proposeVarSamples(const unsigned in
   Real diff;
   while (j < _num_parallel_proposals)
   {
-    std::cout << "Here 2" << std::endl;
     indicator = 0;
     randomIndex2(_num_parallel_proposals, j, seed_value, index_req1, index_req2);
     computeDifferential(_previous_state_var[index_req1],

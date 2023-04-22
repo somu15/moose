@@ -213,12 +213,15 @@ ParallelMarkovChainMonteCarloBase::getVarPrior() const
 Real
 ParallelMarkovChainMonteCarloBase::computeSample(dof_id_type row_index, dof_id_type col_index)
 {
-  // std::vector<Real> initial{0.01};
-  // if (_step < 1)
-  // {
-  //   for (unsigned int i = 0; i < _num_parallel_proposals; ++i)
-  //     _new_samples[i] = initial;
-  // }
+  // std::vector<Real> initial{6.7e-9, 165e3, 5.3e-9, 154e3, 3.6e-9, 215e3}; // TRISO
+  // std::vector<Real> initial{1.0, 0.0117}; // N-S
+  // std::vector<Real> initial{0.167337, 9.00256, -87.2189, 2.0391, -99.71068965201393, 7.78}; // MATPRO
+  std::vector<Real> initial{1.0,0.5,0.5,0.2}; // Pred-Prey
+  if (_step < 1)
+  {
+    for (unsigned int i = 0; i < _num_parallel_proposals; ++i)
+      _new_samples[i] = initial;
+  }
 
   // Combine the proposed samples with experimental configurations
   combineWithConfg();
