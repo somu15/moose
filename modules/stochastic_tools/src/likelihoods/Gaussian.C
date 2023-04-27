@@ -63,10 +63,14 @@ Gaussian::function(const std::vector<Real> & exp,
                    const bool & log_likelihood)
 {
   Real result = 0.0;
+  Real val1;
   for (unsigned i = 0; i < exp.size(); ++i)
-    result += std::log(Normal::pdf(exp[i], model[i], noise));
-    // result += std::log(1.0 / (noise * std::sqrt(2.0 * M_PI))) -
-    //           0.5 * Utility::pow<2>((exp[i] - model[i]) / noise);
+  {
+    val1 = Normal::pdf(exp[i], model[i], noise);
+    // val1 = (val1 <= 0.0) ? -1e7 : std::log(val1);
+    val1 = std::log(val1);
+    result += val1;
+  }
   if (!log_likelihood)
     result = std::exp(result);
   return result;

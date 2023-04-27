@@ -107,9 +107,9 @@ StretchDecision::computeEvidence(std::vector<Real> & evidence, DenseMatrix<Real>
   for (unsigned int i = 0; i < evidence.size(); ++i)
   {
     evidence[i] = 0.0;
-    for (unsigned int j = 0; j < _priors.size(); ++j)
-      evidence[i] += (std::log(_priors[j]->pdf(inputs_matrix(i, j))) -
-                      std::log(_priors[j]->pdf(_data_prev(i, j))));
+    // for (unsigned int j = 0; j < _priors.size(); ++j)
+    //   evidence[i] += (std::log(_priors[j]->pdf(inputs_matrix(i, j))) -
+    //                   std::log(_priors[j]->pdf(_data_prev(i, j))));
     for (unsigned int j = 0; j < _num_confg_values; ++j)
     {
       out1[j] = _outputs_required[j * _props + i];
@@ -136,7 +136,7 @@ StretchDecision::computeEvidence(std::vector<Real> & evidence, DenseMatrix<Real>
     }
     // _noise = std::sqrt(_variance[i]);
   }
-  std::cout << "evidence " << Moose::stringify(evidence) << std::endl;
+  // std::cout << "evidence " << Moose::stringify(evidence) << std::endl;
 }
 
 void
@@ -204,6 +204,12 @@ StretchDecision::execute()
   {
     computeEvidence(evidence, data_in);
     computeTransitionVector(_tpm, evidence);
+    // std::cout << "_tpm" << Moose::stringify(_tpm) << std::endl;
+    for (unsigned int j = 0; j < _tpm.size(); ++j)
+    {
+      if (isnan(_tpm[j]))
+        _tpm[j] = 0.0;
+    }
   }
   else
     _tpm.assign(_props, 1.0);

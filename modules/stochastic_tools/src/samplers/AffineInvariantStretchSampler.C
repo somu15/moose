@@ -8,6 +8,7 @@
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
 #include "AffineInvariantStretchSampler.h"
+#include "TruncatedNormal.h"
 
 registerMooseObject("StochasticToolsApp", AffineInvariantStretchSampler);
 
@@ -18,6 +19,9 @@ AffineInvariantStretchSampler::validParams()
   params.addClassDescription("Perform Affine Invariant Ensemble MCMC with stretch sampler.");
   params.addRequiredParam<ReporterName>(
       "previous_state", "Reporter value with the previous state of all the walkers.");
+  params.addRequiredParam<ReporterName>(
+      "previous_state_var",
+      "Reporter value with the previous state of all the walkers for variance.");
   params.addParam<Real>("step_size", 2.0, "Step size for each of the walkers.");
   return params;
 }
@@ -25,7 +29,8 @@ AffineInvariantStretchSampler::validParams()
 AffineInvariantStretchSampler::AffineInvariantStretchSampler(const InputParameters & parameters)
   : ParallelMarkovChainMonteCarloBase(parameters),
     _step_size(getParam<Real>("step_size")),
-    _previous_state(getReporterValue<std::vector<std::vector<Real>>>("previous_state"))
+    _previous_state(getReporterValue<std::vector<std::vector<Real>>>("previous_state")),
+    _previous_state_var(getReporterValue<std::vector<Real>>("previous_state_var"))
 {
   if (_num_parallel_proposals < 3)
     mooseError("At least three parallel proposals should be used for the Stretch Sampler.");
@@ -37,6 +42,32 @@ AffineInvariantStretchSampler::AffineInvariantStretchSampler(const InputParamete
   // Assign the correct size to the step size vector
   _affine_step.resize(_num_parallel_proposals);
 }
+
+// void
+// AffineInvariantStretchSampler::proposeSamples(const unsigned int seed_value)
+// {
+//   unsigned int j = 0;
+//   bool indicator;
+//   unsigned int index_req = 0;
+//   while (j < _num_parallel_proposals)
+//   {
+//     indicator = 0;
+//     _affine_step[j] = Utility::pow<2>((_step_size - 1.0) * getRand(seed_value) + 1.0) / _step_size;
+//     randomIndex(_num_parallel_proposals, j, seed_value, index_req);
+//     for (unsigned int i = 0; i < _priors.size(); ++i)
+//     {
+//       _new_samples[j][i] =
+//           (_step > decisionStep())
+//               ? (_previous_state[index_req][i] +
+//                  _affine_step[j] * (_previous_state[j][i] - _previous_state[index_req][i]))
+//               : _priors[i]->quantile(getRand(seed_value));
+//       if (_lb)
+//         indicator =
+//             (_new_samples[j][i] < (*_lb)[i] || _new_samples[j][i] > (*_ub)[i]) ? 1 : indicator;
+//     }
+//     j = (!indicator) ? ++j : j;
+//   }
+// }
 
 void
 AffineInvariantStretchSampler::proposeSamples(const unsigned int seed_value)
@@ -59,6 +90,15 @@ AffineInvariantStretchSampler::proposeSamples(const unsigned int seed_value)
       if (_lb)
         indicator =
             (_new_samples[j][i] < (*_lb)[i] || _new_samples[j][i] > (*_ub)[i]) ? 1 : indicator;
+    }
+    if (_var_prior)
+    {
+      _new_var_samples[j] = (_step > decisionStep())
+                                ? (_previous_state_var[index_req] + _affine_step[j] *
+                                   (_previous_state_var[j] - _previous_state_var[index_req]))
+                                : _var_prior->quantile(getRand(seed_value));
+      if (_new_var_samples[j] < 0.0)
+        indicator = 1;
     }
     j = (!indicator) ? ++j : j;
   }
