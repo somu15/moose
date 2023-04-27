@@ -14,20 +14,26 @@
 /**
  * A class for performing Affine Invariant Ensemble MCMC with stretch sampler
  */
-class AffineInvariantStretchSampler : public ParallelMarkovChainMonteCarloBase
+class AffineInvariantDifferentialEvolutionSampler : public ParallelMarkovChainMonteCarloBase
 {
 public:
   static InputParameters validParams();
 
-  AffineInvariantStretchSampler(const InputParameters & parameters);
+  AffineInvariantDifferentialEvolutionSampler(const InputParameters & parameters);
 
 protected:
   virtual void sampleSetUp(const Sampler::SampleMode mode) override;
 
 private:
-  /// The step size for the stretch sampler
-  const Real & _step_size;
+  /// Compute the differential evolution from the current state
+  void computeDifferential(const Real & state1, const Real & state2, const unsigned int & seed, Real & diff);
+
+  /// Tune the internal parameters
+  void tuneParams(Real & gamma, Real & b);
 
   /// Reporter value with the previous state of all the walkers
   const std::vector<std::vector<Real>> & _previous_state;
+
+  /// Tuning options for the internal params
+  const MooseEnum & _tuning_option;
 };
