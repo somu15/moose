@@ -21,6 +21,8 @@ public:
 
   IndependentGaussianMetropolisHastings(const InputParameters & parameters);
 
+  virtual int decisionStep() const override { return 2; }
+
 protected:
   virtual void proposeSamples(const unsigned int seed_value) override;
 

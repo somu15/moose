@@ -17,7 +17,7 @@
 [Likelihoods]
   [gaussian]
     type = Gaussian
-    noise = 0.05
+    noise = 'noise_specified/noise_specified'
     file_name = 'exp_0_05.csv'
     log_likelihood = true
   []
@@ -27,6 +27,7 @@
   [sample]
     type = IndependentGaussianMH
     prior_distributions = 'left right'
+    # previous_state = 'mcmc_reporter/inputs'
     num_parallel_proposals = 5
     file_name = 'confg.csv'
     execute_on = PRE_MULTIAPP_SETUP
@@ -67,6 +68,11 @@
 [Reporters]
   [constant]
     type = StochasticReporter
+  []
+  [noise_specified]
+    type = ConstantReporter
+    real_names = 'noise_specified'
+    real_values = '0.05'
   []
   [mcmc_reporter]
     type = IndependentMHDecision

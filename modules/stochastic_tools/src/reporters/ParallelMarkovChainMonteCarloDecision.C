@@ -197,13 +197,13 @@ ParallelMarkovChainMonteCarloDecision::execute()
     _inputs[i] = req_inputs;
   }
 
+  // Compute the next seeds to facilitate proposals (not always required)
+  nextSeeds();
+
   // Store data from previous step
   _data_prev = data_in;
   _outputs_prev = _outputs_required;
   _var_prev = _variance;
-
-  // Compute the next seeds to facilitate proposals (not always required)
-  nextSeeds();
 
   // Track the current step
   _check_step = _step;

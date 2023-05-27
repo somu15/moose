@@ -73,20 +73,30 @@ IndependentMetropolisHastingsDecision::nextSamples(std::vector<Real> & req_input
                                                    const std::vector<Real> & /*tv*/,
                                                    const unsigned int & parallel_index)
 {
-  unsigned int index =
-      AdaptiveMonteCarloUtils::weightedResample(_tpm_modified, _rnd_vec[parallel_index]);
-  if (index < _props)
+  const bool value = (_tpm_modified[0] == 1.0 / (_props + 1));
+  if (!value)
   {
-    for (unsigned int k = 0; k < _sampler.getNumberOfCols() - _num_confg_params; ++k)
-      req_inputs[k] = inputs_matrix(index, k);
-    for (unsigned int k = 0; k < _num_confg_values; ++k)
-      _outputs_required[k * _props + parallel_index] = _outputs_sto[k * _props + index];
+    unsigned int index =
+        AdaptiveMonteCarloUtils::weightedResample(_tpm_modified, _rnd_vec[parallel_index]);
+    if (index < _props)
+    {
+      for (unsigned int k = 0; k < _sampler.getNumberOfCols() - _num_confg_params; ++k)
+        req_inputs[k] = inputs_matrix(index, k);
+      for (unsigned int k = 0; k < _num_confg_values; ++k)
+        _outputs_required[k * _props + parallel_index] = _outputs_sto[k * _props + index];
+    }
+    else
+    {
+      req_inputs = _seed_input;
+      for (unsigned int k = 0; k < _num_confg_values; ++k)
+        _outputs_required[k * _props + parallel_index] = _seed_outputs[k];
+    }
   }
   else
   {
-    req_inputs = _seed_input;
-    for (unsigned int k = 0; k < _num_confg_values; ++k)
-      _outputs_required[k * _props + parallel_index] = _seed_outputs[k];
+    for (unsigned int k = 0; k < _sampler.getNumberOfCols() - _num_confg_params; ++k)
+      req_inputs[k] = inputs_matrix(parallel_index, k);
+    _variance[parallel_index] = _new_var_samples[parallel_index];
   }
 }
 
