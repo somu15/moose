@@ -47,7 +47,6 @@ ParallelMarkovChainMonteCarloBase::ParallelMarkovChainMonteCarloBase(
     const InputParameters & parameters)
   : Sampler(parameters),
     ReporterInterface(this),
-    LikelihoodInterface(this),
     _num_parallel_proposals(getParam<unsigned int>("num_parallel_proposals")),
     _lb(isParamValid("lb") ? &getParam<std::vector<Real>>("lb") : nullptr),
     _ub(isParamValid("ub") ? &getParam<std::vector<Real>>("ub") : nullptr),
@@ -63,8 +62,7 @@ ParallelMarkovChainMonteCarloBase::ParallelMarkovChainMonteCarloBase(
 
   // Filling the `var_prior` object with the user-provided distribution for the variance.
   if (isParamValid("prior_variance"))
-    _var_prior = &getDistributionByName(
-        getParam<DistributionName>("prior_variance"));
+    _var_prior = &getDistributionByName(getParam<DistributionName>("prior_variance"));
   else
     _var_prior = nullptr;
 
@@ -174,7 +172,8 @@ ParallelMarkovChainMonteCarloBase::combineWithConfg()
   for (unsigned int i = 0; i < _num_parallel_proposals * _confg_values[0].size(); ++i)
   {
     index1 = i % _num_parallel_proposals;
-    index2 = (index1 == 0) ? ++index2 : index2;
+    if (index1 == 0)
+      ++index2;
     tmp = _new_samples[index1];
     for (unsigned int j = 0; j < _confg_values.size(); ++j)
       tmp.push_back(_confg_values[j][index2]);

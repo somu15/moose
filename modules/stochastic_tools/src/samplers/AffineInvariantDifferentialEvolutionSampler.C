@@ -122,6 +122,7 @@ AffineInvariantDifferentialEvolutionSampler::proposeSamples(const unsigned int s
       if (_new_var_samples[j] < 0.0)
         indicator = 1;
     }
-    j = (!indicator) ? ++j : j;
+    if (!indicator)
+      ++j;
   }
 }

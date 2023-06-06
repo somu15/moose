@@ -11,9 +11,6 @@
 
 #include "MooseObjectAction.h"
 
-/**
- * This class adds a likelihood object.
- */
 class AddLikelihoodAction : public MooseObjectAction
 {
 public:

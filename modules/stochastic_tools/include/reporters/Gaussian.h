@@ -9,13 +9,13 @@
 
 #pragma once
 
-#include "Likelihood.h"
+#include "LikelihoodFunctionBase.h"
 #include "ReporterInterface.h"
 
 /**
  * A class used to generate a Gaussian likelihood of observing model predictions
  */
-class Gaussian : public Likelihood, public ReporterInterface
+class Gaussian : public LikelihoodFunctionBase, public ReporterInterface
 {
 public:
   static InputParameters validParams();

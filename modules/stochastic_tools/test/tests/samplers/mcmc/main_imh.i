@@ -14,7 +14,7 @@
   []
 []
 
-[Likelihoods]
+[Likelihood]
   [gaussian]
     type = Gaussian
     noise = 'noise_specified/noise_specified'

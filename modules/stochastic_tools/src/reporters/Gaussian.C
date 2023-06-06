@@ -16,14 +16,12 @@ registerMooseObject("StochasticToolsApp", Gaussian);
 InputParameters
 Gaussian::validParams()
 {
-  InputParameters params = Likelihood::validParams();
+  InputParameters params = LikelihoodFunctionBase::validParams();
   params.addClassDescription(
       "Gaussian likelihood function evaluating the model goodness against experiments.");
   params.addParam<bool>("log_likelihood", true, "Compute log-likelihood or likelihood.");
   params.addRequiredParam<ReporterName>(
       "noise", "Experimental noise plus model deviations against experiments.");
-  // params.addRequiredParam<Real>("noise",
-  //                               "Experimental noise plus model deviations against experiments.");
   params.addParam<FileName>("file_name", "Name of the CSV file with experimental values.");
   params.addParam<std::string>(
       "file_column_name", "Name of column in CSV file to use, by default first column is used.");
@@ -33,7 +31,7 @@ Gaussian::validParams()
 }
 
 Gaussian::Gaussian(const InputParameters & parameters)
-  : Likelihood(parameters),
+  : LikelihoodFunctionBase(parameters),
     ReporterInterface(this),
     _log_likelihood(getParam<bool>("log_likelihood")),
     _noise(getReporterValue<Real>("noise"))
@@ -67,7 +65,6 @@ Gaussian::function(const std::vector<Real> & exp,
   for (unsigned i = 0; i < exp.size(); ++i)
   {
     val1 = Normal::pdf(exp[i], model[i], noise);
-    // val1 = (val1 <= 0.0) ? -1e7 : std::log(val1);
     val1 = std::log(val1);
     result += val1;
   }

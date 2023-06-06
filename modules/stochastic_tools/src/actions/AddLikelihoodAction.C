@@ -8,15 +8,17 @@
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
 #include "AddLikelihoodAction.h"
+#include "Factory.h"
 #include "FEProblem.h"
+#include "LikelihoodFunctionBase.h"
 
-registerMooseAction("MooseApp", AddLikelihoodAction, "add_likelihood");
+registerMooseAction("StochasticToolsApp", AddLikelihoodAction, "add_likelihood");
 
 InputParameters
 AddLikelihoodAction::validParams()
 {
   InputParameters params = MooseObjectAction::validParams();
-  params.addClassDescription("Add a Likelihood object to the simulation.");
+  params.addClassDescription("Adds Likelihood objects contained.");
   return params;
 }
 
@@ -27,5 +29,6 @@ AddLikelihoodAction::AddLikelihoodAction(const InputParameters & params) : Moose
 void
 AddLikelihoodAction::act()
 {
-  _problem->addLikelihood(_type, _name, _moose_object_pars);
+  _problem->addObject<LikelihoodFunctionBase>(
+      _type, _name, _moose_object_pars, /* threaded = */ false);
 }

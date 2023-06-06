@@ -32,7 +32,7 @@
     to_multi_app = sub
     sampler = sample
     parameters = 'BCs/left/value BCs/right/value'
-    to_control = 'stochastic'
+    # to_control = 'stochastic'
   []
   [reporter_transfer]
     type = SamplerReporterTransfer
@@ -47,6 +47,11 @@
   [constant]
     type = StochasticReporter
   []
+  [noise_specified]
+    type = ConstantReporter
+    real_names = 'noise_specified'
+    real_values = '0.2'
+  []
   [likelihoodtest]
     type = TestLikelihood
     likelihoods = 'gaussian'
@@ -54,10 +59,10 @@
   []
 []
 
-[Likelihoods]
+[Likelihood]
   [gaussian]
     type = Gaussian
-    noise = 0.2
+    noise = 'noise_specified/noise_specified'
     file_name = 'exp1.csv'
     log_likelihood=true
   []

@@ -19,6 +19,7 @@ InputParameters
 ParallelMarkovChainMonteCarloDecision::validParams()
 {
   InputParameters params = GeneralReporter::validParams();
+  params += LikelihoodInterface::validParams();
   params.addClassDescription("Generic reporter which decides whether or not to accept a proposed "
                              "sample in parallel Markov chain Monte Carlo type of algorithms.");
   params.addRequiredParam<ReporterName>("output_value",
@@ -33,14 +34,14 @@ ParallelMarkovChainMonteCarloDecision::validParams()
   params.addParam<ReporterValueName>(
       "noise", "noise", "Model noise term to pass to Likelihoods object.");
   params.addRequiredParam<SamplerName>("sampler", "The sampler object.");
-  params.addRequiredParam<std::vector<LikelihoodName>>("likelihoods", "Names of the likelihoods.");
+  params.addRequiredParam<std::vector<UserObjectName>>("likelihoods", "Names of likelihoods.");
   return params;
 }
 
 ParallelMarkovChainMonteCarloDecision::ParallelMarkovChainMonteCarloDecision(
     const InputParameters & parameters)
   : GeneralReporter(parameters),
-    LikelihoodInterface(this),
+    LikelihoodInterface(parameters),
     _output_value(getReporterValue<std::vector<Real>>("output_value", REPORTER_MODE_DISTRIBUTED)),
     _outputs_required(declareValue<std::vector<Real>>("outputs_required")),
     _inputs(declareValue<std::vector<std::vector<Real>>>("inputs")),
@@ -57,8 +58,8 @@ ParallelMarkovChainMonteCarloDecision::ParallelMarkovChainMonteCarloDecision(
     _check_step(std::numeric_limits<int>::max())
 {
   // Filling the `likelihoods` vector with the user-provided distributions.
-  for (const LikelihoodName & name : getParam<std::vector<LikelihoodName>>("likelihoods"))
-    _likelihoods.push_back(&getLikelihoodByName(name));
+  for (const UserObjectName & name : getParam<std::vector<UserObjectName>>("likelihoods"))
+    _likelihoods.push_back(getLikelihoodFunctionByName(name));
 
   // Check whether the selected sampler is an MCMC sampler or not
   if (!_pmcmc)

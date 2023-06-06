@@ -11,14 +11,11 @@
 
 #include "Sampler.h"
 #include "ReporterInterface.h"
-#include "LikelihoodInterface.h"
 
 /**
  * A base class used to perform Parallel Markov Chain Monte Carlo (MCMC) sampling
  */
-class ParallelMarkovChainMonteCarloBase : public Sampler,
-                                          public ReporterInterface,
-                                          public LikelihoodInterface
+class ParallelMarkovChainMonteCarloBase : public Sampler, public ReporterInterface
 {
 public:
   static InputParameters validParams();

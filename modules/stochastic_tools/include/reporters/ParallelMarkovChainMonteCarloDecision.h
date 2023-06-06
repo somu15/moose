@@ -11,7 +11,7 @@
 
 #include "GeneralReporter.h"
 #include "ParallelMarkovChainMonteCarloBase.h"
-#include "Likelihood.h"
+#include "LikelihoodFunctionBase.h"
 #include "LikelihoodInterface.h"
 
 /**
@@ -71,7 +71,7 @@ protected:
   Real & _noise;
 
   /// Storage for the likelihood objects to be utilized
-  std::vector<const Likelihood *> _likelihoods;
+  std::vector<const LikelihoodFunctionBase *> _likelihoods;
 
   /// The MCMC sampler
   Sampler & _sampler;

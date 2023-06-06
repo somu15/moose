@@ -19,7 +19,7 @@
   []
 []
 
-[Likelihoods]
+[Likelihood]
   [gaussian]
     type = Gaussian
     noise = 'mcmc_reporter/noise'

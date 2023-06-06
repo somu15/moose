@@ -9,18 +9,18 @@
 
 #pragma once
 
+#include "StochasticToolsApp.h"
 #include "MooseObject.h"
-#include "PerfGraphInterface.h"
 
 /**
  * All Likelihoods should inherit from this class
  */
-class Likelihood : public MooseObject, public PerfGraphInterface
+class LikelihoodFunctionBase : public MooseObject
 {
 public:
   static InputParameters validParams();
+  LikelihoodFunctionBase(const InputParameters & parameters);
 
-  Likelihood(const InputParameters & parameters);
   /**
    * Compute the probability density or mass function at vector x
    */
