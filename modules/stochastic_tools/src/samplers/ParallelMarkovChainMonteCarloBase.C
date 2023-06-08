@@ -82,15 +82,15 @@ ParallelMarkovChainMonteCarloBase::ParallelMarkovChainMonteCarloBase(
     _confg_values[0] = reader.getData(0);
 
   // Setting the number of sampler rows to be equal to the number of parallel proposals
-  setNumberOfRows(_num_parallel_proposals * _confg_values[0].size());
+  setNumberOfRows(_num_parallel_proposals); // * _confg_values[0].size()
 
   // Setting the number of columns in the sampler matrix (equal to the number of distributions).
-  setNumberOfCols(_priors.size() + _confg_values.size());
+  setNumberOfCols(_priors.size()); //  + _confg_values.size()
 
   // Resizing the vectors and vector of vectors
   _new_samples.resize(_num_parallel_proposals, std::vector<Real>(_priors.size(), 0.0));
-  _new_samples_confg.resize(_num_parallel_proposals * _confg_values[0].size(),
-                            std::vector<Real>(_priors.size() + _confg_values.size(), 0.0));
+  // _new_samples_confg.resize(_num_parallel_proposals * _confg_values[0].size(),
+  //                           std::vector<Real>(_priors.size() + _confg_values.size(), 0.0));
   _rnd_vec.resize(_num_parallel_proposals);
   _new_var_samples.assign(_num_parallel_proposals, 0.0);
 
@@ -166,19 +166,20 @@ ParallelMarkovChainMonteCarloBase::randomIndex2(const unsigned int & ub,
 void
 ParallelMarkovChainMonteCarloBase::combineWithConfg()
 {
-  unsigned int index1;
-  int index2 = -1;
-  std::vector<Real> tmp;
-  for (unsigned int i = 0; i < _num_parallel_proposals * _confg_values[0].size(); ++i)
-  {
-    index1 = i % _num_parallel_proposals;
-    if (index1 == 0)
-      ++index2;
-    tmp = _new_samples[index1];
-    for (unsigned int j = 0; j < _confg_values.size(); ++j)
-      tmp.push_back(_confg_values[j][index2]);
-    _new_samples_confg[i] = tmp;
-  }
+  // unsigned int index1;
+  // int index2 = -1;
+  // std::vector<Real> tmp;
+  // for (unsigned int i = 0; i < _num_parallel_proposals * _confg_values[0].size(); ++i)
+  // {
+  //   index1 = i % _num_parallel_proposals;
+  //   if (index1 == 0)
+  //     ++index2;
+  //   tmp = _new_samples[index1];
+  //   for (unsigned int j = 0; j < _confg_values.size(); ++j)
+  //     tmp.push_back(_confg_values[j][index2]);
+  //   _new_samples_confg[i] = tmp;
+  // }
+  _new_samples_confg = _new_samples;
 }
 
 const std::vector<Real> &

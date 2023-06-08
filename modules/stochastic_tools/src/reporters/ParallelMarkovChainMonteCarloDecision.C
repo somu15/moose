@@ -22,8 +22,10 @@ ParallelMarkovChainMonteCarloDecision::validParams()
   params += LikelihoodInterface::validParams();
   params.addClassDescription("Generic reporter which decides whether or not to accept a proposed "
                              "sample in parallel Markov chain Monte Carlo type of algorithms.");
-  params.addRequiredParam<ReporterName>("output_value",
-                                        "Value of the model output from the SubApp.");
+  // params.addRequiredParam<ReporterName>("output_value",
+  //                                       "Value of the model output from the SubApp.");
+  params.addRequiredParam<std::vector<ReporterName>>(
+      "response", "Reporter values containing the response values from the model.");
   params.addParam<ReporterValueName>(
       "outputs_required",
       "outputs_required",
@@ -42,7 +44,9 @@ ParallelMarkovChainMonteCarloDecision::ParallelMarkovChainMonteCarloDecision(
     const InputParameters & parameters)
   : GeneralReporter(parameters),
     LikelihoodInterface(parameters),
-    _output_value(getReporterValue<std::vector<Real>>("output_value", REPORTER_MODE_DISTRIBUTED)),
+    _response_names(getParam<std::vector<ReporterName>>("response")),
+    // _output_value(getReporterValue<std::vector<std::vector<Real>>>("output_value",
+    //                                                                REPORTER_MODE_DISTRIBUTED)),
     _outputs_required(declareValue<std::vector<Real>>("outputs_required")),
     _inputs(declareValue<std::vector<std::vector<Real>>>("inputs")),
     _tpm(declareValue<std::vector<Real>>("tpm")),
@@ -77,8 +81,8 @@ ParallelMarkovChainMonteCarloDecision::ParallelMarkovChainMonteCarloDecision(
   // Resizing the data arrays to transmit to the output file
   _inputs.resize(_props);
   for (unsigned int i = 0; i < _props; ++i)
-    _inputs[i].resize(_sampler.getNumberOfCols() - _num_confg_params);
-  _outputs_required.resize(_sampler.getNumberOfRows());
+    _inputs[i].resize(_sampler.getNumberOfCols());
+  _outputs_required.resize(_props * _num_confg_values);
   _tpm.resize(_props);
   _variance.resize(_props);
 }
@@ -134,13 +138,15 @@ ParallelMarkovChainMonteCarloDecision::nextSamples(std::vector<Real> & req_input
 {
   if (tv[parallel_index] >= _rnd_vec[parallel_index])
   {
-    for (unsigned int k = 0; k < _sampler.getNumberOfCols() - _num_confg_params; ++k)
+    for (unsigned int k = 0; k < _priors.size();
+         ++k) // _sampler.getNumberOfCols() - _num_confg_params
       req_inputs[k] = inputs_matrix(parallel_index, k);
     _variance[parallel_index] = _new_var_samples[parallel_index];
   }
   else
   {
-    for (unsigned int k = 0; k < _sampler.getNumberOfCols() - _num_confg_params; ++k)
+    for (unsigned int k = 0; k < _priors.size();
+         ++k) // _sampler.getNumberOfCols() - _num_confg_params
     {
       req_inputs[k] = _data_prev(parallel_index, k);
       inputs_matrix(parallel_index, k) = _data_prev(parallel_index, k);
@@ -170,8 +176,22 @@ ParallelMarkovChainMonteCarloDecision::execute()
       data_in(ss, j) = data[j];
   }
   _local_comm.sum(data_in.get_values());
-  _outputs_required = _output_value;
-  _local_comm.allgather(_outputs_required); // _local_comm.gather(0, _outputs_required);
+  unsigned int index1 = 0;
+  for (const auto & r_name : getParam<std::vector<ReporterName>>("response"))
+  {
+    std::vector<Real> tmp1 =
+        getReporterValueByName<std::vector<Real>>(r_name, REPORTER_MODE_DISTRIBUTED);
+    _local_comm.allgather(tmp1);
+    for (unsigned int j = 0; j < _props; ++j)
+    {
+      _outputs_required[index1] = tmp1[j];
+      ++index1;
+    }
+  }
+  // std::cout << Moose::stringify(data_in) << std::endl;
+  // std::vector<Real> tmp;
+  // _outputs_required = tmp; // _output_value;
+  // _local_comm.allgather(_outputs_required); // _local_comm.gather(0, _outputs_required);
 
   // Compute the evidence and transition vectors
   std::vector<Real> evidence(_props);
@@ -184,7 +204,7 @@ ParallelMarkovChainMonteCarloDecision::execute()
     _tpm.assign(_props, 1.0);
 
   // Accept/reject the proposed samples and assign the correct outputs
-  std::vector<Real> req_inputs(_sampler.getNumberOfCols() - _num_confg_params);
+  std::vector<Real> req_inputs(_sampler.getNumberOfCols()); // - _num_confg_params
   for (unsigned int i = 0; i < _props; ++i)
   {
     nextSamples(req_inputs, data_in, _tpm, i);

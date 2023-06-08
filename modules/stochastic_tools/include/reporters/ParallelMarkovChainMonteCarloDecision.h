@@ -53,7 +53,8 @@ protected:
   virtual void nextSeeds() {}
 
   /// Model output value from SubApp
-  const std::vector<Real> & _output_value;
+  const std::vector<ReporterName> _response_names;
+  std::vector<std::vector<Real>> _output_value;
 
   /// Transfer the right outputs to the file
   std::vector<Real> & _outputs_required;
