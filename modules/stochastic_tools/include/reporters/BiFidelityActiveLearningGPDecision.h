@@ -60,6 +60,9 @@ private:
   /// Store all the outputs used for training from the LF model
   std::vector<Real> _outputs_lf_batch;
 
+  /// Broadcast the GP-corrected LF prediciton to JSON
+  std::vector<Real> & _lf_corrected;
+
   /// Communicator that was split based on samples that have rows
   libMesh::Parallel::Communicator _local_comm;
 };
