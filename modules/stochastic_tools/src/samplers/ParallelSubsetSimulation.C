@@ -40,6 +40,8 @@ ParallelSubsetSimulation::validParams()
       "num_random_seeds",
       100000,
       "Initialize a certain number of random seeds. Change from the default only if you have to.");
+  params.addParam<ReporterName>("flag_sample",
+                                "Flag samples if the surrogate prediction was inadequate.");
   return params;
 }
 
@@ -184,9 +186,11 @@ ParallelSubsetSimulation::computeSample(dof_id_type row_index, dof_id_type col_i
   unsigned int seed_value = _step > 0 ? (_step - 1) * 2 : 0;
   Real val;
 
-  if (_subset == 0)
+  const bool gp_flag =
+      isParamValid("flag_sample") ? getReporterValue<std::vector<bool>>("flag_sample")[0] : false;
+  if (_subset == 0 && !gp_flag)
     val = getRand(seed_value);
-  else
+  else if (_subset > 0 && !gp_flag)
   {
     const dof_id_type loc_ind = row_index - getLocalRowBegin();
     const Real rv = Normal::quantile(getRand(seed_value), _markov_seed[col_index][loc_ind], 1.0);
