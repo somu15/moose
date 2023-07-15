@@ -2,40 +2,43 @@
 []
 
 [Distributions]
-  [mu1]
-    type = Normal
-    mean = 0.0
-    standard_deviation = 0.5
+  [k_dist]
+    type = Uniform
+    lower_bound = 5
+    upper_bound = 20
   []
-  [mu2]
-    type = Normal
-    mean = 1
-    standard_deviation = 0.5
+  [q_dist]
+    type = Uniform
+    lower_bound = 7000
+    upper_bound = 13000
+  []
+  [Tinf_dist]
+    type = Uniform
+    lower_bound = 250
+    upper_bound = 350
   []
 []
 
 [Samplers]
   [sample]
-    type = AISActiveLearning
-    distributions = 'mu1 mu2'
-    proposal_std = '1.0 1.0'
-    output_limit = 0.65
-    num_samples_train = 15
-    num_importance_sampling_steps = 1000
-    std_factor = 0.9
-    initial_values = '-0.103 1.239'
+    type = SubsetSimulationActiveLearning
+    distributions = 'k_dist q_dist Tinf_dist'
+    num_samplessub = 1000
+    num_subsets = 2
+    # num_parallel_chains = 15
+    output_reporter = 'conditional/gp_mean'
     inputs_reporter = 'adaptive_MC/inputs'
     use_absolute_value = true
     flag_sample = 'conditional/flag_sample'
-    seed = 9874
+    seed = 1012
   []
 []
 
 [MultiApps]
   [sub]
     type = SamplerFullSolveMultiApp
-    input_files = sub.i
     sampler = sample
+    input_files = 'sub.i'
     mode = batch-reset
     should_run_reporter = conditional/need_sample
     execute_on = TIMESTEP_END
@@ -47,12 +50,13 @@
     type = SamplerParameterTransfer
     to_multi_app = sub
     sampler = sample
-    parameters = 'BCs/left/value BCs/right/value'
+    parameters = 'Materials/conductivity/prop_values Kernels/source/value BCs/right/value'
     to_control = 'stochastic'
+    check_multiapp_execute_on = false
   []
   [reporter_transfer]
     type = SamplerReporterTransfer
-    from_reporter = 'average/value'
+    from_reporter = 'avg/value'
     stochastic_reporter = 'conditional'
     from_multi_app = sub
     sampler = sample
@@ -69,11 +73,11 @@
     inputs = 'inputs'
     gp_mean = 'gp_mean'
     gp_std = 'gp_std'
-    n_train = 5
+    n_train = 20
     al_gp = GP_al_trainer
     gp_evaluator = GP_eval
     learning_function='Ufunction'
-    learning_function_parameter = 0.65
+    learning_function_parameter = 349.345
     learning_function_threshold = 2.0
   []
   [adaptive_MC]
@@ -82,12 +86,6 @@
     inputs = 'inputs'
     sampler = sample
     gp_decision = conditional
-  []
-  [ais_stats]
-    type = AdaptiveImportanceStats
-    output_value = conditional/gp_mean
-    sampler = sample
-    flag_sample = 'conditional/flag_sample'
   []
 []
 
@@ -100,8 +98,9 @@
     tune_parameters = 'signal_variance length_factor'
     tuning_algorithm = 'adam'
     iter_adam = 2000
-    learning_rate_adam = 0.005
-    # show_optimization_details = true
+    learning_rate_adam = 0.001
+    show_optimization_details = true
+    # batch_size = 100
   []
 []
 
@@ -114,10 +113,10 @@
 
 [Covariance]
   [covar]
-    type= SquaredExponentialCovariance
+    type = SquaredExponentialCovariance
     signal_variance = 1.0
     noise_variance = 1e-8
-    length_factor = '1.0 1.0'
+    length_factor = '1.0 1.0 1.0'
   []
 []
 
@@ -126,7 +125,7 @@
 []
 
 [Outputs]
-  file_base = 'ais_al'
+  file_base = 'ss_al'
   [out]
     type = JSON
     execute_system_information_on = NONE

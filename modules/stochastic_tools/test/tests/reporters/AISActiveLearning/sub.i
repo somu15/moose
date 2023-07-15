@@ -26,13 +26,13 @@
     type = DirichletBC
     variable = u
     boundary = left
-    value = -0.193289
+    value = -0.246566
   []
   [right]
     type = DirichletBC
     variable = u
     boundary = right
-    value = 1.60831
+    value = 1.54752
   []
 []
 

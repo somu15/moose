@@ -93,6 +93,9 @@ ParallelSubsetSimulation::ParallelSubsetSimulation(const InputParameters & param
   the next set of Markov chain samples.*/
   _markov_seed.resize(_distributions.size());
 
+  /* Setting the size of the storage vector when GP is used */
+  _inputs_prev.resize(_distributions.size());
+
   setNumberOfRandomSeeds(_num_random_seeds);
 }
 
@@ -189,7 +192,10 @@ ParallelSubsetSimulation::computeSample(dof_id_type row_index, dof_id_type col_i
   const bool gp_flag =
       isParamValid("flag_sample") ? getReporterValue<std::vector<bool>>("flag_sample")[0] : false;
   if (_subset == 0 && !gp_flag)
+  {
     val = getRand(seed_value);
+    _inputs_prev[col_index] = val;
+  }
   else if (_subset > 0 && !gp_flag)
   {
     const dof_id_type loc_ind = row_index - getLocalRowBegin();
@@ -200,7 +206,9 @@ ParallelSubsetSimulation::computeSample(dof_id_type row_index, dof_id_type col_i
                                 ? rv
                                 : _markov_seed[col_index][loc_ind];
     val = Normal::cdf(new_sample, 0, 1);
+    _inputs_prev[col_index] = val;
   }
 
-  return _distributions[col_index]->quantile(val);
+  // return _distributions[col_index]->quantile(val);
+  return _distributions[col_index]->quantile(_inputs_prev[col_index]);
 }

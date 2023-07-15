@@ -91,4 +91,7 @@ private:
 
   /// Mean input vector for the next proposed sample inputs across several processors
   std::vector<std::vector<Real>> _markov_seed;
+
+  /// Storage for previously proposed sample when GP active learning is used
+  std::vector<Real> _inputs_prev;
 };
