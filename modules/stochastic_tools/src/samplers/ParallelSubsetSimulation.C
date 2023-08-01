@@ -55,6 +55,7 @@ ParallelSubsetSimulation::ParallelSubsetSimulation(const InputParameters & param
     _outputs(getReporterValue<std::vector<Real>>("output_reporter")),
     _inputs(getReporterValue<std::vector<std::vector<Real>>>("inputs_reporter")),
     _step(getCheckedPointerParam<FEProblemBase *>("_fe_problem_base")->timeStep()),
+    _dynamic_u(0.0),
     _count_max(std::floor(1 / _subset_probability)),
     _check_step(0),
     _subset(0),
@@ -100,6 +101,12 @@ ParallelSubsetSimulation::ParallelSubsetSimulation(const InputParameters & param
 }
 
 const unsigned int &
+ParallelSubsetSimulation::getNumSubsets() const
+{
+  return _num_subsets;
+}
+
+const unsigned int &
 ParallelSubsetSimulation::getNumSamplesSub() const
 {
   return _num_samplessub;
@@ -115,6 +122,12 @@ const Real &
 ParallelSubsetSimulation::getSubsetProbability() const
 {
   return _subset_probability;
+}
+
+const Real &
+ParallelSubsetSimulation::getDynamicU() const
+{
+  return _dynamic_u;
 }
 
 void
@@ -181,6 +194,20 @@ ParallelSubsetSimulation::sampleSetUp(const SampleMode mode)
   // of the last subset (_subset == _num_subsets - 1)
   if (_subset == _num_subsets - 1 && sub_ind == _num_samplessub / getNumberOfRows() - 1)
     _is_sampling_completed = true;
+
+  if (sub_ind == 0)
+    std::vector<Real> _output_dynU;
+  _output_dynU.push_back(_outputs_sto[sub_ind]);
+  // If dynamic U-function used with GP active learning, compute the dynamic parameter
+  if (isParamValid("flag_sample") && sub_ind > 20)
+  {
+    std::vector<Real> tmp =
+        AdaptiveMonteCarloUtils::sortOutput(_output_dynU, sub_ind, _subset_probability);
+    // std::cout << "_outputs_sto ***** " << Moose::stringify(_output_dynU) << std::endl;
+    // std::cout << "tmp ***** " << Moose::stringify(tmp) << std::endl;
+    _dynamic_u = AdaptiveMonteCarloUtils::computeMin(tmp);
+    // std::cout << "_dynamic_u ***** " << _dynamic_u << std::endl;
+  }
 }
 
 Real

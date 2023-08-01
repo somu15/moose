@@ -22,6 +22,9 @@ public:
 
   ParallelSubsetSimulation(const InputParameters & parameters);
 
+  /// Access the number of subsets
+  const unsigned int & getNumSubsets() const;
+
   /// Access the number samples per subset
   const unsigned int & getNumSamplesSub() const;
 
@@ -30,6 +33,9 @@ public:
 
   /// Access the subset probability
   const Real & getSubsetProbability() const;
+
+  /// Access the dynamic failure threshold
+  const Real & getDynamicU() const;
 
   /**
    * Returns true if the adaptive sampling is completed
@@ -64,6 +70,9 @@ protected:
   /// Track the current step of the main App
   const int & _step;
 
+  /// Compute the dynamic U-function
+  Real _dynamic_u;
+
   /// Maximum length of markov chains based on subset probability
   const unsigned int _count_max;
 
@@ -94,4 +103,6 @@ private:
 
   /// Storage for previously proposed sample when GP active learning is used
   std::vector<Real> _inputs_prev;
+
+  std::vector<Real> _output_dynU;
 };

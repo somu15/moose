@@ -51,7 +51,6 @@
     to_multi_app = sub
     sampler = sample
     parameters = 'Materials/conductivity/prop_values Kernels/source/value BCs/right/value'
-    to_control = 'stochastic'
     check_multiapp_execute_on = false
   []
   [reporter_transfer]
@@ -76,7 +75,7 @@
     n_train = 20
     al_gp = GP_al_trainer
     gp_evaluator = GP_eval
-    learning_function='Ufunction'
+    learning_function='DynamicUfunction'
     learning_function_parameter = 349.345
     learning_function_threshold = 2.0
   []
@@ -125,7 +124,7 @@
 []
 
 [Outputs]
-  file_base = 'ss_al'
+  file_base = 'ss_al_new'
   [out]
     type = JSON
     execute_system_information_on = NONE

@@ -217,6 +217,7 @@ AdaptiveMonteCarloDecision::execute()
       _outputs_sto[ss + offset] = _output_required[ss];
     }
   }
+
   // Track the current step
   _check_step = _t_step;
 }

@@ -72,7 +72,6 @@ sortOutput(const std::vector<Real> & outputs, const unsigned int samplessub, con
   const size_t offset = std::round(samplessub * (1 - subset_prob));
   for (const auto & i : index_range(out))
     out[i] = outputs[ind[i + offset]];
-
   return out;
 }
 

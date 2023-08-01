@@ -13,6 +13,7 @@
 #include "ActiveLearningGaussianProcess.h"
 #include "GaussianProcess.h"
 #include "SurrogateModelInterface.h"
+#include "ParallelSubsetSimulation.h"
 
 class ActiveLearningGPDecision : public ActiveLearningReporterTempl<Real>,
                                  public SurrogateModelInterface
@@ -103,8 +104,17 @@ private:
   /// Reference to global output data requested from base class
   const std::vector<Real> & _outputs_global;
 
+  /// The adaptive Monte Carlo sampler
+  Sampler & _sampler;
+
+  /// Parallel Subset Simulation sampler
+  const ParallelSubsetSimulation * const _pss;
+
   /// Store all the input vectors used for training
   std::vector<std::vector<Real>> _inputs_batch;
   /// Store all the outputs used for training
   std::vector<Real> _outputs_batch;
+
+  /// Create a dynamic learning function parameter
+  const Real & _dyn_u_param;
 };

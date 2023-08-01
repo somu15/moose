@@ -22,7 +22,7 @@ ActiveLearningGPDecision::validParams()
   params.addClassDescription(
       "Evaluates a GP surrogate model, determines its prediction quality, "
       "launches full model if GP prediction is inadequate, and retrains GP.");
-  MooseEnum learning_function("Ufunction COV");
+  MooseEnum learning_function("Ufunction", "DynamicUfunction", "COV");
   params.addRequiredParam<MooseEnum>(
       "learning_function", learning_function, "The learning function for active learning.");
   params.addRequiredParam<Real>("learning_function_threshold", "The learning function threshold.");
@@ -61,13 +61,21 @@ ActiveLearningGPDecision::ActiveLearningGPDecision(const InputParameters & param
         declareValue<std::vector<Real>>("gp_std", std::vector<Real>(sampler().getNumberOfRows()))),
     _decision(true),
     _inputs_global(getGlobalInputData()),
-    _outputs_global(getGlobalOutputData())
+    _outputs_global(getGlobalOutputData()),
+    _sampler(getSampler("sampler")),
+    _pss(dynamic_cast<const ParallelSubsetSimulation *>(&_sampler)),
+    _dyn_u_param(_pss->getDynamicU())
 {
-  if (_learning_function == "Ufunction" &&
-      !parameters.isParamSetByUser("learning_function_parameter"))
+  const bool learning_param_set = parameters.isParamSetByUser("learning_function_parameter");
+  if (_learning_function == "Ufunction" && learning_param_set)
     paramError("learning_function",
                "The Ufunction requires the model failure threshold ('learning_function_parameter') "
                "to be specified.");
+
+  if (_learning_function == "DynamicUfunction" && learning_param_set && !_pss)
+    paramError("learning_function",
+               "The DynamicUfunction requires the model failure threshold ('learning_function_parameter') "
+               "to be specified and should be only used with the subset simulation sampler.");
 }
 
 bool
@@ -76,6 +84,19 @@ ActiveLearningGPDecision::learningFunction(const Real & gp_mean, const Real & gp
   if (_learning_function == "Ufunction")
     return (std::abs(gp_mean - _learning_function_parameter) / gp_std) >
            _learning_function_threshold;
+  else if (_learning_function == "DynamicUfunction")
+  {
+    const unsigned int subset =
+        ((_t_step - 1) * _sampler.getNumberOfRows()) / _pss->getNumSamplesSub();
+    const unsigned int sub_ind =
+        (_t_step - 1) - (_pss->getNumSamplesSub() / _sampler.getNumberOfRows()) * subset;
+    const unsigned int num_subsets = _pss->getNumSubsets();
+    if (sub_ind <= 20 || subset == num_subsets - 1)
+      return (std::abs(gp_mean - _learning_function_parameter) / gp_std) >
+             _learning_function_threshold;
+    else
+      return (std::abs(gp_mean - _dyn_u_param) / gp_std) > _learning_function_threshold;
+  }
   else if (_learning_function == "COV")
     return (gp_std / std::abs(gp_mean)) < _learning_function_threshold;
   else
@@ -109,6 +130,7 @@ ActiveLearningGPDecision::facilitateDecision()
 void
 ActiveLearningGPDecision::preNeedSample()
 {
+  std::cout << "_dyn_u_param " << _dyn_u_param << std::endl;
   // Accumulate inputs and outputs if we previously decided we needed a sample
   if (_t_step > 1 && _decision)
   {

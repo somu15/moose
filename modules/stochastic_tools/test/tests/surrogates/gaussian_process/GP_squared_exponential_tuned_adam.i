@@ -92,6 +92,11 @@
     sampler = test_sample
     execute_on = 'initial timestep_end'
   []
+  [data_train]
+    type = SamplerData
+    sampler = train_sample
+    execute_on = 'initial timestep_end'
+  []
 []
 
 [Trainers]
