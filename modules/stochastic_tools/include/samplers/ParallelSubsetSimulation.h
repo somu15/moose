@@ -98,6 +98,15 @@ private:
   /// Store the sorted input samples according to their corresponding outputs
   std::vector<std::vector<Real>> _inputs_sorted;
 
+  /// Store the sorted output sample values
+  std::vector<Real> _output_sorted;
+
+  /// Modified value of model output by this reporter class
+  std::vector<Real> _output_required;
+
+  /// Store the intermediate ouput failure thresholds
+  Real _output_limit;
+
   /// Mean input vector for the next proposed sample inputs across several processors
   std::vector<std::vector<Real>> _markov_seed;
 

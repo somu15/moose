@@ -97,6 +97,8 @@ ParallelSubsetSimulation::ParallelSubsetSimulation(const InputParameters & param
   /* Setting the size of the storage vector when GP is used */
   _inputs_prev.resize(_distributions.size());
 
+  _output_required.resize(nchains);
+
   setNumberOfRandomSeeds(_num_random_seeds);
 }
 
@@ -166,6 +168,14 @@ ParallelSubsetSimulation::sampleSetUp(const SampleMode mode)
     // Check whether the subset index has changed
     if (sub_ind == 0)
     {
+      // ********************** //
+      // _output_sorted contains largest po percentile output values
+      _output_sorted =
+          AdaptiveMonteCarloUtils::sortOutput(_outputs_sto, _num_samplessub, _subset_probability);
+      // Get the subset's intermediate failure threshold values
+      _output_limit = AdaptiveMonteCarloUtils::computeMin(_output_sorted);
+      // ********************** //
+
       // _inputs_sorted contains the input values corresponding to the largest po percentile
       // output values
       _inputs_sorted = AdaptiveMonteCarloUtils::sortInput(
@@ -190,14 +200,31 @@ ParallelSubsetSimulation::sampleSetUp(const SampleMode mode)
     }
   }
 
+  // ********************** //
+  // Check whether the outputs exceed the subset's intermediate failure threshold value
+  for (dof_id_type ss = 0; ss < getNumberOfRows(); ++ss)
+  {
+    // Check whether the outputs exceed the subset's intermediate failure threshold value
+    // If so, accept the proposed input values by the Sampler object
+    // Otherwise, use the previously accepted input values
+    const bool output_limit_reached = _outputs_sto[ss + offset] >= _output_limit;
+    if (!output_limit_reached)
+      _outputs_sto[ss + offset] = _output_required[ss];
+  }
+  // ********************** //
+
   // check if we have completed the last sample (sub_ind == _num_samplessub /getNumberOfRows() - 1)
   // of the last subset (_subset == _num_subsets - 1)
   if (_subset == _num_subsets - 1 && sub_ind == _num_samplessub / getNumberOfRows() - 1)
     _is_sampling_completed = true;
 
   if (sub_ind == 0)
-    std::vector<Real> _output_dynU;
+  {
+    _output_dynU.clear();
+  }
   _output_dynU.push_back(_outputs_sto[sub_ind]);
+  // std::cout << _output_dynU.size() << std::endl;
+  // std::cout << Moose::stringify(_output_dynU) << std::endl;
   // If dynamic U-function used with GP active learning, compute the dynamic parameter
   if (isParamValid("flag_sample") && sub_ind > 20)
   {
@@ -208,6 +235,7 @@ ParallelSubsetSimulation::sampleSetUp(const SampleMode mode)
     _dynamic_u = AdaptiveMonteCarloUtils::computeMin(tmp);
     // std::cout << "_dynamic_u ***** " << _dynamic_u << std::endl;
   }
+  _output_required = tmp;
 }
 
 Real

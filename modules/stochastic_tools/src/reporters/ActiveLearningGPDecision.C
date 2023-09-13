@@ -118,6 +118,8 @@ ActiveLearningGPDecision::facilitateDecision()
   for (dof_id_type i = 0; i < _inputs.size(); ++i)
   {
     _gp_mean[i] = _gp_eval.evaluate(_inputs[i], _gp_std[i]);
+    if (_flag_sample[i])
+      _gp_std[i] = 0.0;
     _flag_sample[i] = !learningFunction(_gp_mean[i], _gp_std[i]);
   }
 
