@@ -156,10 +156,12 @@ public:
                            const bool & verbose);
 
   // Computes the loss function for Adam usage
-  Real getLossAdam(RealEigenMatrix & inputs, RealEigenMatrix & outputs);
+  Real getLossAdam(RealEigenMatrix & inputs,
+                   RealEigenMatrix & outputs,
+                   libMesh::PetscVector<Number> & theta);
 
   // Computes Gradient of the loss function for Adam usage
-  std::vector<Real> getGradientAdam(RealEigenMatrix & inputs);
+  std::vector<Real> getGradientAdam(RealEigenMatrix & inputs, libMesh::PetscVector<Number> & theta);
 
   /// Function used to convert the hyperparameter maps in this object to
   /// Petsc vectors
