@@ -363,6 +363,19 @@ GaussianProcessHandler::tuneHyperParamsAdam(const RealEigenMatrix & training_par
     theta.print();
     Moose::out << "FINAL LOSS: " << store_loss << std::endl;
   }
+  unsigned int count = 1;
+  for (auto iter = _tuning_data.begin(); iter != _tuning_data.end(); ++iter)
+  {
+    std::string hyper_param_name = iter->first;
+    for (unsigned int ii = 0; ii < std::get<1>(iter->second); ++ii)
+    {
+      if (hyper_param_name.compare("length_factor") == 0)
+      {
+        _length_scales.push_back(theta(count));
+        ++count;
+      }
+    }
+  }
 }
 
 Real

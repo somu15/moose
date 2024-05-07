@@ -40,6 +40,8 @@ public:
   virtual void reTrain(const std::vector<std::vector<Real>> & inputs,
                        const std::vector<Real> & outputs) const final;
 
+  virtual void getLengthScales(std::vector<Real> & length_scales) const final;
+
   StochasticTools::GaussianProcessHandler & gpHandler() { return _gp_handler; }
   const StochasticTools::GaussianProcessHandler & getGPHandler() const { return _gp_handler; }
 
