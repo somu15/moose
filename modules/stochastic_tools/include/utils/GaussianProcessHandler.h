@@ -198,6 +198,7 @@ public:
   {
     return _hyperparam_vec_map;
   }
+  const std::vector<Real> & getScales() const { return _length_scales; }
   ///@}
 
   /// @{
@@ -222,7 +223,10 @@ public:
   {
     return _hyperparam_vec_map;
   }
+  std::vector<Real> & Scales() { return _length_scales; }
   ///@}
+
+  std::vector<Real> _length_scales;
 
 protected:
   /// Covariance function object
