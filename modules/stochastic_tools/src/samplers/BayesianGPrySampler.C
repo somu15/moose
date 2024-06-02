@@ -19,7 +19,7 @@ BayesianGPrySampler::validParams()
   InputParameters params = PMCMCBase::validParams();
   params.addClassDescription(
       "Fast Bayesian inference with the GPry algorithm by El Gammal et al. 2023: sampler step.");
-  params.addRequiredParam<ReporterName>("sorted_indices",
+  params.addRequiredParam<ReporterName>("optimal_inputs",
                                         "The sorted sample indices in order of importance to evaluate the subApp.");
   params.addRequiredRangeCheckedParam<unsigned int>(
     "num_tries",
@@ -30,11 +30,11 @@ BayesianGPrySampler::validParams()
 
 BayesianGPrySampler::BayesianGPrySampler(const InputParameters & parameters)
   : PMCMCBase(parameters),
-    _sorted_indices(getReporterValue<std::vector<unsigned int>>("sorted_indices")),
+    _optimal_inputs(getReporterValue<std::vector<std::vector<Real>>>("optimal_inputs")),
     _num_tries(getParam<unsigned int>("num_tries"))
 {
-  _inputs_all.resize(_num_tries, std::vector<Real>(_priors.size()));
-  _var_all.resize(_num_tries);
+  // _inputs_all.resize(_num_tries, std::vector<Real>(_priors.size()));
+  // _var_all.resize(_num_tries);
   _sample_vector.resize(_priors.size());
 }
 
@@ -61,26 +61,26 @@ BayesianGPrySampler::fillVectorUnitBall(std::vector<Real> & vector,
   }
 }
 
-const std::vector<std::vector<Real>> &
-BayesianGPrySampler::getSampleTries() const
-{
-  return _inputs_all;
-}
+// const std::vector<std::vector<Real>> &
+// BayesianGPrySampler::getSampleTries() const
+// {
+//   return _inputs_all;
+// }
 
-const std::vector<Real> &
-BayesianGPrySampler::getVarSampleTries() const
-{
-  return _var_all;
-}
+// const std::vector<Real> &
+// BayesianGPrySampler::getVarSampleTries() const
+// {
+//   return _var_all;
+// }
 
 void
 BayesianGPrySampler::proposeSamples(const unsigned int seed_value)
 {
   // If step is 1, randomly generate the samples
-  // Else, generate the samples informed by the GP and NN combo from the reporter "sorted_indices"
+  // Else, generate the samples informed by the GP and NN combo from the reporter "optimal_inputs"
   for (dof_id_type i = 0; i < _num_parallel_proposals; ++i)
   {
-    if (_t_step <= 2)
+    if (_t_step <= 1)
     {
       fillVector(_sample_vector, seed_value);
       _new_samples[i] = _sample_vector;
@@ -89,68 +89,20 @@ BayesianGPrySampler::proposeSamples(const unsigned int seed_value)
     }
     else
     {
-      _new_samples[i] = _inputs_all[_sorted_indices[i]];
+      for (dof_id_type j = 0; j < _priors.size(); ++j)
+        _new_samples[i][j] = _optimal_inputs[i][j];
       if (_var_prior)
-        _new_var_samples[i] = _var_all[_sorted_indices[i]];
+        _new_var_samples[i] = _optimal_inputs[i][_priors.size()];
     }
   }
 
   // Finally, generate several new samples randomly for the GP and NN to try and pass it to the
   // reporter
-  for (dof_id_type i = 0; i < _num_tries; ++i)
-  {
-    fillVector(_sample_vector, seed_value);
-    _inputs_all[i] = _sample_vector;
-    if (_var_prior)
-      _var_all[i] = _var_prior->quantile(getRand(seed_value));
-  }
-
-  // unsigned int seed_index_fill = 0;
-  // Real tmp_value;
-  // if (_t_step <= 200 || _t_step % 5 == 0)
-  // {
-  //   for (dof_id_type i = 0; i < _num_tries; ++i)
-  //   {
-  //     fillVector(_sample_vector, seed_value);
-  //     _inputs_all[i] = _sample_vector;
-  //     if (_var_prior)
-  //       _var_all[i] = _var_prior->quantile(getRand(seed_value));
-  //   }
-  // }
-  // else
-  // {
-  //   for (unsigned int i = 0; i < _num_tries; ++i)
-  //   {
-  //     seed_index_fill =
-  //         ((i + 1) % _num_parallel_proposals == 0) ? ++seed_index_fill : seed_index_fill;
-  //     fillVectorUnitBall(_sample_vector, seed_value, _new_samples[seed_index_fill]);
-  //     _inputs_all[i] = _sample_vector;
-  //     if (_var_prior)
-  //     {
-  //       tmp_value = Normal::quantile(
-  //           getRand(seed_value),
-  //           Normal::quantile(_var_prior->cdf(_new_var_samples[seed_index_fill]), 0.0, 1.0),
-  //           1.0);
-  //       _var_all[i] = _var_prior->quantile(Normal::cdf(tmp_value, 0.0, 1.0));
-  //     }
-  //   }
-  // }
-
   // for (dof_id_type i = 0; i < _num_tries; ++i)
   // {
-  //   // std::cout << "Here **** " << seed_index_fill << std::endl;
-  //   // std::cout << "Here 2 **** " << i << std::endl;
-  //   seed_index_fill = ((i + 1) % index == 0) ? ++seed_index_fill : seed_index_fill;
-  //   fillVectorUnitBall(_sample_vector, seed_value, _new_samples[seed_index_fill]);
+  //   fillVector(_sample_vector, seed_value);
   //   _inputs_all[i] = _sample_vector;
-  //   std::cout << Moose::stringify(_sample_vector) << std::endl;
   //   if (_var_prior)
-  //   {
-  //     tmp_value = Normal::quantile(_var_prior->cdf(_new_var_samples[seed_index_fill]), 0.0, 1.0);
-  //     tmp_value = Normal::quantile(getRand(seed_value), tmp_value, 1.0);
-  //     _var_all[i] = _var_prior->quantile(Normal::cdf(tmp_value, 0.0, 1.0));
-  //   }
-  //   std::cout << Moose::stringify(_var_all[i]) << std::endl;
-  //   std::cout << "Here final **** " << std::endl;
+  //     _var_all[i] = _var_prior->quantile(getRand(seed_value));
   // }
 }

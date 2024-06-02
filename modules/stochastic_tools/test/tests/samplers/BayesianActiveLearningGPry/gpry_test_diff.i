@@ -2,33 +2,19 @@
 []
 
 [Distributions]
-  [a]
-    type = TruncatedNormal
-    mean = 0.8
-    standard_deviation = 0.05
-    lower_bound = 0.0
-    upper_bound = 2.0
+  [left]
+    type = Normal
+    mean = 0.0
+    standard_deviation = 1.0
+    # lower_bound = -1.0
+    # upper_bound = 1.0
   []
-  [b]
-    type = TruncatedNormal
-    mean = 0.5
-    standard_deviation = 0.05
-    lower_bound = 0.0
-    upper_bound = 2.0
-  []
-  [c]
-    type = TruncatedNormal
-    mean = 0.5
-    standard_deviation = 0.05
-    lower_bound = 0.0
-    upper_bound = 2.0
-  []
-  [d]
-    type = TruncatedNormal
-    mean = 0.25
-    standard_deviation = 0.05
-    lower_bound = 0.0
-    upper_bound = 2.0
+  [right]
+    type = Normal
+    mean = 0.0
+    standard_deviation = 1.0
+    # lower_bound = -1.0
+    # upper_bound = 1.0
   []
   [prior_variance]
     type = Uniform
@@ -49,17 +35,17 @@
 [Samplers]
   [sample]
     type = AffineInvariantDES
-    prior_distributions = 'a b c d'
-    num_parallel_proposals = 20
+    prior_distributions = 'left right'
+    num_parallel_proposals = 50
     file_name = 'confg.csv'
     execute_on =  PRE_MULTIAPP_SETUP
     seed = 100
-    initial_values = '0.8 0.5 0.5 0.25'
+    initial_values = '0.5 0.5'
     previous_state = 'mcmc_reporter/inputs'
     previous_state_var = 'mcmc_reporter/variance'
     prior_variance = 'prior_variance'
-    lower_bound = '0.0 0.0 0.0 0.0'
-    upper_bound = '2.0 2.0 2.0 2.0'
+    lower_bound = '-1.0 -1.0'
+    upper_bound = '1.0 1.0'
     variance_bound = 0.2
   []
 []
@@ -77,7 +63,7 @@
     type = MultiAppSamplerControl
     multi_app = sub
     sampler = sample
-    param_names = 'left_bc right_bc left_bc right_bc mesh1'
+    param_names = 'left_bc right_bc mesh1'
   []
 []
 
@@ -98,7 +84,6 @@
   [mcmc_reporter]
     type = AffineInvariantDifferentialDecisionwithGPry
     output_value = constant/reporter_transfer:average:value
-    output_value1 = constant/reporter_transfer:average:value
     sampler = sample
     likelihoods = 'gaussian'
     gp_evaluator = GP_eval
@@ -108,7 +93,7 @@
 [Surrogates]
   [GP_eval]
     type = GaussianProcess
-    filename = 'gpry_train_predprey_out2_GP_al_trainer.rd'
+    filename = 'gpry_train_diff_out2_GP_al_trainer.rd'
   []
 []
 
@@ -119,7 +104,7 @@
 
 [Outputs]
   execute_on = TIMESTEP_END
-  file_base = 'des_gpry_predprey'
+  file_base = 'des_gpry_diff'
   perf_graph = true
   [out]
     type = JSON

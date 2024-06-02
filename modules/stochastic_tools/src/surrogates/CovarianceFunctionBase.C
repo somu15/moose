@@ -31,6 +31,9 @@ CovarianceFunctionBase::CovarianceFunctionBase(const InputParameters & parameter
     _sigma_f_squared(getParam<Real>("signal_variance")),
     _sigma_n_squared(getParam<Real>("noise_variance"))
 {
+  _length_factor_initial = _length_factor;
+  _sigma_f_squared_initial = _sigma_f_squared;
+  _sigma_n_squared_initial = _sigma_n_squared;
 }
 
 void
@@ -42,6 +45,19 @@ CovarianceFunctionBase::buildHyperParamMap(
   map["signal_variance"] = _sigma_f_squared;
 
   vec_map["length_factor"] = _length_factor;
+
+  buildAdditionalHyperParamMap(map, vec_map);
+}
+
+void
+CovarianceFunctionBase::buildHyperParamMapInitial(
+    std::unordered_map<std::string, Real> & map,
+    std::unordered_map<std::string, std::vector<Real>> & vec_map) const
+{
+  map["noise_variance"] = _sigma_n_squared_initial;
+  map["signal_variance"] = _sigma_f_squared_initial;
+
+  vec_map["length_factor"] = _length_factor_initial;
 
   buildAdditionalHyperParamMap(map, vec_map);
 }

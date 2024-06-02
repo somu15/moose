@@ -79,10 +79,34 @@ private:
 
   /**
    * Modify the acqusition function by considering correlations between the inputs
-   * @param acq The current values of the acquistion function
-   * @param sorted The sorted indices in the order of importance
+   * @param acq The new computed value of the acquistion function
+   * @param current_index The current index of interest
+   * @param input The input sent by the optimization algorithm
    */
-  void acqWithCorrelations(std::vector<Real> & acq, std::vector<unsigned int> & sorted);
+  void acqWithCorrelations2(Real & acq,
+                           const unsigned int & current_index,
+                           const std::vector<Real> & input,
+                           const Real & var);
+
+  void acqWithCorrelations(std::vector<Real> & acq,
+                           std::vector<unsigned int> & sorted,
+                           const std::vector<std::vector<Real>> & tmp_inps_var);
+
+  /**
+   * Optimize the acquistion function to return inputs
+   */
+  void optimizeAcquisition(const unsigned int & main_index,
+                           const bool & randomize,
+                           const std::vector<Real> & seed_input,
+                           const Real & seed_var,
+                           std::vector<Real> & optimized_input);
+
+  void randomIndex(const unsigned int & exclude, unsigned int & req_index);
+
+  void randomIndexTwo(const unsigned int & exclude1,
+                      const unsigned int & exclude2,
+                      unsigned int & req_index1,
+                      unsigned int & req_index2);
 
   /**
    * Compute the correlations between the given inputs
@@ -94,6 +118,28 @@ private:
                           const std::vector<Real> & input2,
                           Real & corr);
 
+  /**
+   * Fill in the provided vector with random samples given the distributions
+   * @param vector The vector to be filled
+   */
+  void fillVector(std::vector<Real> & vector);
+
+  /**
+   * Fill in the provided vector with random samples from a standard Normal
+   * @param vector The vector to be filled
+   */
+  void fillVectorStandardNormal(std::vector<Real> & vector);
+
+  void fillVectorSeedStandardNormal(const std::vector<Real> & seed_input,
+                                    std::vector<Real> & vector);
+
+  void fromStandardNormal(std::vector<Real> & vector, const std::vector<Real> & vector_standard);
+
+  void fromStandardNormalVar(Real & value, const Real & value_standard);
+
+  void computeGPOutput(std::vector<Real> & eval_outputs,
+                       const std::vector<std::vector<Real>> & eval_inputs);
+
   /// The adaptive Monte Carlo sampler
   Sampler & _sampler;
 
@@ -101,16 +147,16 @@ private:
   const BayesianGPrySampler * const _gpry_sampler;
 
   /// The selected sample indices to evaluate the subApp
-  std::vector<unsigned int> & _sorted_indices;
+  std::vector<std::vector<Real>> & _optimal_inputs;
 
   /// Storage for the likelihood objects to be utilized
   std::vector<const LikelihoodFunctionBase *> _likelihoods;
 
-  /// Storage for all the proposed samples
-  const std::vector<std::vector<Real>> & _inputs_all;
+  // /// Storage for all the proposed samples
+  // const std::vector<std::vector<Real>> & _inputs_all;
 
-  /// Storage for all the proposed variance samples
-  const std::vector<Real> & _var_all;
+  // /// Storage for all the proposed variance samples
+  // const std::vector<Real> & _var_all;
 
   /// The active learning GP trainer that permits re-training
   const ActiveLearningGaussianProcess & _al_gp;
@@ -131,6 +177,8 @@ private:
 
   /// The maximum value of the acquistion function in the current iteration
   std::vector<Real> & _acquisition_function;
+
+  Real & _convergence_value;
 
   /// Ensure that the MCMC algorithm proceeds in a sequential fashion
   int _check_step;
@@ -164,4 +212,16 @@ private:
 
   /// Storage for the length scales after the GP training 
   std::vector<Real> _length_scales;
+
+  std::vector<Real> _proposed_input;
+
+  Real _proposed_var;
+
+  unsigned int _seed;
+
+  unsigned int _eval_points;
+  std::vector<std::vector<Real>> _eval_inputs;
+  std::vector<Real> _eval_inputs_density;
+  std::vector<Real> _eval_outputs_current;
+  std::vector<Real> _eval_outputs_previous;
 };

@@ -22,15 +22,15 @@ public:
 
   BayesianGPrySampler(const InputParameters & parameters);
 
-  /**
-   * Return the random samples for the GP and NN combo to try in the reporter class
-   */
-  const std::vector<std::vector<Real>> & getSampleTries() const;
+  // /**
+  //  * Return the random samples for the GP and NN combo to try in the reporter class
+  //  */
+  // const std::vector<std::vector<Real>> & getSampleTries() const;
 
-  /**
-   * Return the random variance samples for the GP and NN combo to try in the reporter class
-   */
-  const std::vector<Real> & getVarSampleTries() const;
+  // /**
+  //  * Return the random variance samples for the GP and NN combo to try in the reporter class
+  //  */
+  // const std::vector<Real> & getVarSampleTries() const;
 
 protected:
   virtual void proposeSamples(const unsigned int seed_value) override;
@@ -52,17 +52,17 @@ protected:
                                   const std::vector<Real> & seed_vector);
 
   /// The selected sample indices to evaluate the subApp
-  const std::vector<unsigned int> & _sorted_indices;
+  const std::vector<std::vector<Real>> & _optimal_inputs;
 
 private:
   /// Number of samples to propose in each iteration (not all are sent for subApp evals)
   const unsigned int & _num_tries;
 
-  /// Storage for all the proposed samples
-  std::vector<std::vector<Real>> _inputs_all;
+  // /// Storage for all the proposed samples
+  // std::vector<std::vector<Real>> _inputs_all;
 
-  /// Storage for all the proposed variances
-  std::vector<Real> _var_all;
+  // /// Storage for all the proposed variances
+  // std::vector<Real> _var_all;
 
   /// A temporary vector to facilitate the sampling
   std::vector<Real> _sample_vector;

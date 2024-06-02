@@ -2,33 +2,19 @@
 []
 
 [Distributions]
-  [a]
+  [left]
     type = TruncatedNormal
-    mean = 0.8
-    standard_deviation = 0.05
-    lower_bound = 0.0
-    upper_bound = 2.0
+    mean = 0.0
+    standard_deviation = 1.0
+    lower_bound = -1.0
+    upper_bound = 1.0
   []
-  [b]
+  [right]
     type = TruncatedNormal
-    mean = 0.5
-    standard_deviation = 0.05
-    lower_bound = 0.0
-    upper_bound = 2.0
-  []
-  [c]
-    type = TruncatedNormal
-    mean = 0.5
-    standard_deviation = 0.05
-    lower_bound = 0.0
-    upper_bound = 2.0
-  []
-  [d]
-    type = TruncatedNormal
-    mean = 0.25
-    standard_deviation = 0.05
-    lower_bound = 0.0
-    upper_bound = 2.0
+    mean = 0.0
+    standard_deviation = 1.0
+    lower_bound = -1.0
+    upper_bound = 1.0
   []
   [prior_variance]
     type = Uniform
@@ -38,16 +24,10 @@
 []
 
 [Likelihood]
-  [gaussianx]
+  [gaussian]
     type = Gaussian
     noise = 'conditional/noise'
-    file_name = 'exp_lnx_noise.csv'
-    log_likelihood=false
-  []
-  [gaussiany]
-    type = Gaussian
-    noise = 'conditional/noise'
-    file_name = 'exp_lny_noise.csv'
+    file_name = 'exp_0_05.csv'
     log_likelihood=false
   []
 []
@@ -55,14 +35,14 @@
 [Samplers]
   [sample]
     type = BayesianGPrySampler
-    prior_distributions = 'a b c d'
+    prior_distributions = 'left right'
     optimal_inputs = 'conditional/optimal_inputs'
-    num_parallel_proposals = 20
-    file_name = 'confg_predprey.csv'
+    num_parallel_proposals = 50
+    file_name = 'confg.csv'
     execute_on = PRE_MULTIAPP_SETUP
-    num_tries = 20
+    num_tries = 50
     seed = 2547
-    initial_values = '0.5 0.5 0.5 0.5'
+    initial_values = '0.5 0.5'
     prior_variance = 'prior_variance'
   []
 []
@@ -70,23 +50,16 @@
 [MultiApps]
   [sub]
     type = SamplerFullSolveMultiApp
-    input_files = predprey_exact.i
+    input_files = sub.i
     sampler = sample
   []
 []
 
 [Transfers]
-  [reporter_transfer_x]
+  [reporter_transfer]
     type = SamplerReporterTransfer
-    from_reporter = 'log_x/value'
-    stochastic_reporter = 'constant_x'
-    from_multi_app = sub
-    sampler = sample
-  []
-  [reporter_transfer_y]
-    type = SamplerReporterTransfer
-    from_reporter = 'log_y/value'
-    stochastic_reporter = 'constant_y'
+    from_reporter = 'average/value'
+    stochastic_reporter = 'constant'
     from_multi_app = sub
     sampler = sample
   []
@@ -97,25 +70,21 @@
     type = MultiAppSamplerControl
     multi_app = sub
     sampler = sample
-    param_names = 'a b c d end_time'
+    param_names = 'left_bc right_bc mesh1'
   []
 []
 
 [Reporters]
-  [constant_x]
-    type = StochasticReporter
-  []
-  [constant_y]
+  [constant]
     type = StochasticReporter
   []
   [conditional]
     type = BayesianGPryLearner
-    output_value = constant_x/reporter_transfer_x:log_x:value
-    output_value1 = constant_y/reporter_transfer_y:log_y:value
+    output_value = constant/reporter_transfer:average:value
     sampler = sample
     al_gp = GP_al_trainer
     gp_evaluator = GP_eval
-    likelihoods = 'gaussianx gaussiany'
+    likelihoods = 'gaussian'
   []
 []
 
@@ -127,8 +96,8 @@
     standardize_data = 'true'
     tune_parameters = 'signal_variance length_factor'
     tuning_algorithm = 'adam'
-    iter_adam = 10000
-    learning_rate_adam = 0.001 # 0.0005
+    iter_adam = 2000
+    learning_rate_adam = 0.0005
     show_optimization_details = true
     batch_size = 250
   []
@@ -146,7 +115,7 @@
     type = SquaredExponentialCovariance
     signal_variance = 10.0
     noise_variance = 1e-8 # 1e-8
-    length_factor = '10.0 10.0 10.0 10.0 10.0'
+    length_factor = '10.0 10.0 10.0'
   []
 []
 

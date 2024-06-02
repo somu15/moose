@@ -293,7 +293,7 @@ GaussianProcessHandler::tuneHyperParamsAdam(const RealEigenMatrix & training_par
 {
   libMesh::PetscVector<Number> theta(_tao_comm, _num_tunable);
   _batch_size = batch_size;
-  _covariance_function->buildHyperParamMap(_hyperparam_map, _hyperparam_vec_map);
+  _covariance_function->buildHyperParamMapInitial(_hyperparam_map, _hyperparam_vec_map);
   mapToPetscVec(_tuning_data, _hyperparam_map, _hyperparam_vec_map, theta);
   Real b1;
   Real b2;

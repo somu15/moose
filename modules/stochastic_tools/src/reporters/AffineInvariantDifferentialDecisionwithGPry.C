@@ -40,7 +40,10 @@ AffineInvariantDifferentialDecisionwithGPry::computeEvidence(std::vector<Real> &
     tmp.resize(_priors.size());
 
   Real estimated_evidence;
-//   Real estimated_class;
+  std::vector<Real> prev_gp_preds, current_gp_preds;
+  prev_gp_preds.resize(evidence.size());
+  current_gp_preds.resize(evidence.size());
+  //   Real estimated_class;
   for (unsigned int i = 0; i < evidence.size(); ++i)
   {
     estimated_evidence = 0.0;
@@ -51,6 +54,7 @@ AffineInvariantDifferentialDecisionwithGPry::computeEvidence(std::vector<Real> &
       tmp[_priors.size()] = _new_var_samples[i];
     estimated_evidence +=
         _gp_eval.evaluate(tmp); // (estimated_class > 0.5) ? _gp_eval.evaluate(tmp) : -10000.0;
+    current_gp_preds[i] = _gp_eval.evaluate(tmp);
 
     for (unsigned int j = 0; j < _priors.size(); ++j)
       tmp[j] = _data_prev(i, j);
@@ -59,12 +63,15 @@ AffineInvariantDifferentialDecisionwithGPry::computeEvidence(std::vector<Real> &
     estimated_evidence -=
         _gp_eval.evaluate(tmp); // (estimated_class > 0.5) ? _gp_eval.evaluate(tmp) : -10000.0;
 
+    prev_gp_preds[i] = _gp_eval.evaluate(tmp);
     // for (unsigned int j = 0; j < _priors.size(); ++j)
     //   estimated_evidence += (std::log(_priors[j]->pdf(input_matrix(i, j))) -
     //                          std::log(_priors[j]->pdf(_data_prev(i, j))));
 
     evidence[i] = estimated_evidence;
   }
+  std::cout << "prev " << Moose::stringify(prev_gp_preds) << std::endl;    //
+  std::cout << "curr " << Moose::stringify(current_gp_preds) << std::endl; //
 }
 
 void
@@ -130,7 +137,7 @@ AffineInvariantDifferentialDecisionwithGPry::execute()
   {
     // std::cout << Moose::stringify(_new_samples) << std::endl;
     computeEvidence(evidence, data_in);
-    std::cout << Moose::stringify(evidence) << std::endl;
+    // std::cout << Moose::stringify(evidence) << std::endl;
     computeTransitionVector(_tpm, evidence);
   }
   else
