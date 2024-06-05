@@ -32,6 +32,10 @@ public:
   buildHyperParamMap(std::unordered_map<std::string, Real> & map,
                      std::unordered_map<std::string, std::vector<Real>> & vec_map) const;
 
+  virtual void
+  buildHyperParamMapInitial(std::unordered_map<std::string, Real> & map,
+                     std::unordered_map<std::string, std::vector<Real>> & vec_map) const;
+
   /// Used for outputting additional Hyper-parameter settings in derived
   virtual void buildAdditionalHyperParamMap(
       std::unordered_map<std::string, Real> & /*map*/,
@@ -65,6 +69,15 @@ protected:
 
   /// noise variance (\sigma_n^2)
   Real _sigma_n_squared;
+
+  /// lengh factor (\ell) for the kernel, in vector form for multiple parameters
+  std::vector<Real> _length_factor_initial;
+
+  /// signal variance (\sigma_f^2)
+  Real _sigma_f_squared_initial;
+
+  /// noise variance (\sigma_n^2)
+  Real _sigma_n_squared_initial;
 
   /// list of tunable hyper-parameters
   std::unordered_set<std::string> _tunable_hp;

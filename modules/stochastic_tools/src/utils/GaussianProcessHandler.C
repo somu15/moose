@@ -296,7 +296,7 @@ GaussianProcessHandler::tuneHyperParamsAdam(const RealEigenMatrix & training_par
 {
   libMesh::PetscVector<Number> theta(_tao_comm, _num_tunable);
   _batch_size = batch_size;
-  _covariance_function->buildHyperParamMap(_hyperparam_map, _hyperparam_vec_map);
+  _covariance_function->buildHyperParamMapInitial(_hyperparam_map, _hyperparam_vec_map);
   mapToPetscVec(_tuning_data, _hyperparam_map, _hyperparam_vec_map, theta);
   Real b1;
   Real b2;
@@ -338,8 +338,8 @@ GaussianProcessHandler::tuneHyperParamsAdam(const RealEigenMatrix & training_par
     }
 
     store_loss = getLossAdam(inputs, outputs, theta);
-    if (show_optimization_details && ss == 0)
-      Moose::out << "INITIAL LOSS: " << store_loss << std::endl;
+    if (show_optimization_details && (ss % 250) == 0)
+      Moose::out << "LOSS AT ITERATION " << ss << ": " << store_loss << std::endl;
     grad1 = getGradientAdam(inputs, theta);
     for (unsigned int ii = 0; ii < _num_tunable; ++ii)
     {
