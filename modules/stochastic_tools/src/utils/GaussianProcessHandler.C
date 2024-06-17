@@ -296,7 +296,22 @@ GaussianProcessHandler::tuneHyperParamsAdam(const RealEigenMatrix & training_par
 {
   libMesh::PetscVector<Number> theta(_tao_comm, _num_tunable);
   _batch_size = batch_size;
-  _covariance_function->buildHyperParamMapInitial(_hyperparam_map, _hyperparam_vec_map);
+  unsigned int req_iter;
+  if (training_params.rows() <= 100)
+  {
+    _covariance_function->buildHyperParamMapInitial(_hyperparam_map, _hyperparam_vec_map);
+    req_iter = iter;
+  }
+  else if (training_params.rows() > 100 && training_params.rows() <= 250)
+  {
+    _covariance_function->buildHyperParamMap(_hyperparam_map, _hyperparam_vec_map);
+    req_iter = 800;
+  }
+  else
+  {
+    _covariance_function->buildHyperParamMap(_hyperparam_map, _hyperparam_vec_map);
+    req_iter = 300;
+  }
   mapToPetscVec(_tuning_data, _hyperparam_map, _hyperparam_vec_map, theta);
   Real b1;
   Real b2;
@@ -323,7 +338,7 @@ GaussianProcessHandler::tuneHyperParamsAdam(const RealEigenMatrix & training_par
   RealEigenMatrix outputs(_batch_size, 1);
   if (show_optimization_details)
     Moose::out << "OPTIMIZING GP HYPER-PARAMETERS USING Adam" << std::endl;
-  for (unsigned int ss = 0; ss < iter; ++ss)
+  for (unsigned int ss = 0; ss < req_iter; ++ss)
   {
     // Shuffle data
     MooseRandom generator;
@@ -338,7 +353,7 @@ GaussianProcessHandler::tuneHyperParamsAdam(const RealEigenMatrix & training_par
     }
 
     store_loss = getLossAdam(inputs, outputs, theta);
-    if (show_optimization_details && (ss % 250) == 0)
+    if (show_optimization_details && (ss % 500) == 0)
       Moose::out << "LOSS AT ITERATION " << ss << ": " << store_loss << std::endl;
     grad1 = getGradientAdam(inputs, theta);
     for (unsigned int ii = 0; ii < _num_tunable; ++ii)
@@ -350,8 +365,8 @@ GaussianProcessHandler::tuneHyperParamsAdam(const RealEigenMatrix & training_par
       // new_val = theta(ii) - learning_rate * m_hat / (std::sqrt(v_hat) + eps);
       new_val =
           theta(ii) - 1.0 * (learning_rate * m_hat / (std::sqrt(v_hat) + eps) + lambda * theta(ii));
-      if (new_val < 0.01) // constrain params on the lower side
-        new_val = 0.01;
+      if (new_val < 0.0001) // constrain params on the lower side
+        new_val = 0.0001;
       theta.set(ii, new_val);
     }
     petscVecToMap(_tuning_data, _hyperparam_map, _hyperparam_vec_map, theta);
@@ -363,7 +378,8 @@ GaussianProcessHandler::tuneHyperParamsAdam(const RealEigenMatrix & training_par
     theta.print();
     Moose::out << "FINAL LOSS: " << store_loss << std::endl;
   }
-  unsigned int count = 1;
+  unsigned int count = 2;
+  _length_scales.resize(_num_tunable - count);
   for (auto iter = _tuning_data.begin(); iter != _tuning_data.end(); ++iter)
   {
     std::string hyper_param_name = iter->first;
@@ -371,7 +387,7 @@ GaussianProcessHandler::tuneHyperParamsAdam(const RealEigenMatrix & training_par
     {
       if (hyper_param_name.compare("length_factor") == 0)
       {
-        _length_scales.push_back(theta(count));
+        _length_scales[count - 2] = theta(count);
         ++count;
       }
     }
@@ -389,8 +405,8 @@ GaussianProcessHandler::getLossAdam(RealEigenMatrix & inputs,
   log_likelihood += -(outputs.transpose() * _K_results_solve)(0, 0);
   log_likelihood += -std::log(_K.determinant());
   log_likelihood -= _batch_size * std::log(2 * M_PI);
-  for (unsigned int ii = 0; ii < _num_tunable; ++ii)
-    log_likelihood -= std::log(theta(ii)) * std::log(theta(ii));
+  // for (unsigned int ii = 0; ii < _num_tunable; ++ii)
+  //   log_likelihood -= std::log(theta(ii)) * std::log(theta(ii));
   log_likelihood = -log_likelihood / 2;
   return log_likelihood;
 }
@@ -403,7 +419,7 @@ GaussianProcessHandler::getGradientAdam(RealEigenMatrix & inputs, libMesh::Petsc
   std::vector<Real> grad_vec;
   grad_vec.resize(_num_tunable);
   int count;
-  count = 1;
+  count = 2;
   for (auto iter = _tuning_data.begin(); iter != _tuning_data.end(); ++iter)
   {
     std::string hyper_param_name = iter->first;
@@ -411,12 +427,14 @@ GaussianProcessHandler::getGradientAdam(RealEigenMatrix & inputs, libMesh::Petsc
     {
       _covariance_function->computedKdhyper(dKdhp, inputs, hyper_param_name, ii);
       RealEigenMatrix tmp = alpha * dKdhp - _K_cho_decomp.solve(dKdhp);
-      Real grad1 = -tmp.trace() / 2.0 - std::log(theta(ii)) / theta(ii);
+      Real grad1 = -tmp.trace() / 2.0; // - std::log(theta(ii)) / theta(ii);
       if (hyper_param_name.compare("length_factor") == 0)
       {
         grad_vec[count] = grad1;
         ++count;
       }
+      else if (hyper_param_name.compare("noise_variance") == 0)
+        grad_vec[1] = grad1;
       else
         grad_vec[0] = grad1;
     }
