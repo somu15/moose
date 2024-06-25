@@ -51,13 +51,11 @@ AIDESGPryLearner::setupNNGPData(const DenseMatrix<Real> & data_in)
   else
     tmp.resize(_priors.size());
   std::vector<Real> out1(_num_confg_values);
-  std::vector<Real> out11(_num_confg_values);
   for (unsigned int i = 0; i < _props; ++i)
   {
     for (unsigned int j = 0; j < _num_confg_values; ++j)
     {
       out1[j] = _outputs_required[j * _props + i];
-      out11[j] = _outputs_required1[j * _props + i];
     }
     for (unsigned int j = 0; j < _priors.size(); ++j)
       tmp[j] = data_in(i, j);
@@ -66,14 +64,12 @@ AIDESGPryLearner::setupNNGPData(const DenseMatrix<Real> & data_in)
       tmp[_priors.size()] = _new_var_samples[i];
       _noise = std::sqrt(_new_var_samples[i]);
       _gp_inputs.push_back(tmp);
-      _gp_outputs.push_back(std::log(_likelihoods[2]->function(out1)) +
-                            std::log(_likelihoods[3]->function(out11)));
+      _gp_outputs.push_back(std::log(_likelihoods[2]->function(out1)));
     }
     else
     {
       _gp_inputs.push_back(tmp);
-      _gp_outputs.push_back(std::log(_likelihoods[2]->function(out1)) +
-                            std::log(_likelihoods[3]->function(out11)));
+      _gp_outputs.push_back(std::log(_likelihoods[2]->function(out1)));
     }
   }
 }
@@ -88,9 +84,7 @@ AIDESGPryLearner::computeEvidence(std::vector<Real> & evidence,
 
   // TRUE COMPUTATIONS
   std::vector<Real> out1(_num_confg_values);
-  std::vector<Real> out11(_num_confg_values);
   std::vector<Real> out2(_num_confg_values);
-  std::vector<Real> out21(_num_confg_values);
   for (unsigned int i = 0; i < evidence.size(); ++i)
   {
     evidence[i] = 0.0;
@@ -101,9 +95,7 @@ AIDESGPryLearner::computeEvidence(std::vector<Real> & evidence,
     for (unsigned int j = 0; j < _num_confg_values; ++j)
     {
       out1[j] = _outputs_required[j * _props + i];
-      out11[j] = _outputs_required1[j * _props + i];
       out2[j] = _outputs_prev[j * _props + i];
-      out21[j] = _outputs_prev1[j * _props + i];
     }
     if (_var_prior)
     {
@@ -111,10 +103,8 @@ AIDESGPryLearner::computeEvidence(std::vector<Real> & evidence,
                       std::log(_var_prior->pdf(_var_prev[i])));
       _noise = std::sqrt(_new_var_samples[i]);
       evidence[i] += _likelihoods[0]->function(out1);
-      evidence[i] += _likelihoods[1]->function(out11);
       _noise = std::sqrt(_var_prev[i]);
       evidence[i] -= _likelihoods[0]->function(out2);
-      evidence[i] -= _likelihoods[1]->function(out21);
     }
     else
       for (unsigned int j = 0; j < _likelihoods.size(); ++j)
@@ -192,9 +182,7 @@ AIDESGPryLearner::execute()
   }
   _local_comm.sum(data_in.get_values());
   _outputs_required = _output_value;
-  _outputs_required1 = _output_value1;
   _local_comm.allgather(_outputs_required);
-  _local_comm.allgather(_outputs_required1);
 
   // Compute the evidence and transition vectors
   std::vector<Real> evidence(_props);
@@ -230,7 +218,6 @@ AIDESGPryLearner::execute()
   // Store data from previous step
   _data_prev = data_in;
   _outputs_prev = _outputs_required;
-  _outputs_prev1 = _outputs_required1;
   _var_prev = _variance;
 
   // Track the current step

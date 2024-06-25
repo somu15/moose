@@ -44,22 +44,10 @@
     file_name = 'exp_lnx_noise_reduced.csv'
     log_likelihood=true
   []
-  [gaussiany]
-    type = Gaussian
-    noise = 'mcmc_reporter/noise'
-    file_name = 'exp_lny_noise_reduced.csv'
-    log_likelihood=true
-  []
   [linearx]
     type = Linear
     noise = 'mcmc_reporter/noise'
     file_name = 'exp_lnx_noise_reduced.csv'
-    # log_likelihood=false
-  []
-  [lineary]
-    type = Linear
-    noise = 'mcmc_reporter/noise'
-    file_name = 'exp_lny_noise_reduced.csv'
     # log_likelihood=false
   []
 []
@@ -98,13 +86,6 @@
     from_multi_app = sub
     sampler = sample
   []
-  [reporter_transfer_y]
-    type = SamplerReporterTransfer
-    from_reporter = 'log_y/value'
-    stochastic_reporter = 'constant_y'
-    from_multi_app = sub
-    sampler = sample
-  []
 []
 
 [Controls]
@@ -120,17 +101,13 @@
   [constant_x]
     type = StochasticReporter
   []
-  [constant_y]
-    type = StochasticReporter
-  []
   [mcmc_reporter]
     type = AIDESGPryLearner
     output_value = constant_x/reporter_transfer_x:log_x:value
-    output_value1 = constant_y/reporter_transfer_y:log_y:value
     sampler = sample
     al_gp = GP_al_trainer
     gp_evaluator = GP_eval
-    likelihoods = 'gaussianx gaussiany linearx lineary'
+    likelihoods = 'gaussianx linearx'
   []
 []
 

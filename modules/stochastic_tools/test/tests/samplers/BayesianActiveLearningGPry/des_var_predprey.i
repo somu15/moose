@@ -48,12 +48,6 @@
     file_name = 'exp_lnx_noise.csv'
     # log_likelihood=true
   []
-  [gaussiany]
-    type = Gaussian
-    noise = 'mcmc_reporter/noise'
-    file_name = 'exp_lny_noise.csv'
-    # log_likelihood=true
-  []
 []
 
 [Samplers]
@@ -90,13 +84,6 @@
     from_multi_app = sub
     sampler = sample
   []
-  [reporter_transfer_y]
-    type = SamplerReporterTransfer
-    from_reporter = 'log_y/value'
-    stochastic_reporter = 'constant_y'
-    from_multi_app = sub
-    sampler = sample
-  []
 []
 
 [Controls]
@@ -112,13 +99,9 @@
   [constant_x]
     type = StochasticReporter
   []
-  [constant_y]
-    type = StochasticReporter
-  []
   [mcmc_reporter]
     type = AffineInvariantDifferentialDecision
     output_value = constant_x/reporter_transfer_x:log_x:value
-    output_value1 = constant_y/reporter_transfer_y:log_y:value
     sampler = sample
     likelihoods = 'gaussianx gaussiany'
   []

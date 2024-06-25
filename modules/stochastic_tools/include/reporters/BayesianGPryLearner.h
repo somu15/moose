@@ -54,12 +54,6 @@ protected:
   /// Modified value of model output by this reporter class
   std::vector<Real> & _output_comm;
 
-  /// Model output value from SubApp
-  const std::vector<Real> & _output_value1;
-
-  /// Modified value of model output by this reporter class
-  std::vector<Real> & _output_comm1;
-
 private:
   // StochasticTools::GaussianProcessHandler & _gp_handler;
 
@@ -100,6 +94,8 @@ private:
                        const std::vector<std::vector<Real>> & eval_inputs);
 
   void computeGPOutput2(std::vector<Real> & eval_outputs, const DenseMatrix<Real> & eval_inputs);
+
+  void excludeFromTraining();
 
   void computeDistance(const std::vector<Real> & current_input,
                        unsigned int & req_index);

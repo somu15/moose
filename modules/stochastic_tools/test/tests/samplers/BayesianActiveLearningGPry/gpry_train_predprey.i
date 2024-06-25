@@ -49,13 +49,6 @@
     file_name = 'exp_lnx_noise.csv'
     # log_likelihood=true
   []
-  [gaussiany]
-    type = Gaussian
-    noise = 'conditional/noise'
-    # noise = 'noise_specified/noise_specified'
-    file_name = 'exp_lny_noise.csv'
-    # log_likelihood=true
-  []
 []
 
 [Samplers]
@@ -89,13 +82,6 @@
     from_multi_app = sub
     sampler = sample
   []
-  [reporter_transfer_y]
-    type = SamplerReporterTransfer
-    from_reporter = 'log_y/value'
-    stochastic_reporter = 'constant_y'
-    from_multi_app = sub
-    sampler = sample
-  []
 []
 
 [Controls]
@@ -111,18 +97,14 @@
   [constant_x]
     type = StochasticReporter
   []
-  [constant_y]
-    type = StochasticReporter
-  []
   # [noise_specified]
   #   type = ConstantReporter
   #   real_names = 'noise_specified'
-  #   real_values = '0.25'
+  #   real_values = '1.0'
   # []
   [conditional]
     type = BayesianGPryLearner
     output_value = constant_x/reporter_transfer_x:log_x:value
-    output_value1 = constant_y/reporter_transfer_y:log_y:value
     sampler = sample
     al_gp = GP_al_trainer
     gp_evaluator = GP_eval

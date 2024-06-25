@@ -24,12 +24,8 @@ BayesianGPryLearner::validParams()
                              "2023: NN and GP training step.");
   params.addRequiredParam<ReporterName>("output_value",
                                         "Value of the model output from the SubApp.");
-  params.addRequiredParam<ReporterName>("output_value1",
-                                        "Value of the model output1 from the SubApp.");
   params.addParam<ReporterValueName>(
       "output_comm", "output_comm", "Modified value of the model output from this reporter class.");
-  params.addParam<ReporterValueName>(
-      "output_comm1", "output_comm1", "Modified value of the model output from this reporter class.");
   params.addRequiredParam<SamplerName>("sampler", "The sampler object.");
   params.addRequiredParam<UserObjectName>("al_gp", "Active learning GP trainer.");
   params.addRequiredParam<UserObjectName>("gp_evaluator", "Evaluate the trained GP.");
@@ -58,8 +54,6 @@ BayesianGPryLearner::BayesianGPryLearner(const InputParameters & parameters)
     // _gp_handler(declareModelData<StochasticTools::GaussianProcessHandler>("_gp_handler")),
     _output_value(getReporterValue<std::vector<Real>>("output_value", REPORTER_MODE_DISTRIBUTED)),
     _output_comm(declareValue<std::vector<Real>>("output_comm")),
-    _output_value1(getReporterValue<std::vector<Real>>("output_value1", REPORTER_MODE_DISTRIBUTED)),
-    _output_comm1(declareValue<std::vector<Real>>("output_comm1")),
     _sampler(getSampler("sampler")),
     _gpry_sampler(dynamic_cast<const BayesianGPrySampler *>(&_sampler)),
     _sorted_indices(declareValue<std::vector<unsigned int>>(
@@ -147,7 +141,6 @@ BayesianGPryLearner::computeLogPosterior(std::vector<Real> & log_posterior,
                                          const DenseMatrix<Real> & input_matrix)
 {
   std::vector<Real> out1(_num_confg_values);
-  std::vector<Real> out11(_num_confg_values);
   for (unsigned int i = 0; i < _props; ++i)
   {
     log_posterior[i] = 0.0;
@@ -156,7 +149,6 @@ BayesianGPryLearner::computeLogPosterior(std::vector<Real> & log_posterior,
     for (unsigned int j = 0; j < _num_confg_values; ++j)
     {
       out1[j] = _output_comm[j * _props + i];
-      out11[j] = _output_comm1[j * _props + i];
     }
     if (_var_prior)
     {
@@ -164,15 +156,11 @@ BayesianGPryLearner::computeLogPosterior(std::vector<Real> & log_posterior,
       _noise = std::sqrt(_new_var_samples[i]);
       log_posterior[i] +=
           _likelihoods[0]->function(out1); // std::log(_likelihoods[0]->function(out1)); //
-      log_posterior[i] +=
-          _likelihoods[1]->function(out11); // std::log(_likelihoods[1]->function(out11)); //
     }
     else
     {
       log_posterior[i] +=
           _likelihoods[0]->function(out1); // std::log(_likelihoods[0]->function(out1)); //
-      log_posterior[i] +=
-          _likelihoods[1]->function(out11); // std::log(_likelihoods[1]->function(out11)); //
     }
   }
 }
@@ -252,7 +240,6 @@ BayesianGPryLearner::computeGPOutput2(std::vector<Real> & eval_outputs,
       tmp[_priors.size()] = _new_var_samples[i];
     eval_outputs[i] = _gp_eval.evaluate(tmp);
   }
-    
 }
 
 void
@@ -260,6 +247,22 @@ BayesianGPryLearner::fillVector(std::vector<Real> & vector)
 {
   for (unsigned int i = 0; i < _priors.size(); ++i)
     vector[i] = _priors[i]->quantile(_sampler.getRand(_seed));
+}
+
+void
+BayesianGPryLearner::excludeFromTraining()
+{
+  std::vector<Real> tmp_out;
+  tmp_out = _gp_outputs;
+  std::vector<std::vector<Real>> tmp_inp;
+  tmp_inp = _gp_inputs;
+  _gp_outputs.clear();
+  _gp_inputs.clear();
+  for (unsigned int i = 45; i < tmp_out.size(); ++i)
+  {
+    _gp_outputs.push_back(tmp_out[i]);
+    _gp_inputs.push_back(tmp_inp[i]);
+  }
 }
 
 void
@@ -301,8 +304,6 @@ BayesianGPryLearner::execute()
   _local_comm.sum(data_in.get_values());
   _output_comm = _output_value;
   _local_comm.allgather(_output_comm);
-  _output_comm1 = _output_value1;
-  _local_comm.allgather(_output_comm1);
 
   // Compute the log_posterior values
   std::vector<Real> log_posterior(_props);
@@ -365,8 +366,9 @@ BayesianGPryLearner::execute()
       gp_std = _gp_std_try[i];
       // std::cout << gp_mean << " " << gp_std << std::endl;
       acq[i] = -std::exp(2.0 * psi * gp_mean) * (std::exp(gp_std) - 1.0);
-      if (std::isinf(acq[i]))
+      if (std::isinf(acq[i]) || acq[i] != acq[i])
         acq[i] = -1e8;
+      // acq[i] = (_t_step > 4) ? acq[i] : -2.0 * psi * gp_mean - gp_std;
       // acq[i] = -2.0 * psi * gp_mean - gp_std;
     }
     // std::cout << "acq " << Moose::stringify(acq) << std::endl;
@@ -398,15 +400,26 @@ BayesianGPryLearner::execute()
     //   _acquisition_function[i] = -acq[ind[i]];
     // }
 
+    // std::vector<unsigned int> tmp_indices;
+    // tmp_indices.resize(_inputs_all.size());
+    // acqWithCorrelations(acq, tmp_indices, acq_new);
+    // for (unsigned int i = 0; i < _props; ++i)
+    // {
+    //   _sorted_indices[i] = tmp_indices[i];
+    //   _acquisition_function[i] = acq_new[i];
+    // }
+
     std::vector<unsigned int> tmp_indices;
     tmp_indices.resize(_inputs_all.size());
     acqWithCorrelations(acq, tmp_indices, acq_new);
     for (unsigned int i = 0; i < _props; ++i)
     {
-      _sorted_indices[i] = tmp_indices[i];
-      _acquisition_function[i] = acq_new[i];
+      _sorted_indices[i] = _t_step > 3 ? tmp_indices[i] : i;
+      _acquisition_function[i] = _t_step > 3 ? acq_new[i] : 1e8;
     }
-    
+    // if (_t_step == 7)
+    //   excludeFromTraining();
+
     // computeGPOutput(_eval_outputs_current, _eval_inputs);
     // if (_t_step > 1)
     // {
