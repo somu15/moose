@@ -30,6 +30,7 @@ ExponentialCovariance::ExponentialCovariance(const InputParameters & parameters)
   _tunable_hp.insert("noise_variance");
   _tunable_hp.insert("signal_variance");
   _tunable_hp.insert("length_factor");
+  _gamma_initial = _gamma;
 }
 
 void
@@ -38,6 +39,14 @@ ExponentialCovariance::buildAdditionalHyperParamMap(
     std::unordered_map<std::string, std::vector<Real>> & /*vec_map*/) const
 {
   map["gamma"] = _gamma;
+}
+
+void
+ExponentialCovariance::buildAdditionalHyperParamMapInitial(
+    std::unordered_map<std::string, Real> & map,
+    std::unordered_map<std::string, std::vector<Real>> & /*vec_map*/) const
+{
+  map["gamma"] = _gamma_initial;
 }
 
 void

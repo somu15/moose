@@ -59,7 +59,7 @@ CovarianceFunctionBase::buildHyperParamMapInitial(
 
   vec_map["length_factor"] = _length_factor_initial;
 
-  buildAdditionalHyperParamMap(map, vec_map);
+  buildAdditionalHyperParamMapInitial(map, vec_map);
 }
 
 void

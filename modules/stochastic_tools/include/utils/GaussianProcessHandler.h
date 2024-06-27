@@ -49,25 +49,32 @@ public:
     /// Default constructor
     GPOptimizerOptions();
     /// Construct using user-input
-    GPOptimizerOptions(const MooseEnum & inp_opt_type,
-                       const std::string & inp_tao_options,
-                       const bool inp_show_optimization_details,
-                       const unsigned int inp_iter_adam_ = 1000,
-                       const unsigned int inp_batch_size = 0,
-                       const Real inp_learning_rate_adam = 1e-3);
+    GPOptimizerOptions(
+        const MooseEnum & inp_opt_type,
+        const std::string & inp_tao_options,
+        const bool inp_show_optimization_details,
+        const unsigned int show_loss_every = std::numeric_limits<unsigned int>::max(),
+        const unsigned int inp_iter_adam_ = 1000,
+        const unsigned int inp_batch_size = 0,
+        const Real inp_learning_rate_adam = 1e-3,
+        const bool inp_initialize = false);
 
     /// The optimizer type
-    MooseEnum opt_type = MooseEnum("adam tao none", "adam");
+    MooseEnum opt_type = MooseEnum("adam adamW tao none", "adam");
     /// String defining the options for TAO optimizers
     std::string tao_options = "";
     /// Switch to enable verbose output for parameter tuning
     bool show_optimization_details = false;
+    /// Show loss value every nth iteration
+    unsigned int show_loss_every = std::numeric_limits<unsigned int>::max();
     /// The number of iterations for Adam optimizer
     unsigned int iter_adam = 1000;
     /// The batch isize for Adam optimizer
     unsigned int batch_size = 0;
     /// The learning rate for Adam optimizer
     Real learning_rate_adam = 1e-3;
+    /// Initialize the hyper-params from the last iteration of active learning
+    bool initialize = false;
   };
   /**
    * Sets up the covariance matrix given data and optimization options.
@@ -153,15 +160,17 @@ public:
                            unsigned int iter,
                            const unsigned int & batch_size,
                            const Real & learning_rate,
-                           const bool & verbose);
+                           const bool & verbose,
+                           const unsigned int & show_loss_every,
+                           const bool & adamW,
+                           const bool & initialize);
 
   // Computes the loss function for Adam usage
   Real getLossAdam(RealEigenMatrix & inputs,
-                   RealEigenMatrix & outputs,
-                   libMesh::PetscVector<Number> & theta);
+                   RealEigenMatrix & outputs);
 
   // Computes Gradient of the loss function for Adam usage
-  std::vector<Real> getGradientAdam(RealEigenMatrix & inputs, libMesh::PetscVector<Number> & theta);
+  std::vector<Real> getGradientAdam(RealEigenMatrix & inputs);
 
   /// Function used to convert the hyperparameter maps in this object to
   /// Petsc vectors

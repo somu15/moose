@@ -73,9 +73,9 @@ Real
 AIDESGPryTestTransform::correctGP(const Real & GPoutput, const Real & trueVariance)
 {
   Real correctGP = GPoutput;
-  correctGP -= 32.0 * std::log(1.0 / (std::sqrt(2.0 * 1.0 * M_PI)));
+  correctGP -= 36.0 * std::log(1.0 / (std::sqrt(2.0 * 1.0 * M_PI)));
   correctGP = correctGP * 1.0 / trueVariance;
-  correctGP += 32.0 * std::log(1.0 / (std::sqrt(2.0 * trueVariance * M_PI)));
+  correctGP += 36.0 * std::log(1.0 / (std::sqrt(2.0 * trueVariance * M_PI)));
   return correctGP;
 }
 

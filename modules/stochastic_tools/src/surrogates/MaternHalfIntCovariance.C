@@ -31,6 +31,7 @@ MaternHalfIntCovariance::MaternHalfIntCovariance(const InputParameters & paramet
   _tunable_hp.insert("noise_variance");
   _tunable_hp.insert("signal_variance");
   _tunable_hp.insert("length_factor");
+  _p_inital = _p;
 }
 
 void
@@ -39,6 +40,14 @@ MaternHalfIntCovariance::buildAdditionalHyperParamMap(
     std::unordered_map<std::string, std::vector<Real>> & /*vec_map*/) const
 {
   map["p"] = _p;
+}
+
+void
+MaternHalfIntCovariance::buildAdditionalHyperParamMapInitial(
+    std::unordered_map<std::string, Real> & map,
+    std::unordered_map<std::string, std::vector<Real>> & /*vec_map*/) const
+{
+  map["p"] = _p_inital;
 }
 
 void

@@ -34,7 +34,7 @@ GaussianProcessTrainer::validParams()
   params.addParam<bool>(
       "standardize_data", true, "Standardize (center and scale) training data (y values)");
   // Already preparing to use Adam here
-  MooseEnum tuning_type("tao adam none", "none");
+  MooseEnum tuning_type("tao adam adamW none", "none");
   params.addParam<MooseEnum>(
       "tuning_algorithm", tuning_type, "Hyper parameter optimizaton algorithm");
   params.addParam<unsigned int>("iter_adam", 1000, "Tolerance value for Adam optimization");
@@ -44,6 +44,9 @@ GaussianProcessTrainer::validParams()
       "tao_options", "", "Command line options for PETSc/TAO hyperparameter optimization");
   params.addParam<bool>(
       "show_optimization_details", false, "Switch to show TAO or Adam solver results");
+  params.addParam<unsigned int>("show_loss_every",
+                                std::numeric_limits<unsigned int>::max(),
+                                "Show loss value every nth iteration for Adam or AdamW");
   params.addParam<std::vector<std::string>>("tune_parameters",
                                             "Select hyperparameters to be tuned");
   params.addParam<std::vector<Real>>("tuning_min", "Minimum allowable tuning value");
@@ -66,9 +69,12 @@ GaussianProcessTrainer::GaussianProcessTrainer(const InputParameters & parameter
         getParam<MooseEnum>("tuning_algorithm"),
         getParam<std::string>("tao_options"),
         getParam<bool>("show_optimization_details"),
+        getParam<bool>("show_optimization_details") ? getParam<unsigned int>("show_loss_every")
+                                                    : std::numeric_limits<unsigned int>::max(),
         getParam<unsigned int>("iter_adam"),
         getParam<unsigned int>("batch_size"),
-        getParam<Real>("learning_rate_adam"))),
+        getParam<Real>("learning_rate_adam"),
+        false)),
     _sampler_row(getSamplerData()),
     _pvals(getParam<std::vector<ReporterName>>("predictors").size()),
     _pcols(getParam<std::vector<unsigned int>>("predictor_cols")),
@@ -94,7 +100,7 @@ GaussianProcessTrainer::GaussianProcessTrainer(const InputParameters & parameter
   if (parameters.isParamSetByUser("batch_size") && _optimization_opts.opt_type == "tao")
     paramError("batch_size",
                "Mini-batch sampling is not compatible with the TAO optimization library. Please "
-               "use Adam optimization.");
+               "use Adam/AdamW optimization.");
 
   if (parameters.isParamSetByUser("batch_size"))
     if (_sampler.getNumberOfRows() < _optimization_opts.batch_size)

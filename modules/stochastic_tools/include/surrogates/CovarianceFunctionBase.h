@@ -41,6 +41,11 @@ public:
       std::unordered_map<std::string, Real> & /*map*/,
       std::unordered_map<std::string, std::vector<Real>> & /*vec_map*/) const {};
 
+  /// Used for outputting additional Hyper-parameter settings in derived at the initial iteration of active learning
+  virtual void buildAdditionalHyperParamMapInitial(
+      std::unordered_map<std::string, Real> & /*map*/,
+      std::unordered_map<std::string, std::vector<Real>> & /*vec_map*/) const {};
+
   /// Used for outputting Hyper-parameter settings for use in surrogate
   virtual void loadHyperParamMap(std::unordered_map<std::string, Real> & map,
                                  std::unordered_map<std::string, std::vector<Real>> & vec_map);

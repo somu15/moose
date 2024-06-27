@@ -46,6 +46,7 @@ public:
   const StochasticTools::GaussianProcessHandler & getGPHandler() const { return _gp_handler; }
 
 private:
+
   /// Name for the meta data associated with training
   const std::string _model_meta_data_name;
 
@@ -61,6 +62,20 @@ private:
   /// Switch for training data(y) standardization
   bool _standardize_data;
 
+  /// Dynamically change the Adam optimization settings based on the training data size
+  const std::vector<unsigned int> & _learning_scheduler_size;
+  /// Dynamically change the Adam optimization initialization
+  const std::vector<bool> & _learning_scheduler_initialize;
+  /// Dynamically change the Adam optimization iterations
+  const std::vector<unsigned int> & _learning_scheduler_iterations;
+  /// Dynamically change the Adam optimization batch size
+  const std::vector<unsigned int> & _learning_scheduler_batch_size;
+  /// Dynamically change the Adam optimization learning rate
+  const std::vector<Real> & _learning_scheduler_learning_rate;
+
   /// Struct holding parameters necessary for parameter tuning
-  const StochasticTools::GaussianProcessHandler::GPOptimizerOptions _optimization_opts;
+  // StochasticTools::GaussianProcessHandler::GPOptimizerOptions & _optimization_opts;
+
+  // Keep track of the scheduler tuning options for Adam
+  unsigned int _scheduler_count;
 };

@@ -37,6 +37,11 @@ public:
       std::unordered_map<std::string, Real> & map,
       std::unordered_map<std::string, std::vector<Real>> & vec_map) const override;
 
+  /// Used for outputting Hyper-parameter settings to initial
+  void buildAdditionalHyperParamMapInitial(
+      std::unordered_map<std::string, Real> & map,
+      std::unordered_map<std::string, std::vector<Real>> & vec_map) const override;
+
   /// Used for setting Hyper-parameter settings
   void loadAdditionalHyperParamMap(
       std::unordered_map<std::string, Real> & map,
@@ -59,4 +64,6 @@ public:
 private:
   /// non-negative p factor for use in Matern half-int. \nu = p+(1/2) in terms of general Matern
   unsigned int _p;
+  /// non-negative p value provided by the user (for active learning)
+  unsigned int _p_inital;
 };

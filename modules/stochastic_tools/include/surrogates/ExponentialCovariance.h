@@ -37,6 +37,11 @@ public:
       std::unordered_map<std::string, Real> & map,
       std::unordered_map<std::string, std::vector<Real>> & vec_map) const override;
 
+  /// Used for outputting Hyper-parameter settings to initial
+  void buildAdditionalHyperParamMapInitial(
+      std::unordered_map<std::string, Real> & map,
+      std::unordered_map<std::string, std::vector<Real>> & vec_map) const override;
+
   /// Used for setting Hyper-parameter settings
   void loadAdditionalHyperParamMap(
       std::unordered_map<std::string, Real> & map,
@@ -59,4 +64,6 @@ public:
 private:
   /// gamma exponential factor for use in kernel
   Real _gamma;
+  /// gamma exponential value provided by the user (for active learning)
+  Real _gamma_initial;
 };
