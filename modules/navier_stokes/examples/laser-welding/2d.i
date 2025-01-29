@@ -1,8 +1,9 @@
-endtime=5e-4 # s
+endtime= 5e-4 # s
 timestep=${fparse endtime/100} # s
 surfacetemp=300 # K
 power=190 # W
 R=1.8257418583505537e-4 # m
+scanning_speed = 1.25 # m/s
 
 [Mesh]
   type = GeneratedMesh
@@ -196,7 +197,7 @@ R=1.8257418583505537e-4 # m
     boundary = 'top'
     P0 = ${power}
     R = ${R}
-    x_beam_coord = '-0.35e-3 +0.7e-3*t/${endtime}'
+    x_beam_coord = '${scanning_speed}*t' # '-0.35e-3 +0.7e-3*t/${endtime}'
     y_beam_coord = '0'
     use_displaced_mesh = true
   []
@@ -307,14 +308,16 @@ R=1.8257418583505537e-4 # m
     output_material_properties = true
     show_material_properties = 'mu'
   []
-  checkpoint = true
+  # [out1]
+  #   type = CSV
+  # []
+  checkpoint = false
   perf_graph = true
 []
 
 [Debug]
   show_var_residual_norms = true
 []
-
 
 [Adaptivity]
   marker = combo
