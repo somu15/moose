@@ -29,9 +29,10 @@ class GenericActiveLearner : public GeneralReporter,
 
 {
 public:
+
   static InputParameters validParams();
   GenericActiveLearner(const InputParameters & parameters);
-  virtual void initialize() override {}
+  virtual void initialize() override;
   virtual void finalize() override {}
   virtual void execute() override;
 
@@ -79,16 +80,6 @@ protected:
    */
   virtual void getAcquisition(std::vector<Real> & acq_new, std::vector<unsigned int> & indices);
 
-  /**
-   * Convert vector to Eigen matrix
-   */
-  virtual void convertToEigen(const std::vector<Real> & vec, RealEigenMatrix & mat);
-
-  /**
-   * Convert Eigen matrix to vector
-   */
-  virtual void convertToVector(const RealEigenMatrix & mat, std::vector<Real> & vec);
-
   /// Model output value from SubApp
   const std::vector<Real> & _output_value;
 
@@ -105,7 +96,7 @@ protected:
   std::vector<unsigned int> & _sorted_indices;
 
   /// Storage for all the proposed samples to test the GP model
-  const std::vector<std::vector<Real>> & _inputs_test;
+  std::vector<std::vector<Real>> _inputs_test;
 
   /// The active learning GP trainer that permits re-training
   const ActiveLearningGaussianProcess & _al_gp;

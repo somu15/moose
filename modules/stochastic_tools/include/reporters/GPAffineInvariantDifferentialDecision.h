@@ -26,8 +26,7 @@ public:
   static InputParameters validParams();
 
   GPAffineInvariantDifferentialDecision(const InputParameters & parameters);
-
-  virtual void execute() override;
+  virtual void initialize() override;
 
 protected:
   virtual void computeEvidence(std::vector<Real> & evidence,

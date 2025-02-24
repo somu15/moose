@@ -47,6 +47,12 @@ GPAffineInvariantDifferentialDecision::GPAffineInvariantDifferentialDecision(
   _estimated_loglikelihood.resize(_props);
 }
 
+void
+GPAffineInvariantDifferentialDecision::initialize()
+{
+  _using_GP = true;
+}
+
 Real
 GPAffineInvariantDifferentialDecision::correctGP(const Real & GPoutput, const Real & trueVariance)
 {
@@ -108,7 +114,8 @@ GPAffineInvariantDifferentialDecision::nextSamples(std::vector<Real> & req_input
   {
     for (unsigned int k = 0; k < _sampler.getNumberOfCols(); ++k)
       req_inputs[k] = input_matrix(parallel_index, k);
-    _variance[parallel_index] = _new_var_samples[parallel_index];
+    if (_var_prior)
+      _variance[parallel_index] = _new_var_samples[parallel_index];
   }
   else
   {
@@ -120,52 +127,4 @@ GPAffineInvariantDifferentialDecision::nextSamples(std::vector<Real> & req_input
     if (_var_prior)
       _variance[parallel_index] = _var_prev[parallel_index];
   }
-}
-
-void
-GPAffineInvariantDifferentialDecision::execute()
-{
-  if (_sampler.getNumberOfLocalRows() == 0 || _check_step == _t_step)
-  {
-    _check_step = _t_step;
-    return;
-  }
-
-  // Gather inputs from the sampler
-  DenseMatrix<Real> data_in(_sampler.getNumberOfRows(), _sampler.getNumberOfCols());
-  for (dof_id_type ss = _sampler.getLocalRowBegin(); ss < _sampler.getLocalRowEnd(); ++ss)
-  {
-    const auto data = _sampler.getNextLocalRow();
-    for (unsigned int j = 0; j < _sampler.getNumberOfCols(); ++j)
-      data_in(ss, j) = data[j];
-  }
-  _local_comm.sum(data_in.get_values());
-
-  // Compute the evidence and transition vectors
-  std::vector<Real> evidence(_props);
-  if (_t_step > _pmcmc->decisionStep())
-  {
-    computeEvidence(evidence, data_in);
-    computeTransitionVector(_tpm, evidence);
-  }
-  else
-    _tpm.assign(_props, 1.0);
-
-  // Accept/reject the proposed samples
-  std::vector<Real> req_inputs(_sampler.getNumberOfCols());
-  for (unsigned int i = 0; i < _props; ++i)
-  {
-    nextSamples(req_inputs, data_in, _tpm, i);
-    _inputs[i] = req_inputs;
-  }
-
-  // Compute the next seeds to facilitate proposals (not always required)
-  nextSeeds();
-
-  // Store data from previous step
-  _data_prev = data_in;
-  _var_prev = _variance;
-
-  // Track the current step
-  _check_step = _t_step;
 }

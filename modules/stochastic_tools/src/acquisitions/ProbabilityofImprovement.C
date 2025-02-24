@@ -34,6 +34,7 @@ ProbabilityofImprovement::computeAcquisition(std::vector<Real> & acq,
                                            const std::vector<std::vector<Real>> & /*train_inputs*/,
                                            const std::vector<Real> & generic) const
 {
+  auto maxIt = std::max_element(generic.begin(), generic.end());
   for (unsigned int i = 0; i < gp_mean.size(); ++i)
-    acq[i] = Normal::cdf(gp_mean[i] - generic[0], 0.0, gp_std[i]);
+    acq[i] = Normal::cdf(gp_mean[i] - *maxIt, 0.0, gp_std[i]);
 }

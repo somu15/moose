@@ -36,10 +36,12 @@ ExpectedImprovement::computeAcquisition(std::vector<Real> & acq,
                                          const std::vector<std::vector<Real>> & /*train_inputs*/,
                                          const std::vector<Real> & generic) const
 {
+  auto maxIt = std::max_element(generic.begin(), generic.end());
   Real z;
   for (unsigned int i = 0; i < gp_mean.size(); ++i)
   {
-    z = gp_mean[i] - generic[0] - _tuning;
-    acq[i] = z * Normal::cdf(z, 0.0, gp_std[i]) + gp_std[i] * Normal::pdf(z, 0.0, gp_std[i]);
+    z = gp_mean[i] - *maxIt - _tuning;
+    acq[i] = (gp_mean[i] - *maxIt) * Normal::cdf(z, 0.0, gp_std[i]) +
+             gp_std[i] * Normal::pdf(z, 0.0, gp_std[i]);
   }
 }
