@@ -1,0 +1,2968 @@
+{
+    "number_of_parts": 5,
+    "part": 4,
+    "reporters": {
+        "constant": {
+            "type": "StochasticReporter",
+            "values": {
+                "reporter_transfer:converged": {
+                    "row_begin": 36,
+                    "row_end": 45,
+                    "type": "std::vector<bool>"
+                },
+                "reporter_transfer:log_resultant_velocity:value": {
+                    "row_begin": 36,
+                    "row_end": 45,
+                    "type": "std::vector<double>"
+                }
+            }
+        },
+        "mcmc_reporter": {
+            "type": "AffineInvariantDifferentialDecision",
+            "values": {
+                "inputs": {
+                    "type": "std::vector<std::vector<double>>"
+                },
+                "noise": {
+                    "type": "double"
+                },
+                "outputs_required": {
+                    "type": "std::vector<double>"
+                },
+                "tpm": {
+                    "type": "std::vector<double>"
+                },
+                "variance": {
+                    "type": "std::vector<double>"
+                }
+            }
+        },
+        "noise_specified": {
+            "type": "ConstantReporter",
+            "values": {
+                "noise_specified": {
+                    "type": "double"
+                }
+            }
+        }
+    },
+    "time_steps": [
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0
+                ]
+            },
+            "mcmc_reporter": {
+                "inputs": [
+                    [
+                        0.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        0.0
+                    ]
+                ],
+                "noise": 0.0,
+                "outputs_required": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "tpm": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "variance": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0
+                ]
+            },
+            "noise_specified": {
+                "noise_specified": 0.05
+            },
+            "time": 0.0,
+            "time_step": 0
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.497381982574729,
+                    -2.497381982574729,
+                    -2.497381982574729,
+                    -2.497381982574729,
+                    -2.8466339742185585,
+                    -2.8466339742185585,
+                    -2.8466339742185585,
+                    -2.8466339742185585,
+                    -2.8466339742185585
+                ]
+            },
+            "time": 1.0,
+            "time_step": 1
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.2271583026322253,
+                    -2.5579533275151847,
+                    -1.7969215119661504,
+                    -1.786557141408286,
+                    -2.7542319565766085,
+                    -2.57641029427602,
+                    -2.9072053191590386,
+                    -2.1461735036099587,
+                    -2.135809133052283
+                ]
+            },
+            "time": 2.0,
+            "time_step": 2
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -1.5370186599599984,
+                    -5.048596443577258,
+                    -2.6056018349140153,
+                    -2.02955395968961,
+                    -4.199330463890923,
+                    -1.8862706516038168,
+                    -5.39784843522109,
+                    -2.954853826557948,
+                    -2.3788059513333826
+                ]
+            },
+            "time": 3.0,
+            "time_step": 3
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -1.7601893890804725,
+                    -2.068271066418805,
+                    -1.4697342142187617,
+                    -1.4417012800542839,
+                    -3.9954756043543247,
+                    -2.109441380724261,
+                    -2.4175230580625993,
+                    -1.8189862058629613,
+                    -1.7909532716976393
+                ]
+            },
+            "time": 4.0,
+            "time_step": 4
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -4.020704559245232,
+                    -3.0072591963391035,
+                    -1.9821530707657813,
+                    -2.15281017875468,
+                    -1.9819678487100691,
+                    -4.36995655088956,
+                    -3.3565111879829224,
+                    -2.3314050624158966,
+                    -2.5020621703986405
+                ]
+            },
+            "time": 5.0,
+            "time_step": 5
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.9699959938672618,
+                    -3.173978781178032,
+                    -2.209676421441394,
+                    -2.592093626116948,
+                    -3.126149160502596,
+                    -3.319247985511093,
+                    -3.523230772821802,
+                    -2.558928413085263,
+                    -2.9413456177613764
+                ]
+            },
+            "time": 6.0,
+            "time_step": 6
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.8320242785080696,
+                    -3.5570741918770463,
+                    -3.0887590346534664,
+                    -2.3752731731153194,
+                    -2.3997398015170988,
+                    -3.181276270151828,
+                    -3.9063261835208962,
+                    -3.4380110262972012,
+                    -2.7245251647590045
+                ]
+            },
+            "time": 7.0,
+            "time_step": 7
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.8320243833746854,
+                    -2.9624856794357433,
+                    -1.9249856171024144,
+                    -1.9198349688773872,
+                    -3.090429683443583,
+                    -3.1812763750185393,
+                    -3.31173767108716,
+                    -2.274237608746217,
+                    -2.269086960521078
+                ]
+            },
+            "time": 8.0,
+            "time_step": 8
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.6674419118480905,
+                    -2.913319254616584,
+                    -2.609188957590366,
+                    -1.86715960413329,
+                    -3.9954821267801734,
+                    -3.016693903491907,
+                    -3.262571246260352,
+                    -2.958440949234181,
+                    -2.2164115957770725
+                ]
+            },
+            "time": 9.0,
+            "time_step": 9
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.500288688864878,
+                    -2.872485409546287,
+                    -1.7491931932429312,
+                    -1.7731404341993267,
+                    -2.7294731708368,
+                    -2.8495406805087193,
+                    -3.2217374011900763,
+                    -2.0984451848868155,
+                    -2.122392425842413
+                ]
+            },
+            "time": 10.0,
+            "time_step": 10
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.832027212622441,
+                    -2.962490039616931,
+                    -2.504701528728011,
+                    -2.1528111830794483,
+                    -2.729467974311336,
+                    -3.1812792042663816,
+                    -3.3117420312616495,
+                    -2.853953520371784,
+                    -2.502063174723472
+                ]
+            },
+            "time": 11.0,
+            "time_step": 11
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -1.9225119610644423,
+                    -2.913318705432995,
+                    -2.504697907165675,
+                    -2.152810652541934,
+                    -2.417483319480347,
+                    -2.2717639527083517,
+                    -3.2625706970768524,
+                    -2.853949898809445,
+                    -2.502062644178019
+                ]
+            },
+            "time": 12.0,
+            "time_step": 12
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -1.922511894621637,
+                    -2.913324580542025,
+                    -3.088763857265087,
+                    -2.3752717069155227,
+                    -2.417481128889853,
+                    -2.271763886265506,
+                    -3.262576572185881,
+                    -3.438015848908952,
+                    -2.724523698559365
+                ]
+            },
+            "time": 13.0,
+            "time_step": 13
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -1.8529413520984523,
+                    -2.8724887613585808,
+                    -2.421018044935907,
+                    -1.88191013661076,
+                    -2.48375671423993,
+                    -2.2021933437356913,
+                    -3.2217407530024103,
+                    -2.7702700365797437,
+                    -2.2311621282584806
+                ]
+            },
+            "time": 14.0,
+            "time_step": 14
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.092220002678218,
+                    -2.7332849085719646,
+                    -2.7946453174056667,
+                    -2.0124784789380192,
+                    -2.503070979269771,
+                    -2.44147199432195,
+                    -3.082536900215784,
+                    -3.143897309049492,
+                    -2.3617304705819353
+                ]
+            },
+            "time": 15.0,
+            "time_step": 15
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -1.9733447172970386,
+                    -2.3747121324475335,
+                    -2.794646224642963,
+                    -2.0769374932657176,
+                    -2.1038114378967676,
+                    -2.3225967089409636,
+                    -2.7239641240913945,
+                    -3.1438982162868294,
+                    -2.426189484909544
+                ]
+            },
+            "time": 16.0,
+            "time_step": 16
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.2271575425905636,
+                    -2.639700539784487,
+                    -2.89940853103462,
+                    -1.9843152018264179,
+                    -2.3548602450721385,
+                    -2.5764095342343603,
+                    -2.9889525314288807,
+                    -3.2486605226783634,
+                    -2.333567193470195
+                ]
+            },
+            "time": 17.0,
+            "time_step": 17
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.3264690659033387,
+                    -2.48238699895241,
+                    -1.8053531030647765,
+                    -2.375272162911559,
+                    -2.406533724813869,
+                    -2.675721057547206,
+                    -2.8316389905950574,
+                    -2.154605094708555,
+                    -2.7245241545553722
+                ]
+            },
+            "time": 18.0,
+            "time_step": 18
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -1.6734928946980834,
+                    -2.7938042426933754,
+                    -2.126667536326171,
+                    -1.9843154488223929,
+                    -2.202623441125252,
+                    -2.0227448863418567,
+                    -3.1430562343373043,
+                    -2.4759195279699853,
+                    -2.3335674404662745
+                ]
+            },
+            "time": 19.0,
+            "time_step": 19
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -1.7537698344153299,
+                    -2.543757379639422,
+                    -2.003872679273535,
+                    -2.021159109566838,
+                    -2.5267000838382354,
+                    -2.1030218260592,
+                    -2.893009371286313,
+                    -2.353124670917339,
+                    -2.3704111012106166
+                ]
+            },
+            "time": 20.0,
+            "time_step": 20
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.2169348109877434,
+                    -2.3747139496682146,
+                    -2.0038715754281964,
+                    -2.0681365828654217,
+                    -2.1114596102756034,
+                    -2.5661868026316115,
+                    -2.7239659413120525,
+                    -2.3531235670720005,
+                    -2.417388574509168
+                ]
+            },
+            "time": 21.0,
+            "time_step": 21
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.5752984060500084,
+                    -2.4296428434065884,
+                    -1.7568002785526626,
+                    -2.0769350095742705,
+                    -2.1114592336502938,
+                    -2.924550397693824,
+                    -2.77889483505046,
+                    -2.1060522701965394,
+                    -2.426187001216742
+                ]
+            },
+            "time": 22.0,
+            "time_step": 22
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -1.8363864594003978,
+                    -2.6091414181861166,
+                    -2.1790104690351497,
+                    -2.021159773301341,
+                    -2.4065339948671647,
+                    -2.1856384510441766,
+                    -2.958393409829978,
+                    -2.5282624606789583,
+                    -2.3704117649452034
+                ]
+            },
+            "time": 23.0,
+            "time_step": 23
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1012346993128594,
+                    -2.5437586665492313,
+                    -2.2666801463616895,
+                    -2.36120082481828,
+                    -2.859894326626478,
+                    -2.450486690956592,
+                    -2.893010658193069,
+                    -2.61593213800544,
+                    -2.710452816461811
+                ]
+            },
+            "time": 24.0,
+            "time_step": 24
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.436879042796762,
+                    -2.266769631053414,
+                    -2.6930217774029033,
+                    -2.076935941057024,
+                    -2.3683603923082543,
+                    -2.7861310344406234,
+                    -2.616021622697113,
+                    -3.0422737690467807,
+                    -2.4261879327008278
+                ]
+            },
+            "time": 25.0,
+            "time_step": 25
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -1.981346321986032,
+                    -2.3159365396962284,
+                    -2.209675164534966,
+                    -2.17197398508576,
+                    -2.442581353049,
+                    -2.330598313629993,
+                    -2.6651885313400276,
+                    -2.5589271561789144,
+                    -2.52122597672937
+                ]
+            },
+            "time": 26.0,
+            "time_step": 26
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -1.9521950838579356,
+                    -2.1790951068687257,
+                    -2.4509189525945687,
+                    -2.038019439981301,
+                    -2.338104629880394,
+                    -2.301447075501769,
+                    -2.528347098512536,
+                    -2.8001709442383875,
+                    -2.387271431625093
+                ]
+            },
+            "time": 27.0,
+            "time_step": 27
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -1.9392440857478708,
+                    -2.1889342356210015,
+                    -2.314310986414711,
+                    -2.0465570264951696,
+                    -2.592785216860232,
+                    -2.28849607739168,
+                    -2.538186227264768,
+                    -2.6635629780585326,
+                    -2.395809018139049
+                ]
+            },
+            "time": 28.0,
+            "time_step": 28
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.2150083224733863,
+                    -2.1092961367374414,
+                    -2.2540452191903535,
+                    -1.9483675183987978,
+                    -2.6016146401612295,
+                    -2.564260314117227,
+                    -2.45854812838125,
+                    -2.6032972108341244,
+                    -2.2976195100426904
+                ]
+            },
+            "time": 29.0,
+            "time_step": 29
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.0093254306040995,
+                    -2.2343345048456187,
+                    -2.147743848290132,
+                    -2.046556702168567,
+                    -2.5267017738303124,
+                    -2.3585774222479574,
+                    -2.583586496489445,
+                    -2.496995839933962,
+                    -2.3958086938120076
+                ]
+            },
+            "time": 30.0,
+            "time_step": 30
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -1.9828726702567727,
+                    -2.069125568198718,
+                    -2.254044323518129,
+                    -2.0659932481440517,
+                    -2.4425813766435174,
+                    -2.332124661900215,
+                    -2.4183775598424626,
+                    -2.6032963151618973,
+                    -2.4152452397877697
+                ]
+            },
+            "time": 31.0,
+            "time_step": 31
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.0227714292396652,
+                    -2.038692639516529,
+                    -2.181740324415652,
+                    -2.094771422954133,
+                    -2.539275423240014,
+                    -2.372023420883403,
+                    -2.3879446311604315,
+                    -2.530992316059459,
+                    -2.4440234145981803
+                ]
+            },
+            "time": 32.0,
+            "time_step": 32
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.145377943632572,
+                    -2.060392722143353,
+                    -2.159946681806465,
+                    -2.085815583348894,
+                    -2.442579952116819,
+                    -2.4946299352763828,
+                    -2.409644713787297,
+                    -2.5091986734502707,
+                    -2.435067574992798
+                ]
+            },
+            "time": 33.0,
+            "time_step": 33
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1151279237958245,
+                    -2.041220751507331,
+                    -2.113983146673973,
+                    -2.106034970152395,
+                    -2.4140052193175827,
+                    -2.4643799154396815,
+                    -2.3904727431511406,
+                    -2.463235138317894,
+                    -2.455286961796119
+                ]
+            },
+            "time": 34.0,
+            "time_step": 34
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.085765572626805,
+                    -2.133648722711781,
+                    -2.091430364843744,
+                    -2.115178180138863,
+                    -2.5190753218477036,
+                    -2.4350175642704572,
+                    -2.482900714355494,
+                    -2.4406823564875824,
+                    -2.4644301717827006
+                ]
+            },
+            "time": 35.0,
+            "time_step": 35
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.093584649610399,
+                    -2.1350969047151556,
+                    -2.0924057940355603,
+                    -2.1141802235277694,
+                    -2.4823072600241227,
+                    -2.442836641254263,
+                    -2.484348896358403,
+                    -2.4416577856793222,
+                    -2.4634322151729795
+                ]
+            },
+            "time": 36.0,
+            "time_step": 36
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.14033424210824,
+                    -2.133947217251895,
+                    -2.137763846014513,
+                    -2.1379662550240957,
+                    -2.4572837286507117,
+                    -2.4895862337515724,
+                    -2.4831992088957486,
+                    -2.487015837657841,
+                    -2.487218246667938
+                ]
+            },
+            "time": 37.0,
+            "time_step": 37
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1357809260452094,
+                    -2.1309092246350594,
+                    -2.1329852492254435,
+                    -2.1323644521750884,
+                    -2.4820675235926726,
+                    -2.48503291768909,
+                    -2.48016121627758,
+                    -2.482237240869243,
+                    -2.4816164438189436
+                ]
+            },
+            "time": 38.0,
+            "time_step": 38
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1335049649319355,
+                    -2.1314454113307213,
+                    -2.135258733357332,
+                    -2.1325668146888535,
+                    -2.4780145390706703,
+                    -2.4827569565756686,
+                    -2.4806974029745694,
+                    -2.484510725001207,
+                    -2.4818188063327162
+                ]
+            },
+            "time": 39.0,
+            "time_step": 39
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.136712621167964,
+                    -2.126430080166161,
+                    -2.137533028019866,
+                    -2.127546169959364,
+                    -2.47851234745903,
+                    -2.485964612811691,
+                    -2.4756820718098718,
+                    -2.486785019663634,
+                    -2.47679816160313
+                ]
+            },
+            "time": 40.0,
+            "time_step": 40
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.136116741610329,
+                    -2.1196422770687775,
+                    -2.144699066171707,
+                    -2.1347661116895864,
+                    -2.4856212764128305,
+                    -2.4853687332540884,
+                    -2.468894268712659,
+                    -2.493951057815556,
+                    -2.484018103333382
+                ]
+            },
+            "time": 41.0,
+            "time_step": 41
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1393796889738694,
+                    -2.134847884199979,
+                    -2.1494204539214246,
+                    -2.117807956356075,
+                    -2.4724244428078133,
+                    -2.488631680617702,
+                    -2.4840998758437363,
+                    -2.498672445565249,
+                    -2.467059947999923
+                ]
+            },
+            "time": 42.0,
+            "time_step": 42
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1240212821893465,
+                    -2.1230809078587347,
+                    -2.135214109074901,
+                    -2.144784052784327,
+                    -2.4943926902843914,
+                    -2.473273273833166,
+                    -2.4723328995025287,
+                    -2.48446610071871,
+                    -2.4940360444281784
+                ]
+            },
+            "time": 43.0,
+            "time_step": 43
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.109759121390235,
+                    -2.1335416228104775,
+                    -2.150092676875017,
+                    -2.11299691757979,
+                    -2.4898686868698046,
+                    -2.45901111303396,
+                    -2.482793614454746,
+                    -2.4993446685188405,
+                    -2.4622489092236677
+                ]
+            },
+            "time": 44.0,
+            "time_step": 44
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1160282933010377,
+                    -2.0971812058408648,
+                    -2.1069295301775397,
+                    -2.121250979180634,
+                    -2.4918732819671434,
+                    -2.465280284944798,
+                    -2.446433197484741,
+                    -2.456181521821236,
+                    -2.470502970824353
+                ]
+            },
+            "time": 45.0,
+            "time_step": 45
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1246804597834763,
+                    -2.124813548440907,
+                    -2.114373227627913,
+                    -2.1319323178856537,
+                    -2.5068341220366337,
+                    -2.4739324514272876,
+                    -2.474065540084646,
+                    -2.4636252192717683,
+                    -2.4811843095251644
+                ]
+            },
+            "time": 46.0,
+            "time_step": 46
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.158743484157334,
+                    -2.1041012700656285,
+                    -2.122919299990071,
+                    -2.131771708296921,
+                    -2.4793980082569504,
+                    -2.507995475800688,
+                    -2.453353261709463,
+                    -2.4721712916344707,
+                    -2.4810236999407387
+                ]
+            },
+            "time": 47.0,
+            "time_step": 47
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1248293519323473,
+                    -2.135196893466379,
+                    -2.090153918320472,
+                    -2.10096004301779,
+                    -2.5113278182138155,
+                    -2.4740813435761795,
+                    -2.4844488851101816,
+                    -2.4394059099642087,
+                    -2.450212034661641
+                ]
+            },
+            "time": 48.0,
+            "time_step": 48
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1676636470971253,
+                    -2.0739440641950537,
+                    -2.0922219495757313,
+                    -2.109378700734817,
+                    -2.446424499357137,
+                    -2.5169156387409295,
+                    -2.4231960558382006,
+                    -2.4414739412195785,
+                    -2.4586306923787182
+                ]
+            },
+            "time": 49.0,
+            "time_step": 49
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.15656148514159,
+                    -2.1460654290549064,
+                    -2.1567710617498475,
+                    -2.09054577190965,
+                    -2.5465519003270742,
+                    -2.5058134767876625,
+                    -2.495317420698764,
+                    -2.506023053393695,
+                    -2.439797763553505
+                ]
+            },
+            "time": 50.0,
+            "time_step": 50
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1248280085336955,
+                    -2.146065853046138,
+                    -2.0922212208755404,
+                    -2.098875454067745,
+                    -2.5024305891581835,
+                    -2.474080000177552,
+                    -2.4953178446899766,
+                    -2.441473212519359,
+                    -2.4481274457115756
+                ]
+            },
+            "time": 51.0,
+            "time_step": 51
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1248280076158017,
+                    -2.146065883607851,
+                    -2.0901801308687324,
+                    -2.123322989289972,
+                    -2.46870160925495,
+                    -2.474079999259584,
+                    -2.495317875251786,
+                    -2.4394321225125504,
+                    -2.472574980932987
+                ]
+            },
+            "time": 52.0,
+            "time_step": 52
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.124827948578863,
+                    -2.0739433221284074,
+                    -2.060433540847588,
+                    -2.109377919635894,
+                    -2.4278166833518036,
+                    -2.474079940222652,
+                    -2.4231953137722626,
+                    -2.4096855324914426,
+                    -2.4586299112796293
+                ]
+            },
+            "time": 53.0,
+            "time_step": 53
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.193849343693452,
+                    -2.1460653544549135,
+                    -2.1082141991254844,
+                    -2.068896872405039,
+                    -2.5002849073342497,
+                    -2.5431013353372944,
+                    -2.4953173460987714,
+                    -2.4574661907692708,
+                    -2.418148864048882
+                ]
+            },
+            "time": 54.0,
+            "time_step": 54
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.143506917383823,
+                    -2.135197742826604,
+                    -2.0779341821799338,
+                    -2.118408822414543,
+                    -2.4736739781074863,
+                    -2.492758909027653,
+                    -2.484449734470404,
+                    -2.427186173823803,
+                    -2.467660814058334
+                ]
+            },
+            "time": 55.0,
+            "time_step": 55
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1662004561832253,
+                    -2.1233386231976423,
+                    -2.1738638635622545,
+                    -2.137926314590262,
+                    -2.486016464953603,
+                    -2.5154524478273497,
+                    -2.472590614841437,
+                    -2.5231158552061355,
+                    -2.4871783062340995
+                ]
+            },
+            "time": 56.0,
+            "time_step": 56
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1790728005736955,
+                    -2.0771468874303665,
+                    -2.069471737735495,
+                    -2.1591338803309346,
+                    -2.4919933509163914,
+                    -2.5283247922175356,
+                    -2.426398879074191,
+                    -2.41872372937932,
+                    -2.5083858719747902
+                ]
+            },
+            "time": 57.0,
+            "time_step": 57
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.146127846962759,
+                    -2.1847138029521087,
+                    -2.126632326882467,
+                    -2.078043173920377,
+                    -2.473671124134418,
+                    -2.4953798386065684,
+                    -2.5339657945959337,
+                    -2.4758843185263104,
+                    -2.4272951655642125
+                ]
+            },
+            "time": 58.0,
+            "time_step": 58
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1777119299480376,
+                    -2.084013698026951,
+                    -2.106949522757674,
+                    -2.119688229946534,
+                    -2.415784935038562,
+                    -2.5269639215932447,
+                    -2.433265689670778,
+                    -2.4562015144014104,
+                    -2.4689402215903686
+                ]
+            },
+            "time": 59.0,
+            "time_step": 59
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1385770109101316,
+                    -2.1026056725832802,
+                    -2.1082130283947977,
+                    -2.0792721626203274,
+                    -2.458460253392052,
+                    -2.4878290025539074,
+                    -2.451857664225515,
+                    -2.457465020038665,
+                    -2.428524154264143
+                ]
+            },
+            "time": 60.0,
+            "time_step": 60
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.177710707572476,
+                    -2.084012544980999,
+                    -2.0682494426314255,
+                    -2.1379228116056996,
+                    -2.4780371336392286,
+                    -2.5269626992163157,
+                    -2.4332645366247556,
+                    -2.417501434275204,
+                    -2.4871748032495766
+                ]
+            },
+            "time": 61.0,
+            "time_step": 61
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1632627056129423,
+                    -2.109648297212977,
+                    -2.074385819080973,
+                    -2.113269443972344,
+                    -2.539759837180725,
+                    -2.512514697256782,
+                    -2.458900288856825,
+                    -2.4236378107247325,
+                    -2.4625214356160736
+                ]
+            },
+            "time": 62.0,
+            "time_step": 62
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.184560308562961,
+                    -2.1372174692468033,
+                    -2.1543192631725683,
+                    -2.1017787845646394,
+                    -2.4199027764477044,
+                    -2.5338123002067627,
+                    -2.486469460890647,
+                    -2.5035712548165026,
+                    -2.4510307762084826
+                ]
+            },
+            "time": 63.0,
+            "time_step": 63
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1700112114139007,
+                    -2.170164420024483,
+                    -2.1189240604530113,
+                    -2.1017808335032258,
+                    -2.4736705519010314,
+                    -2.51926320305774,
+                    -2.5194164116683826,
+                    -2.4681760520968385,
+                    -2.4510328251470392
+                ]
+            },
+            "time": 64.0,
+            "time_step": 64
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1646008336400677,
+                    -2.164274471890608,
+                    -2.1026747545413382,
+                    -2.062066554833008,
+                    -2.433066801350209,
+                    -2.513852825283915,
+                    -2.5135264635344168,
+                    -2.4519267461851166,
+                    -2.4113185464767968
+                ]
+            },
+            "time": 65.0,
+            "time_step": 65
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.152919918247269,
+                    -2.1642748963256215,
+                    -2.144068044136624,
+                    -2.0805030597685548,
+                    -2.5205492824435924,
+                    -2.502171909891063,
+                    -2.5135268879693387,
+                    -2.4933200357804073,
+                    -2.429755051412321
+                ]
+            },
+            "time": 66.0,
+            "time_step": 66
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1587434177405433,
+                    -2.1525278870213578,
+                    -2.1847400334584384,
+                    -2.096902964097933,
+                    -2.4495225052501945,
+                    -2.5079954093843355,
+                    -2.5017798786651206,
+                    -2.533992025102249,
+                    -2.4461549557417888
+                ]
+            },
+            "time": 67.0,
+            "time_step": 67
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1290849432701466,
+                    -2.13366389688899,
+                    -2.1049862853983097,
+                    -2.092394630600812,
+                    -2.425945635484095,
+                    -2.478336934913968,
+                    -2.482915888533004,
+                    -2.4542382770420907,
+                    -2.441646622244435
+                ]
+            },
+            "time": 68.0,
+            "time_step": 68
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1414213303083143,
+                    -2.1224399272378545,
+                    -2.132726588402385,
+                    -2.1076146965542724,
+                    -2.4604976780924384,
+                    -2.4906733219521313,
+                    -2.471691918881707,
+                    -2.4819785800461713,
+                    -2.4568666881980916
+                ]
+            },
+            "time": 69.0,
+            "time_step": 69
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1136426885076514,
+                    -2.129327933888051,
+                    -2.1272862067407203,
+                    -2.1143175493939816,
+                    -2.456257808068692,
+                    -2.4628946801514684,
+                    -2.4785799255318635,
+                    -2.476538198384584,
+                    -2.4635695410378844
+                ]
+            },
+            "time": 70.0,
+            "time_step": 70
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1160405091256345,
+                    -2.1301434937583603,
+                    -2.131002642355353,
+                    -2.098307855663284,
+                    -2.4581109002048818,
+                    -2.465292500769404,
+                    -2.4793954854042175,
+                    -2.4802546339991847,
+                    -2.447559847307069
+                ]
+            },
+            "time": 71.0,
+            "time_step": 71
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1391479759442222,
+                    -2.129326948699598,
+                    -2.156957697193396,
+                    -2.139838352245128,
+                    -2.457110476508192,
+                    -2.4883999675878625,
+                    -2.478578940343397,
+                    -2.506209688837244,
+                    -2.4890903438888374
+                ]
+            },
+            "time": 72.0,
+            "time_step": 72
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1116834520478305,
+                    -2.1562884458035545,
+                    -2.1500269889263195,
+                    -2.090365185903533,
+                    -2.4759015720760966,
+                    -2.4609354436916275,
+                    -2.505540437447324,
+                    -2.4992789805701268,
+                    -2.439617177547314
+                ]
+            },
+            "time": 73.0,
+            "time_step": 73
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.099173079799159,
+                    -2.1241566754606356,
+                    -2.112334902367131,
+                    -2.1298247492751403,
+                    -2.4940115375514864,
+                    -2.448425071442943,
+                    -2.4734086671044735,
+                    -2.4615868940109564,
+                    -2.4790767409189747
+                ]
+            },
+            "time": 74.0,
+            "time_step": 74
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.0972406521732943,
+                    -2.167051239865521,
+                    -2.1272209933822426,
+                    -2.131820961689597,
+                    -2.473916887706764,
+                    -2.4464926438170127,
+                    -2.5163032315094025,
+                    -2.4764729850260734,
+                    -2.481072953333379
+                ]
+            },
+            "time": 75.0,
+            "time_step": 75
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1016106274825956,
+                    -2.092972452061623,
+                    -2.1266297045439626,
+                    -2.1669539235977098,
+                    -2.4764924817840055,
+                    -2.450862619126491,
+                    -2.442224443705396,
+                    -2.4758816961878396,
+                    -2.516205915241586
+                ]
+            },
+            "time": 76.0,
+            "time_step": 76
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.0986218422710374,
+                    -2.1232808849352343,
+                    -2.1721812302948096,
+                    -2.1192614596613915,
+                    -2.4871413795389636,
+                    -2.44787383391483,
+                    -2.4725328765790793,
+                    -2.52143322193869,
+                    -2.4685134513052547
+                ]
+            },
+            "time": 77.0,
+            "time_step": 77
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1023195440468845,
+                    -2.1263433569659407,
+                    -2.161163825479029,
+                    -2.161286758743263,
+                    -2.5110475293131818,
+                    -2.451571535690827,
+                    -2.475595348609792,
+                    -2.5104158171229707,
+                    -2.5105387503869787
+                ]
+            },
+            "time": 78.0,
+            "time_step": 78
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.146012525344636,
+                    -2.089309689796745,
+                    -2.0479533373148935,
+                    -2.0607685316423283,
+                    -2.4764932071037973,
+                    -2.4952645169885055,
+                    -2.4385616814406705,
+                    -2.397205328958612,
+                    -2.410020523285998
+                ]
+            },
+            "time": 79.0,
+            "time_step": 79
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.0619695676455567,
+                    -2.0959440532403626,
+                    -2.168975099616419,
+                    -2.1605370196226628,
+                    -2.5071243733690625,
+                    -2.411221559289376,
+                    -2.445196044884405,
+                    -2.518227091260216,
+                    -2.509789011266449
+                ]
+            },
+            "time": 80.0,
+            "time_step": 80
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.100902502123651,
+                    -2.125616722980706,
+                    -2.088422558301069,
+                    -2.192222055541796,
+                    -2.4400608616942074,
+                    -2.450154493767483,
+                    -2.4748687146243755,
+                    -2.437674549944732,
+                    -2.5414740471856287
+                ]
+            },
+            "time": 81.0,
+            "time_step": 81
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1403352077881213,
+                    -2.0952377274061953,
+                    -2.0526768979277947,
+                    -2.193925094194486,
+                    -2.47043810611875,
+                    -2.4895871994319037,
+                    -2.4444897190499413,
+                    -2.4019288895715984,
+                    -2.543177085838326
+                ]
+            },
+            "time": 82.0,
+            "time_step": 82
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1882706212902674,
+                    -2.1189733046642174,
+                    -2.149585358335586,
+                    -2.1996525102420166,
+                    -2.510696427803936,
+                    -2.537522612934114,
+                    -2.468225296308083,
+                    -2.498837349979431,
+                    -2.5489045018858456
+                ]
+            },
+            "time": 83.0,
+            "time_step": 83
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.106934232679778,
+                    -2.1083040872927756,
+                    -2.1730784883964214,
+                    -2.192688845455033,
+                    -2.4597457968923915,
+                    -2.456186224323456,
+                    -2.4575560789365793,
+                    -2.522330480040288,
+                    -2.5419408370989065
+                ]
+            },
+            "time": 84.0,
+            "time_step": 84
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1275749500732277,
+                    -2.1064800301756073,
+                    -2.125849031203297,
+                    -2.1717798028900805,
+                    -2.396872276961509,
+                    -2.4768269417170328,
+                    -2.4557320218194354,
+                    -2.475101022846979,
+                    -2.521031794533962
+                ]
+            },
+            "time": 85.0,
+            "time_step": 85
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.145475455373275,
+                    -2.1139746974948332,
+                    -2.1082923073110975,
+                    -2.1790438147767177,
+                    -2.4308508058255622,
+                    -2.4947274470170937,
+                    -2.463226689138639,
+                    -2.457544298955164,
+                    -2.528295806420593
+                ]
+            },
+            "time": 86.0,
+            "time_step": 86
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1220172392112366,
+                    -2.0674567598159665,
+                    -2.173081695847262,
+                    -2.1847721393527317,
+                    -2.4532233618509927,
+                    -2.4712692308551047,
+                    -2.4167087514598937,
+                    -2.5223336874910993,
+                    -2.534024130996382
+                ]
+            },
+            "time": 87.0,
+            "time_step": 87
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1690624322667142,
+                    -2.063158817677073,
+                    -2.12485736135065,
+                    -2.136726124551173,
+                    -2.4264880668265687,
+                    -2.518314423910558,
+                    -2.412410809320959,
+                    -2.4741093529944145,
+                    -2.4859781161949748
+                ]
+            },
+            "time": 88.0,
+            "time_step": 88
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1176602410601406,
+                    -2.1031629683547433,
+                    -2.079800957732433,
+                    -2.1595107366907467,
+                    -2.4297204431698174,
+                    -2.4669122327039816,
+                    -2.45241495999855,
+                    -2.42905294937621,
+                    -2.5087627283345673
+                ]
+            },
+            "time": 89.0,
+            "time_step": 89
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.0782114896710704,
+                    -2.1470878056355427,
+                    -2.1063439014864485,
+                    -2.136918251856184,
+                    -2.4099317932775195,
+                    -2.427463481315399,
+                    -2.496339797281755,
+                    -2.455595893130283,
+                    -2.486170243500014
+                ]
+            },
+            "time": 90.0,
+            "time_step": 90
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1045271366083473,
+                    -2.1505525449430456,
+                    -2.1073179119237566,
+                    -2.154990933601802,
+                    -2.5151795114183226,
+                    -2.453779128252192,
+                    -2.4998045365869066,
+                    -2.4565699035675657,
+                    -2.50424292524571
+                ]
+            },
+            "time": 91.0,
+            "time_step": 91
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.061463315805513,
+                    -2.1301767172257575,
+                    -2.160034012017363,
+                    -2.138952766200547,
+                    -2.430850038115879,
+                    -2.4107153074493017,
+                    -2.4794287088695817,
+                    -2.5092860036612232,
+                    -2.4882047578443642
+                ]
+            },
+            "time": 92.0,
+            "time_step": 92
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1253526056440624,
+                    -2.171353152494326,
+                    -2.0908759260045042,
+                    -2.164052775808786,
+                    -2.495092564560128,
+                    -2.4746045972879216,
+                    -2.520605144138086,
+                    -2.4401279176482054,
+                    -2.5133047674526496
+                ]
+            },
+            "time": 93.0,
+            "time_step": 93
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.0966668396747585,
+                    -2.1759499698889333,
+                    -2.130350869231355,
+                    -2.11446735694051,
+                    -2.5122490331987954,
+                    -2.44591883131855,
+                    -2.5252019615327894,
+                    -2.4796028608755862,
+                    -2.463719348584332
+                ]
+            },
+            "time": 94.0,
+            "time_step": 94
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.12799257764785,
+                    -2.161007194044969,
+                    -2.1384818827374152,
+                    -2.16325113413396,
+                    -2.4539823685672864,
+                    -2.4772445692919347,
+                    -2.510259185688914,
+                    -2.4877338743811594,
+                    -2.5125031257777604
+                ]
+            },
+            "time": 95.0,
+            "time_step": 95
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.154001763595574,
+                    -2.160433489030197,
+                    -2.1807747158712543,
+                    -2.208715912946582,
+                    -2.4286792136612516,
+                    -2.503253755239344,
+                    -2.5096854806739715,
+                    -2.5300267075141556,
+                    -2.5579679045904644
+                ]
+            },
+            "time": 96.0,
+            "time_step": 96
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.0640853624024085,
+                    -2.1189738775008484,
+                    -2.177624019094947,
+                    -2.126475532444496,
+                    -2.4413884785294884,
+                    -2.4133373540463037,
+                    -2.468225869144482,
+                    -2.5268760107387798,
+                    -2.475727524088389
+                ]
+            },
+            "time": 97.0,
+            "time_step": 97
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1045175840058525,
+                    -2.091597243352505,
+                    -2.097905134678026,
+                    -2.111032555041734,
+                    -2.464571159235618,
+                    -2.453769575649723,
+                    -2.440849234996241,
+                    -2.447157126321879,
+                    -2.4602845466856142
+                ]
+            },
+            "time": 98.0,
+            "time_step": 98
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.132397787094802,
+                    -2.1519914093704493,
+                    -2.1288528054737035,
+                    -2.126066809930996,
+                    -2.4740695605065652,
+                    -2.4816497787386127,
+                    -2.501243401014271,
+                    -2.478104797117465,
+                    -2.4753188015637284
+                ]
+            },
+            "time": 99.0,
+            "time_step": 99
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true,
+                    true
+                ],
+                "reporter_transfer:log_resultant_velocity:value": [
+                    -2.1195400751526594,
+                    -2.126121769645282,
+                    -2.1340479822048106,
+                    -2.110212330954285,
+                    -2.456225658269688,
+                    -2.4687920667964467,
+                    -2.47537376128427,
+                    -2.483299973848728,
+                    -2.4594643225981185
+                ]
+            },
+            "time": 100.0,
+            "time_step": 100
+        }
+    ]
+}

@@ -1,11 +1,11 @@
-param1 = 1.0
-param2 = 1.0
-param3 = 1.0
-param4 = 1.0
+param1 = 1.0 # (varying)
+param2 = 0.0
+param3 = 0.0
+param4 = 0.0
 
 ## Parameters (true values)
-rho1 = 1.1
-mu1 = 0.015
+rho1 = 1.0
+mu1 = 0.015 # (varying)
 
 ## Experimental configurations
 PP_x = 0.5
@@ -69,6 +69,12 @@ PP_y = 0.5
   [res_vel]
     type = ParsedFunction
     expression = 'sqrt(a^2 + b^2)'
+    symbol_names = 'a b'
+    symbol_values = 'vel_x vel_y'
+  []
+  [log_res_vel]
+    type = ParsedFunction
+    expression = 'log(sqrt(a^2 + b^2))'
     symbol_names = 'a b'
     symbol_values = 'vel_x vel_y'
   []
@@ -171,11 +177,16 @@ PP_y = 0.5
   [resultant_velocity]
     type = FunctionValuePostprocessor
     function = 'res_vel'
+  []
+  [log_resultant_velocity]
+    type = FunctionValuePostprocessor
+    function = 'log_res_vel'
   []  
 []
 
 [Outputs]
   exodus = false
   perf_graph = false
-  csv = true
+  csv = false
+  console = false
 []

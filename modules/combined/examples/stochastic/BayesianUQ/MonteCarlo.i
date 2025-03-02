@@ -29,11 +29,25 @@
   []
 []
 
+[Transfers]
+  [log_resultant_velocity]
+    type = SamplerPostprocessorTransfer
+    from_multi_app = sub
+    sampler = sample
+    to_vector_postprocessor = log_resultant_velocity
+    from_postprocessor = log_resultant_velocity
+  []
+[]
+
 [VectorPostprocessors]
   [data]
     type = SamplerData
     sampler = sample
     execute_on = 'initial timestep_end'
+  []
+  [log_resultant_velocity]
+    type = StochasticResults
+    execute_on = 'TIMESTEP_END'
   []
 []
 
