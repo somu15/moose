@@ -1,0 +1,368 @@
+{
+    "number_of_parts": 5,
+    "part": 0,
+    "reporters": {
+        "conditional": {
+            "type": "GenericActiveLearner",
+            "values": {
+                "acquisition_function": {
+                    "type": "std::vector<double>"
+                },
+                "convergence_value": {
+                    "type": "double"
+                },
+                "inputs": {
+                    "type": "std::vector<std::vector<double>>"
+                },
+                "outputs_required": {
+                    "type": "std::vector<double>"
+                },
+                "sorted_indices": {
+                    "type": "std::vector<unsigned int>"
+                }
+            }
+        },
+        "constant": {
+            "type": "StochasticReporter",
+            "values": {
+                "reporter_transfer:converged": {
+                    "row_begin": 0,
+                    "row_end": 1,
+                    "type": "std::vector<bool>"
+                },
+                "reporter_transfer:resultant_velocity5:value": {
+                    "row_begin": 0,
+                    "row_end": 1,
+                    "type": "std::vector<double>"
+                }
+            }
+        }
+    },
+    "time_steps": [
+        {
+            "conditional": {
+                "acquisition_function": [],
+                "convergence_value": 0.0,
+                "inputs": [],
+                "outputs_required": [],
+                "sorted_indices": []
+            },
+            "constant": {
+                "reporter_transfer:converged": [
+                    false
+                ],
+                "reporter_transfer:resultant_velocity5:value": [
+                    0.0
+                ]
+            },
+            "time": 0.0,
+            "time_step": 0
+        },
+        {
+            "conditional": {
+                "acquisition_function": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "convergence_value": 0.0,
+                "inputs": [
+                    [
+                        0.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        0.0
+                    ]
+                ],
+                "outputs_required": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "sorted_indices": [
+                    0,
+                    1,
+                    2,
+                    3
+                ]
+            },
+            "constant": {
+                "reporter_transfer:converged": [
+                    true
+                ],
+                "reporter_transfer:resultant_velocity5:value": [
+                    0.0
+                ]
+            },
+            "time": 1.0,
+            "time_step": 1
+        },
+        {
+            "conditional": {
+                "acquisition_function": [
+                    3.478701937230507,
+                    2.4197735883260223,
+                    2.2819799798562275,
+                    2.021838607322417
+                ],
+                "convergence_value": 0.0,
+                "inputs": [
+                    [
+                        -1.4087213311337297,
+                        1.7488414810635051
+                    ],
+                    [
+                        2.6182764299694217,
+                        -3.4616878653822716
+                    ],
+                    [
+                        -0.2217944131998269,
+                        -1.402350855143848
+                    ],
+                    [
+                        2.8036268266787574,
+                        2.620049032684591
+                    ]
+                ],
+                "outputs_required": [
+                    0.3524277496919313,
+                    0.5667319554051788,
+                    0.298434630086608,
+                    1.5992009080035685
+                ],
+                "sorted_indices": [
+                    1787,
+                    1221,
+                    2100,
+                    1275
+                ]
+            },
+            "constant": {
+                "reporter_transfer:converged": [
+                    true
+                ],
+                "reporter_transfer:resultant_velocity5:value": [
+                    0.3524277496919313
+                ]
+            },
+            "time": 2.0,
+            "time_step": 2
+        },
+        {
+            "conditional": {
+                "acquisition_function": [
+                    3.555214650358216,
+                    2.981032335470427,
+                    2.7315165757262463,
+                    2.1876046748999105
+                ],
+                "convergence_value": 0.3797454941252819,
+                "inputs": [
+                    [
+                        2.519905247650499,
+                        -0.3981359350675834
+                    ],
+                    [
+                        0.47853392688816576,
+                        3.2384672927348612
+                    ],
+                    [
+                        -3.470056040419188,
+                        -3.4212594626776083
+                    ],
+                    [
+                        1.0323484146503095,
+                        0.7555051045822431
+                    ]
+                ],
+                "outputs_required": [
+                    0.48948121005680695,
+                    0.8283405678847268,
+                    1.0544554875019703,
+                    0.3152542019158212
+                ],
+                "sorted_indices": [
+                    960,
+                    1929,
+                    2979,
+                    1795
+                ]
+            },
+            "constant": {
+                "reporter_transfer:converged": [
+                    true
+                ],
+                "reporter_transfer:resultant_velocity5:value": [
+                    0.48948121005680695
+                ]
+            },
+            "time": 3.0,
+            "time_step": 3
+        },
+        {
+            "conditional": {
+                "acquisition_function": [
+                    2.8804996181274647,
+                    2.8401675315656147,
+                    2.1138747539439704,
+                    1.8717854856664555
+                ],
+                "convergence_value": 0.3350447152020246,
+                "inputs": [
+                    [
+                        2.1444444533455767,
+                        1.4604076918809874
+                    ],
+                    [
+                        -1.386813403792667,
+                        -3.1218566881344634
+                    ],
+                    [
+                        -2.799847883867567,
+                        -0.7760426210703668
+                    ],
+                    [
+                        -3.4911704590915416,
+                        3.394765221065927
+                    ]
+                ],
+                "outputs_required": [
+                    0.860574978574288,
+                    0.8253814192942466,
+                    0.6915207678406081,
+                    0.4518333969211592
+                ],
+                "sorted_indices": [
+                    1599,
+                    2280,
+                    1163,
+                    1590
+                ]
+            },
+            "constant": {
+                "reporter_transfer:converged": [
+                    true
+                ],
+                "reporter_transfer:resultant_velocity5:value": [
+                    0.860574978574288
+                ]
+            },
+            "time": 4.0,
+            "time_step": 4
+        },
+        {
+            "conditional": {
+                "acquisition_function": [
+                    3.1487571303064783,
+                    2.895211049413296,
+                    2.717709768983491,
+                    2.072450385568102
+                ],
+                "convergence_value": 0.30454797387698457,
+                "inputs": [
+                    [
+                        3.3941715252738383,
+                        0.7244873798967982
+                    ],
+                    [
+                        -1.4554726203113635,
+                        -1.6848621499540621
+                    ],
+                    [
+                        -1.2427799899028917,
+                        3.361253727539018
+                    ],
+                    [
+                        0.6358807279926487,
+                        -3.186405330218175
+                    ]
+                ],
+                "outputs_required": [
+                    1.0456931373786973,
+                    0.4257454791274006,
+                    0.48956888410096305,
+                    0.6260793282078662
+                ],
+                "sorted_indices": [
+                    296,
+                    2343,
+                    1384,
+                    2819
+                ]
+            },
+            "constant": {
+                "reporter_transfer:converged": [
+                    true
+                ],
+                "reporter_transfer:resultant_velocity5:value": [
+                    1.0456931373786973
+                ]
+            },
+            "time": 5.0,
+            "time_step": 5
+        },
+        {
+            "conditional": {
+                "acquisition_function": [
+                    3.4900972900566254,
+                    2.777789363386658,
+                    2.285383160006942,
+                    2.178252638667997
+                ],
+                "convergence_value": 0.3500852966754295,
+                "inputs": [
+                    [
+                        -3.1244780964099745,
+                        1.0582950987492699
+                    ],
+                    [
+                        1.0433491072178536,
+                        1.895059957005742
+                    ],
+                    [
+                        -0.5472494855896988,
+                        -2.43074544602346
+                    ],
+                    [
+                        -1.1037271812395792,
+                        -0.30550878389488934
+                    ]
+                ],
+                "outputs_required": [
+                    0.43748656303681993,
+                    0.6537853381127435,
+                    0.5784824031301319,
+                    0.2325564164421875
+                ],
+                "sorted_indices": [
+                    667,
+                    959,
+                    2792,
+                    2258
+                ]
+            },
+            "constant": {
+                "reporter_transfer:converged": [
+                    true
+                ],
+                "reporter_transfer:resultant_velocity5:value": [
+                    0.43748656303681993
+                ]
+            },
+            "time": 6.0,
+            "time_step": 6
+        }
+    ]
+}

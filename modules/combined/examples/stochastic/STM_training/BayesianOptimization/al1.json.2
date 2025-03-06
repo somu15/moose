@@ -1,0 +1,302 @@
+{
+    "number_of_parts": 4,
+    "part": 2,
+    "reporters": {
+        "conditional": {
+            "type": "GenericActiveLearner",
+            "values": {
+                "acquisition_function": {
+                    "type": "std::vector<double>"
+                },
+                "convergence_value": {
+                    "type": "double"
+                },
+                "inputs": {
+                    "type": "std::vector<std::vector<double>>"
+                },
+                "outputs_required": {
+                    "type": "std::vector<double>"
+                },
+                "sorted_indices": {
+                    "type": "std::vector<unsigned int>"
+                }
+            }
+        },
+        "constant": {
+            "type": "StochasticReporter",
+            "values": {
+                "reporter_transfer:converged": {
+                    "row_begin": 3,
+                    "row_end": 4,
+                    "type": "std::vector<bool>"
+                },
+                "reporter_transfer:log_inverse_error:value": {
+                    "row_begin": 3,
+                    "row_end": 4,
+                    "type": "std::vector<double>"
+                }
+            }
+        }
+    },
+    "time_steps": [
+        {
+            "conditional": {
+                "acquisition_function": [],
+                "convergence_value": 0.0,
+                "inputs": [],
+                "outputs_required": [],
+                "sorted_indices": []
+            },
+            "constant": {
+                "reporter_transfer:converged": [
+                    false
+                ],
+                "reporter_transfer:log_inverse_error:value": [
+                    0.0
+                ]
+            },
+            "time": 0.0,
+            "time_step": 0
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true
+                ],
+                "reporter_transfer:log_inverse_error:value": [
+                    -0.8064615800506211
+                ]
+            },
+            "time": 1.0,
+            "time_step": 1
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true
+                ],
+                "reporter_transfer:log_inverse_error:value": [
+                    0.9943181401497778
+                ]
+            },
+            "time": 2.0,
+            "time_step": 2
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true
+                ],
+                "reporter_transfer:log_inverse_error:value": [
+                    0.30525827891191504
+                ]
+            },
+            "time": 3.0,
+            "time_step": 3
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true
+                ],
+                "reporter_transfer:log_inverse_error:value": [
+                    0.2726591945235
+                ]
+            },
+            "time": 4.0,
+            "time_step": 4
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true
+                ],
+                "reporter_transfer:log_inverse_error:value": [
+                    0.9717454667703798
+                ]
+            },
+            "time": 5.0,
+            "time_step": 5
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true
+                ],
+                "reporter_transfer:log_inverse_error:value": [
+                    0.012593734378235149
+                ]
+            },
+            "time": 6.0,
+            "time_step": 6
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true
+                ],
+                "reporter_transfer:log_inverse_error:value": [
+                    2.2611909239343984
+                ]
+            },
+            "time": 7.0,
+            "time_step": 7
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true
+                ],
+                "reporter_transfer:log_inverse_error:value": [
+                    1.1506907906541788
+                ]
+            },
+            "time": 8.0,
+            "time_step": 8
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true
+                ],
+                "reporter_transfer:log_inverse_error:value": [
+                    1.3656355000015272
+                ]
+            },
+            "time": 9.0,
+            "time_step": 9
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true
+                ],
+                "reporter_transfer:log_inverse_error:value": [
+                    2.4723524155328684
+                ]
+            },
+            "time": 10.0,
+            "time_step": 10
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true
+                ],
+                "reporter_transfer:log_inverse_error:value": [
+                    2.446805952556975
+                ]
+            },
+            "time": 11.0,
+            "time_step": 11
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true
+                ],
+                "reporter_transfer:log_inverse_error:value": [
+                    -0.2648772025095442
+                ]
+            },
+            "time": 12.0,
+            "time_step": 12
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true
+                ],
+                "reporter_transfer:log_inverse_error:value": [
+                    6.2414209674209395
+                ]
+            },
+            "time": 13.0,
+            "time_step": 13
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true
+                ],
+                "reporter_transfer:log_inverse_error:value": [
+                    0.3557753863799018
+                ]
+            },
+            "time": 14.0,
+            "time_step": 14
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true
+                ],
+                "reporter_transfer:log_inverse_error:value": [
+                    3.404717848916434
+                ]
+            },
+            "time": 15.0,
+            "time_step": 15
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true
+                ],
+                "reporter_transfer:log_inverse_error:value": [
+                    6.32922504702372
+                ]
+            },
+            "time": 16.0,
+            "time_step": 16
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true
+                ],
+                "reporter_transfer:log_inverse_error:value": [
+                    4.961019630775904
+                ]
+            },
+            "time": 17.0,
+            "time_step": 17
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true
+                ],
+                "reporter_transfer:log_inverse_error:value": [
+                    4.209134643159533
+                ]
+            },
+            "time": 18.0,
+            "time_step": 18
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true
+                ],
+                "reporter_transfer:log_inverse_error:value": [
+                    4.719112494887625
+                ]
+            },
+            "time": 19.0,
+            "time_step": 19
+        },
+        {
+            "constant": {
+                "reporter_transfer:converged": [
+                    true
+                ],
+                "reporter_transfer:log_inverse_error:value": [
+                    4.945316458407108
+                ]
+            },
+            "time": 20.0,
+            "time_step": 20
+        }
+    ]
+}
