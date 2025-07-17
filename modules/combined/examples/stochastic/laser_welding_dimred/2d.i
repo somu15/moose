@@ -50,3 +50,12 @@
 [Debug]
   show_var_residual_norms = true
 []
+
+[Outputs]
+  #   perf_graph = true
+  #   csv = true
+    exodus = true
+  #   execute_on = 'TIMESTEP_END'
+  #   print_linear_converged_reason = false
+  #   print_nonlinear_converged_reason = false
+  []

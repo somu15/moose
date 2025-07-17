@@ -11,5 +11,5 @@ ymin=${fparse -thickness}
 surfacetemp=300 # K (temperature at the other side of the plate)
 
 # Time stepping parameters
-endtime=4e-4 # s
+endtime= 2e-5 # 4e-4 # s
 timestep=${fparse endtime/1000} # s
